@@ -1,10 +1,10 @@
-package sit.integrate;
+package sit.ssi;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class IntegrateApplicationTests {
+class SsiApplicationTests {
 
     @Test
     void contextLoads() {
