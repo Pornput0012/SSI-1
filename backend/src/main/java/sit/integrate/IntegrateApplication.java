@@ -1,13 +1,13 @@
-package sit.ssi1;
+package sit.integrate;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SpringbootApplication {
+public class IntegrateApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SpringbootApplication.class, args);
+        SpringApplication.run(IntegrateApplication.class, args);
     }
 
 }
