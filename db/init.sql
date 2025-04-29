@@ -4,13 +4,13 @@ SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 create database if not exists INT221 CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 use INT221;
 create table if not exists brands(
-	  brand_id integer AUTO_INCREMENT PRIMARY KEY,
-    name varchar(30) not null,
-    websiteUrl varchar(40),
-    isActive boolean not null default false,
-    countryOfOrigin varchar(80),
-    createdOn datetime not null default current_timestamp,
-	  updatedOn datetime not null default current_timestamp on update current_timestamp
+  brand_id integer AUTO_INCREMENT PRIMARY KEY,
+  name varchar(30) not null,
+  websiteUrl varchar(40),
+  isActive boolean not null default false,
+  countryOfOrigin varchar(80),
+  createdOn datetime not null default current_timestamp,
+  updatedOn datetime not null default current_timestamp on update current_timestamp
 );
 
 create table if not exists products (
