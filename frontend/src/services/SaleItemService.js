@@ -16,7 +16,7 @@ const getAllSaleItems = async () => {
     }
 }
 
-// GET sale-item by id
+// GET sale-item by ID
 const getSaleItemById = async (id) => {
     try {
         if (!id) {
