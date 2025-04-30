@@ -48,8 +48,8 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     ])
 
     // setter
-    function setSaleItems(items) {
-        saleItems.value = items
+    function setSaleItems(itemArray) {
+        saleItems.value = itemArray
     }
 
     // getter
