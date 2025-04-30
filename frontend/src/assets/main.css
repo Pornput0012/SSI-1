@@ -1,2 +1,12 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+    themes: all;
+}
+
+html {
+    background-color: #fefbe9;
+}
+  
+html:has(body + .isHideScroll) body {
+    overflow: hidden;
+}
