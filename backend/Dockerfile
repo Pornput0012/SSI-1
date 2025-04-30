@@ -1,10 +1,10 @@
-FROM maven:3.8.6 AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /usr/src/myapp
 
 COPY . .
 RUN mvn clean package -DskipTests
 
-FROM openjdk:17-jdk-slim
+FROM openjdk:21-jdk-slim
 WORKDIR /usr/src/myapp
 
 COPY --from=builder /usr/src/myapp/target/*.jar app.jar
