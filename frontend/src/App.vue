@@ -1,29 +1,29 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+// import { ref, onMounted } from 'vue'
 
-const products = ref([])
-const error = ref(null)
+// const products = ref([])
+// const error = ref(null)
 
-const fetchProducts = async () => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products`)
-    if (!response.ok) {
-      throw new Error('Network response was not ok')
-    }
-    const data = await response.json()
-    products.value = data
-  } catch (err) {
-    error.value = 'เกิดข้อผิดพลาด: ' + err.message
-  }
-}
+// const fetchProducts = async () => {
+//   try {
+//     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products`)
+//     if (!response.ok) {
+//       throw new Error('Network response was not ok')
+//     }
+//     const data = await response.json()
+//     products.value = data
+//   } catch (err) {
+//     error.value = 'เกิดข้อผิดพลาด: ' + err.message
+//   }
+// }
 
-onMounted(() => {
-  fetchProducts()
-})
+// onMounted(() => {
+//   fetchProducts()
+// })
 </script>
 
 <template>
-  <div class="p-4">
+  <!-- <div class="p-4">
     <h1 class="text-2xl font-bold mb-4">รายการสินค้า</h1>
     <div v-if="error" class="text-red-500">{{ error }}</div>
     <ul v-else>
@@ -38,5 +38,5 @@ onMounted(() => {
         <p class="text-sm text-gray-500">ยี่ห้อ: {{ product.brand }}</p>
       </li>
     </ul>
-  </div>
+  </div> -->
 </template>
