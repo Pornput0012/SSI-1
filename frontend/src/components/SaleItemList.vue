@@ -1,4 +1,5 @@
 <script setup>
+import { onMounted } from 'vue';
 import ContainerList from './ContainerList.vue';
 import SaleItemModel from './SaleItemModel.vue';
 
@@ -29,6 +30,12 @@ console.log(props.saleItems)
             />
         </template>
     </ContainerList>
+    <div v-if="!saleItems || saleItems.length === 0" class="w-full h-full p-12 flex justify-center items-center bg-purple-200 border-1 border-purple-400">
+
+        <p class="text-purple-700 font-medium">
+            no sale item
+        </p>
+    </div>
 </div>
 </template>
  
