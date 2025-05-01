@@ -23,32 +23,9 @@ const menu = [
 <template>
   <div class="w-full h-full flex-col hidden md:block">
     <div class="navbar bg-base-100 shadow-sm px-6 py-4 flex-col gap-4">
-      <div class="w-full flex justify-end items-center">
-        <label class="w-fit h-8 input input-xs">
-          <input type="search" class="grow" placeholder="Search..." />
-          <button class="cursor-pointer">
-            <svg
-              class="h-[1em] opacity-50"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-            >
-              <g
-                stroke-linejoin="round"
-                stroke-linecap="round"
-                stroke-width="2.5"
-                fill="none"
-                stroke="currentColor"
-              >
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.3-4.3"></path>
-              </g>
-            </svg>
-          </button>
-        </label>
-      </div>
       <div class="w-full flex justify-between items-center text-lg">
-        <router-link :to="{ name: 'landing' }" class="font-bold"
-          >ITB MShop</router-link
+        <RouterLink :to="{ name: 'landing' }" class="font-bold"
+          >ITB MShop</RouterLink
         >
         <div>
           <button class="btn btn-primary px-4 text-white bg-purple-700">
@@ -60,7 +37,7 @@ const menu = [
     <div
       class="bg-base-100 border-t-1 border-base-300 shadow-sm px-6 py-2 flex gap-10"
     >
-      <RouterLink
+      <RouterLink active-class='border-b-1'
         v-for="(m, i) in menu"
         :to="{ name: m.to }"
         class="font-light hover:text-purple-700 transition-colors"
@@ -144,17 +121,17 @@ const menu = [
         X
       </button>
       <div class="flex flex-col">
-        <RouterLink
+        <RouterLink active-class='border-b-1'
           to="/"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Home</RouterLink
         >
-        <RouterLink
+        <RouterLink active-class='border-b-1'
           :to="{ name: 'sale-items' }"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Products</RouterLink
         >
-        <RouterLink
+        <RouterLink active-class='border-b-1'
           to="l"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Log in</RouterLink

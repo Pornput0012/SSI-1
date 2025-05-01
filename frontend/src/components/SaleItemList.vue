@@ -16,7 +16,7 @@ console.log(props.saleItems)
  
 <template>
 <div>
-    <ContainerList v-if="saleItems && saleItems.length > 0" :sale-items="saleItems"  class="w-full h-full grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-5 lg:gap-8 xl:gap-10">
+    <ContainerList v-if="saleItems && saleItems.length > 0" :sale-items="saleItems"  class="w-full h-full grid grid-cols-1 gap-4  sm:grid-cols-2 md:grid-cols-3 md:gap-6 lg:grid-cols-4 lg:gap-8 xl:grid-cols-5 xl:gap-10">
         <template v-slot="{itemInList}">
             <SaleItemModel
                 :brand="itemInList.brandName"
