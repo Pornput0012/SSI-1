@@ -8,7 +8,7 @@
 }
 
 html {
-    background-color: #fefbe9;
+    background-color: #f7f7f7;
 }
 
 html:has(body + .isHideScroll) body {
