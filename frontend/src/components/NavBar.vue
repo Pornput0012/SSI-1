@@ -7,6 +7,17 @@ function setOpenHamburger() {
   openHamburger.value = !openHamburger.value;
   console.log(openHamburger.value);
 }
+
+const menu = [
+  {
+    to: "landing",
+    text: "Home",
+  },
+  {
+    to: "sale-items",
+    text: "Products",
+  },
+];
 </script>
 
 <template>
@@ -36,7 +47,9 @@ function setOpenHamburger() {
         </label>
       </div>
       <div class="w-full flex justify-between items-center text-lg">
-        <p class="font-bold">ITB MShop</p>
+        <router-link :to="{ name: 'landing' }" class="font-bold"
+          >ITB MShop</router-link
+        >
         <div>
           <button class="btn btn-primary px-4 text-white bg-purple-700">
             Log in
@@ -48,19 +61,10 @@ function setOpenHamburger() {
       class="bg-base-100 border-t-1 border-base-300 shadow-sm px-6 py-2 flex gap-10"
     >
       <RouterLink
-        :to="{ name: 'sale-items' }"
+        v-for="(m, i) in menu"
+        :to="{ name: m.to }"
         class="font-light hover:text-purple-700 transition-colors"
-        >Products</RouterLink
-      >
-      <RouterLink
-        :to="{ name: 'sale-items' }"
-        class="font-light hover:text-purple-700 transition-colors"
-        >Products</RouterLink
-      >
-      <RouterLink
-        :to="{ name: 'sale-items' }"
-        class="font-light hover:text-purple-700 transition-colors"
-        >Products</RouterLink
+        >{{ m.text }}</RouterLink
       >
     </div>
   </div>
