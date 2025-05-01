@@ -16,6 +16,8 @@ const saleItemId = route.params.id
 
 const selectSaleItem = ref(null)
 
+const isNotFound = ref(false)
+
 const fetchSaleItemById = async () => {
   try {
     if (!saleItemId) {
@@ -30,11 +32,11 @@ const fetchSaleItemById = async () => {
     if (response && !response.error) {
       selectSaleItem.value = response
     } else {
-      throw new Error(response.error)
+      throw new Error("The requested sale item does not exist or has been removed.")
     }
   } catch (error) {
     console.error(error)
-    router.push({ name: 'sale-items' })
+    isNotFound.value = true
   }
 }
 
