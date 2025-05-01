@@ -2,10 +2,7 @@ package ssi.backend.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ssi.backend.dtos.ProductDetailDTO;
 import ssi.backend.dtos.ProductItemDTO;
 import ssi.backend.entities.Product;
@@ -15,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/itb-mshop/v1/sale-items")
+@CrossOrigin(origins = "${app.cors.allowedOrigins}")
 public class ProductController {
     @Autowired
     private ProductService productService;

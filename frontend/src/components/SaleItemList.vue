@@ -26,8 +26,6 @@ console.log(props.saleItems)
                 :storage-gb="itemInList.storageGb"
                 :color="itemInList.color"
             />
-
-           
         </template>
     </ContainerList>
 </div>
