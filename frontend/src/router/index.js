@@ -22,6 +22,7 @@ const router = createRouter({
       name: "sale-item-detail"
     }
   ],
+  linkActiveClass: 'border-b-1 '
 });
 
 export default router;

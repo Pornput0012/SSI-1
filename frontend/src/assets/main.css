@@ -1,4 +1,8 @@
 @import "tailwindcss";
+
+* {
+    font-family: "Roboto","Open Sans", sans-serif;
+}
 @plugin "daisyui" {
     themes: all;
 }
@@ -6,7 +10,7 @@
 html {
     background-color: #fefbe9;
 }
-  
+
 html:has(body + .isHideScroll) body {
     overflow: hidden;
 }
