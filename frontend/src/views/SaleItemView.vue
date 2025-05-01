@@ -17,7 +17,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="w-full h-full p-20">
+  <div class="w-full h-full p-10  md:p-20">
     <h1 class="font-bold text-2xl">Products</h1>
     <SaleItemList class="mt-10" :sale-items="saleItems" />
   </div>

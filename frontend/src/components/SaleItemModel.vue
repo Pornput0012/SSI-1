@@ -2,6 +2,10 @@
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 
 const props = defineProps({
+  id: {
+    type: Number,
+    require: true,
+  },
   brand: {
     type: String,
     require: true,
@@ -18,41 +22,71 @@ const props = defineProps({
   },
   color: String,
 });
-
 </script>
 
 <template>
-  <div class="card w-64 h-96 bg-base-100 shadow-md rounded-xl flex flex-col">
-    <div class="w-full h-52 p-3 mx-auto">
-      <img
-        src="../assets/logo.svg"
-        alt="Product image"
-        class="w-full h-full object-cover object-center rounded"
-      />
-    </div>
-    <div class="h-px bg-gray-200 shadow-sm my-2"></div>
+  <RouterLink 
+    class="Itbms-row"
+    :to="{ name: 'sale-item-detail', params: { id } }"
+  >
+    <div
+      class="card w-full h-[264px] bg-base-100 shadow-md rounded-xl flex flex-col sm:h-72 md:h-[292px] lg:h-[350px] xl:h-[360px]  hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+    >
+      <div
+        class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
+      >
+        <img
+          src="../assets/bg.jpg"
+          alt="Product image"
+          class="w-full h-full object-cover object-center"
+        />
+      </div>
 
-    <div class="flex flex-col w-full h-full">
-      <div class="px-4 pt-2 pัb-0">
-        <p class="Itbms-brand text-gray-500 text-sm font-medium">{{ brand }}</p>
-        <p class="Itbms-model text-lg font-semibold">{{ model }}</p>
-  
-        <div class="flex items-center text-lg font-light">
-          <p v-if="ramGb" class="Itbms-ramGb">{{ ramGb }}</p>
-          <p v-if="storageGb" class="Itbms-storageGb">/{{ storageGb }}GB</p>
+      <div class="h-px bg-gray-200 shadow-sm"></div>
+
+      <div
+        class="flex-[1] flex flex-col justify-between w-full h-full p-3 text-[10px] sm:text-xs sm:p-3 lg:p-4"
+      >
+        <div class="pt-2 pb-0">
+          <p class="Itbms-brand text-gray-500 font-medium">{{ brand }}</p>
+          <p class="Itbms-model font-semibold">{{ model }}</p>
+
+          <div class="flex items-center font-light">
+            <p v-if="ramGb" class="Itbms-ramGb">{{ ramGb }}</p>
+            <p v-if="ramGb && storageGb">/</p>
+            <div v-if="storageGb" class="flex gap-1">
+              <p class="Itbms-storageGb">{{ storageGb }}</p>
+              <p class="Itbms-storageGb-unit">GB</p>
+            </div>
+          </div>
+
+          <p v-if="color" class="Itbms-color text-gray-600">
+            color : {{ color }}
+          </p>
         </div>
-  
-        <p v-if="color" class="Itbms-color text-sm text-gray-600">
-          color : {{ color }}
-        </p>
-      </div>
-      <div class="p-4 pt-2 mt-auto" v-if="price">
-        <p class="Itbms-price text-lg font-semibold text-purple-700">
-          {{ price }}฿
-        </p>
+        <div class="pt-1 flex justify-between items-center">
+          <p
+            class="Itbms-price text-[11px] font-semibold text-purple-700 sm:text-sm"
+          >
+            <span class="Itbms-price-unit">Bath </span>{{ price }}
+          </p>
+          <button class="ml-1 btn btn-xs btn-primary bg-purple-700 btn-square sm:btn-sm  hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out">
+            <svg class="p-1 sm:p-0"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M19 20c0 1.11-.89 2-2 2a2 2 0 0 1-2-2c0-1.11.89-2 2-2a2 2 0 0 1 2 2M7 18c-1.11 0-2 .89-2 2a2 2 0 0 0 2 2c1.11 0 2-.89 2-2s-.89-2-2-2m.2-3.37l-.03.12c0 .14.11.25.25.25H19v2H7a2 2 0 0 1-2-2c0-.35.09-.68.24-.96l1.36-2.45L3 4H1V2h3.27l.94 2H20c.55 0 1 .45 1 1c0 .17-.05.34-.12.5l-3.58 6.47c-.34.61-1 1.03-1.75 1.03H8.1zM8.5 11H10V9H7.56zM11 9v2h3V9zm3-1V6h-3v2zm3.11 1H15v2h1zm1.67-3H15v2h2.67zM6.14 6l.94 2H10V6z"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  </RouterLink>
 </template>
 
 <style scoped></style>
