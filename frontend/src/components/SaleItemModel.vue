@@ -30,7 +30,7 @@ const props = defineProps({
     :to="{ name: 'sale-item-detail', params: { id } }"
   >
     <div
-      class="card w-full h-[264px] bg-base-100 shadow-md rounded-xl flex flex-col sm:h-72 md:h-[292px] lg:h-[350px] xl:h-[360px]  hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+      class="card w-full h-72 bg-base-100 shadow-md rounded-xl flex flex-col md:h-80 lg:h-[350px] xl:h-[360px]  hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
     >
       <div
         class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
@@ -70,7 +70,7 @@ const props = defineProps({
           >
             <span class="Itbms-price-unit">Bath </span>{{ price }}
           </p>
-          <button class="ml-1 btn btn-xs btn-primary bg-purple-700 btn-square sm:btn-sm  hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out">
+          <button class="ml-1 btn btn-sm btn-primary bg-purple-700 btn-square hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out">
             <svg class="p-1 sm:p-0"
               xmlns="http://www.w3.org/2000/svg"
               width="24"
