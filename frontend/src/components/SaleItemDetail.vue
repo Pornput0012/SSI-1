@@ -12,7 +12,7 @@ const router = useRouter()
 
 const saleItemStore = useSaleItemStore()
 
-const saleItemId = route.params.product_id
+const saleItemId = route.params.id
 
 const selectSaleItem = ref(null)
 
@@ -21,12 +21,12 @@ const fetchSaleItemById = async () => {
     if (!saleItemId) {
       throw new Error('Invalid ID')
     }
-    const saleItemFromStore = saleItemStore.getSaleItemById(id)
+    const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId)
     if (saleItemFromStore) {
       selectSaleItem.value = saleItemFromStore
       return
     }
-    const response = await getSaleItemById(id)
+    const response = await getSaleItemById(saleItemId)
     if (response && !response.error) {
       selectSaleItem.value = response
     } else {
@@ -37,6 +37,11 @@ const fetchSaleItemById = async () => {
     router.push({ name: 'sale-items' })
   }
 }
+
+// const formatDate = (dateString) => {
+//   const d = new Date(dateString)
+//   return isNaN(d.getTime()) ? '-' : d.toLocaleString()
+// }
 
 onMounted(fetchSaleItemById)
 </script>
@@ -83,8 +88,15 @@ onMounted(fetchSaleItemById)
           <p
             class="Itbms-model text-[18px] md:text-[24px] lg:text-[32px] text-black mb-[4px]"
           >
-            iPhone 15 Pro
+            {{ selectSaleItem.model }}
           </p>
+          <!-- <div
+            class="Itbms-createdOn-updatedOn flex gap-1 text-[10px] md:text-[14px] lg:text-[18px] text-black mb-[8px]"
+          >
+            <p>{{ formatDate(selectSaleItem.createdOn) }}</p>
+            <p>|</p>
+            <p>{{ formatDate(selectSaleItem.updatedOn) }}</p>
+          </div> -->
           <div
             class="Itbms-createdOn-updatedOn flex gap-1 text-[10px] md:text-[14px] lg:text-[18px] text-black mb-[8px]"
           >
@@ -96,33 +108,63 @@ onMounted(fetchSaleItemById)
             <div
               class="Itbms-price-unit text-[16px] md:text-[20px] lg:text-[24px] text-blue-500"
             >
-              42,900 THB
+              {{ selectSaleItem.price }}฿
             </div>
-            <div class="flex gap-2">
-              <div
-                class="Itbms-quantity-unit text-[10px] md:text-[14px] lg:text-[18px] text-black pt-1"
-              >
-                Available quantity: 10 units
-              </div>
-              <button class="cursor-pointer">
-                <img :src="heart" class="w-[15px] md:w-[20px] lg:w-[30px]" />
-              </button>
-            </div>
+            <button class="cursor-pointer">
+              <img :src="heart" class="w-[15px] md:w-[20px] lg:w-[30px]" />
+            </button>
           </div>
           <div
             class="text-[10px] md:text-[14px] lg:text-[18px] text-black leading-5 md:leading-7 lg:leading-9"
           >
             <div class="Itbms-brand">
-              <p>Brand: Apple</p>
+              <p>Brand: {{ selectSaleItem.brandName }}</p>
             </div>
             <div class="Itbms-description">
               <p>Description:</p>
-              <span> สมาร์ทโฟนรุ่นท็อปจาก Apple </span>
+              <span :class="{ 'text-gray-400': !selectSaleItem.description }">{{
+                selectSaleItem.description || 'No description provided'
+              }}</span>
             </div>
-            <div class="Itbms-ramGb-unit">Ram: 8GB</div>
-            <div class="Itbms-screenSizeInch-unit">Screen Size: 6.1Inch</div>
-            <div class="Itbms-storageGb-unit">Storage: 512GB</div>
-            <div class="Itbms-color">Color: Black Titanium</div>
+            <div
+              class="Itbms-ramGb-unit"
+              v-if="
+                selectSaleItem.ramGb !== null &&
+                selectSaleItem.ramGb !== undefined
+              "
+            >
+              Ram: {{ selectSaleItem.ramGb }}GB
+            </div>
+            <div
+              class="Itbms-screenSizeInch-unit"
+              v-if="
+                selectSaleItem.screenSizeInch !== null &&
+                selectSaleItem.screenSizeInch !== undefined
+              "
+            >
+              Screen Size: {{ selectSaleItem.screenSizeInch }}Inch
+            </div>
+            <div
+              class="Itbms-storageGb-unit"
+              v-if="
+                selectSaleItem.storageGb !== null &&
+                selectSaleItem.storageGb !== undefined
+              "
+            >
+              Storage: {{ selectSaleItem.storageGb }}GB
+            </div>
+            <div
+              class="Itbms-color"
+              v-if="
+                selectSaleItem.color !== null &&
+                selectSaleItem.color !== undefined
+              "
+            >
+              Color: {{ selectSaleItem.color }}
+            </div>
+            <div class="Itbms-quantity-unit">
+              Available quantity: {{ selectSaleItem.quantity }} units
+            </div>
           </div>
         </div>
       </div>
