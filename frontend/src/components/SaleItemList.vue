@@ -34,5 +34,4 @@ console.log(props.saleItems)
 </template>
  
 <style scoped>
-
 </style>

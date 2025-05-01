@@ -23,5 +23,4 @@ console.log(saleItems);
 </template>
  
 <style scoped>
-
 </style>

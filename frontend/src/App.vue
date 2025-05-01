@@ -42,3 +42,5 @@ onMounted(() => {
   </div> -->
   <RouterView />
 </template>
+
+<style scoped></style>
