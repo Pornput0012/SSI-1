@@ -126,41 +126,47 @@ onMounted(fetchSaleItemById)
                 selectSaleItem.description || 'No description provided'
               }}</span>
             </div>
-            <div
-              class="Itbms-ramGb-unit"
-              v-if="
-                selectSaleItem.ramGb !== null &&
-                selectSaleItem.ramGb !== undefined
-              "
-            >
-              Ram: {{ selectSaleItem.ramGb }}GB
+            <div class="Itbms-ramGb-unit">
+              Ram:
+              <span
+                :class="{
+                  'text-gray-400':
+                    !selectSaleItem.ramGb && selectSaleItem.ramGb !== 0,
+                }"
+              >
+                {{ selectSaleItem.ramGb ?? '-'
+                }}<span v-if="selectSaleItem.ramGb">GB</span>
+              </span>
             </div>
-            <div
-              class="Itbms-screenSizeInch-unit"
-              v-if="
-                selectSaleItem.screenSizeInch !== null &&
-                selectSaleItem.screenSizeInch !== undefined
-              "
-            >
-              Screen Size: {{ selectSaleItem.screenSizeInch }}Inch
+            <div class="Itbms-screenSizeInch-unit">
+              Screen Size:
+              <span
+                :class="{
+                  'text-gray-400':
+                    !selectSaleItem.screenSizeInch &&
+                    selectSaleItem.screenSizeInch !== 0,
+                }"
+              >
+                {{ selectSaleItem.screenSizeInch ?? '-'
+                }}<span v-if="selectSaleItem.screenSizeInch">Inch</span>
+              </span>
             </div>
-            <div
-              class="Itbms-storageGb-unit"
-              v-if="
-                selectSaleItem.storageGb !== null &&
-                selectSaleItem.storageGb !== undefined
-              "
-            >
-              Storage: {{ selectSaleItem.storageGb }}GB
+            <div class="Itbms-storageGb-unit">
+              Storage:
+              <span
+                :class="{
+                  'text-gray-400':
+                    !selectSaleItem.storageGb && selectSaleItem.storageGb !== 0,
+                }"
+              >
+                {{ selectSaleItem.storageGb ?? '-' }}<span v-if="selectSaleItem.storageGb">GB</span>
+              </span>
             </div>
-            <div
-              class="Itbms-color"
-              v-if="
-                selectSaleItem.color !== null &&
-                selectSaleItem.color !== undefined
-              "
-            >
-              Color: {{ selectSaleItem.color }}
+            <div class="Itbms-color">
+              Color:
+              <span :class="{ 'text-gray-400': !selectSaleItem.color }">
+                {{ selectSaleItem.color || '-' }}
+              </span>
             </div>
             <div class="Itbms-quantity-unit">
               Available quantity: {{ selectSaleItem.quantity }} units
