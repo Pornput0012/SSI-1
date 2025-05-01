@@ -1,25 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import NavBar from './components/NavBar.vue'
-const products = ref([])
-const error = ref(null)
-
-const fetchProducts = async () => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/products`)
-    if (!response.ok) {
-      throw new Error('Network response was not ok')
-    }
-    const data = await response.json()
-    products.value = data
-  } catch (err) {
-    error.value = 'เกิดข้อผิดพลาด: ' + err.message
-  }
-}
-
-onMounted(() => {
-  fetchProducts()
-})
+import NavBar from "./components/NavBar.vue";
 </script>
 
 <template>

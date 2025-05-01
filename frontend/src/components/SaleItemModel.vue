@@ -1,6 +1,5 @@
 <script setup>
 import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useBrandStore } from "@/stores/BrandStore";
 
 const props = defineProps({
   brand: {
@@ -20,7 +19,6 @@ const props = defineProps({
   color: String,
 });
 
-console.log(props.brand);
 </script>
 
 <template>
