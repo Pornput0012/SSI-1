@@ -38,11 +38,6 @@ const fetchSaleItemById = async () => {
   }
 }
 
-// const formatDate = (dateString) => {
-//   const d = new Date(dateString)
-//   return isNaN(d.getTime()) ? '-' : d.toLocaleString()
-// }
-
 onMounted(fetchSaleItemById)
 </script>
 
@@ -90,20 +85,6 @@ onMounted(fetchSaleItemById)
           >
             {{ selectSaleItem.model }}
           </p>
-          <!-- <div
-            class="Itbms-createdOn-updatedOn flex gap-1 text-[10px] md:text-[14px] lg:text-[18px] text-black mb-[8px]"
-          >
-            <p>{{ formatDate(selectSaleItem.createdOn) }}</p>
-            <p>|</p>
-            <p>{{ formatDate(selectSaleItem.updatedOn) }}</p>
-          </div> -->
-          <div
-            class="Itbms-createdOn-updatedOn flex gap-1 text-[10px] md:text-[14px] lg:text-[18px] text-black mb-[8px]"
-          >
-            <p>วันที่สร้าง</p>
-            <p>|</p>
-            <p>วันที่แก้ไขล่าสุด</p>
-          </div>
           <div class="flex justify-between mb-[16px]">
             <div
               class="Itbms-price-unit text-[16px] md:text-[20px] lg:text-[24px] text-blue-500"
