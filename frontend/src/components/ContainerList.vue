@@ -1,6 +1,6 @@
 <script setup>
 const props = defineProps({
-  saleItems: {
+  items: {
     type: Array,
     required : true
   }
@@ -11,9 +11,9 @@ console.log(props.saleItems)
 
 <template>
   <div
-    v-if="saleItems && saleItems.length > 0">
-    <div v-for="(saleItem, index) in saleItems" :key="index">
-      <slot :itemInList="saleItem" :index="index"></slot>
+    v-if="items && items.length > 0">
+    <div v-for="(item, index) in items" :key="index">
+      <slot :itemInList="item" :index="index"></slot>
     </div>
   </div>
 </template>
