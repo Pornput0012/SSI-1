@@ -24,7 +24,7 @@ const menu = [
   <div class="w-full h-full flex-col hidden md:block">
     <div class="navbar bg-base-100 shadow-sm px-6 py-4 flex-col gap-4">
       <div class="w-full flex justify-between items-center text-lg">
-        <RouterLink :to="{ name: 'landing' }" class="font-bold"
+        <RouterLink :to="{ name: 'landing' }" class="font-bold transition-all duration-200 hover:tracking-wider hover:text-purple-800"
           >ITB MShop</RouterLink
         >
         <div>
