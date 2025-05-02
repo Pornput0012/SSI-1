@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { defineStore, acceptHMRUpdate } from "pinia";
 
 export const useSaleItemStore = defineStore("SaleItem", () => {
-  const saleItems = ref([]);
+  const saleItems = ref(null);
 
   // setter
   function setSaleItems(itemArray) {

@@ -8,16 +8,24 @@ import { computed, onMounted, ref } from "vue";
 const { getSaleItems } = useSaleItemStore();
 
 const saleItems = computed(() => getSaleItems());
+const hasError = ref("");
 
 onMounted(async () => {
-  if (saleItems.value.length === 0) {
-    await getAllSaleItems();
+  if (saleItems.value === null) {
+    try {
+      const response = await getAllSaleItems();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+    } catch (e) {
+      hasError.value = e.message;
+    }
   }
 });
 </script>
 
 <template>
-  <div class="w-full h-full p-10  md:p-20">
+  <div class="w-full h-full p-10 md:p-20">
     <div class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Products</h1>
       <label class="w-fit h-8 input input-xs hidden sm:flex">
@@ -42,7 +50,7 @@ onMounted(async () => {
         </button>
       </label>
     </div>
-    <SaleItemList class="mt-10" :sale-items="saleItems" />
+    <SaleItemList class="mt-10" :sale-items="saleItems" :has-error="hasError" />
   </div>
 </template>
 
