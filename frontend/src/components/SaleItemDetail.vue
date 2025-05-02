@@ -53,14 +53,14 @@ onMounted(fetchSaleItemById)
           <div class="flex justify-between items-center">
             <button
               @click="$router.go(-1)"
-              class="bg-white btn-circle md:w-[26px] md:h-[26px] cursor-pointer"
+              class="bg-pink-200 btn-circle w-[35px] h-[35px] cursor-pointer"
             >
-              <img :src="arrowleft" class="m-auto md:w-[18px]" />
+              <img :src="arrowleft" class="m-auto w-[25px]" />
             </button>
             <button
-              class="bg-white btn-circle md:w-[26px] md:h-[26px] cursor-pointer"
+              class="bg-pink-200 btn-circle w-[35px] h-[35px] cursor-pointer"
             >
-              <img :src="dot" class="m-auto md:w-[18px]" />
+              <img :src="dot" class="m-auto w-[25px]" />
             </button>
           </div>
         </div>
@@ -72,35 +72,35 @@ onMounted(fetchSaleItemById)
             <div class="flex justify-between items-center">
               <button
                 @click="$router.go(-1)"
-                class="bg-white btn-circle md:w-[40px] md:h-[40px] cursor-pointer"
+                class="bg-pink-200 btn-circle w-[40px] h-[40px] cursor-pointer"
               >
-                <img :src="arrowleft" class="m-auto md:w-[30px]" />
+                <img :src="arrowleft" class="m-auto w-[30px]" />
               </button>
               <button
-                class="bg-white btn-circle md:w-[40px] md:h-[40px] cursor-pointer"
+                class="bg-pink-200 btn-circle w-[40px] h-[40px] cursor-pointer"
               >
-                <img :src="dot" class="m-auto md:w-[30px]" />
+                <img :src="dot" class="m-auto w-[30px]" />
               </button>
             </div>
           </div>
 
           <p
-            class="Itbms-model text-[18px] md:text-[24px] lg:text-[32px] text-black mb-[4px]"
+            class="Itbms-model text-[24px] md:text-[28px] lg:text-[32px] text-black mb-[4px]"
           >
             {{ selectSaleItem.model }}
           </p>
           <div class="flex justify-between mb-[16px]">
             <div
-              class="Itbms-price-unit text-[16px] md:text-[20px] lg:text-[24px] text-blue-500"
+              class="Itbms-price-unit font-bold text-[18px] md:text-[20px] lg:text-[24px] text-purple-700"
             >
               {{ selectSaleItem.price }}฿
             </div>
             <button class="cursor-pointer">
-              <img :src="heart" class="w-[15px] md:w-[20px] lg:w-[30px]" />
+              <img :src="heart" class="w-[25px] md:w-[25px] lg:w-[30px]" />
             </button>
           </div>
           <div
-            class="text-[10px] md:text-[14px] lg:text-[18px] text-black leading-5 md:leading-7 lg:leading-9"
+            class="text-[16px] md:text-[16px] lg:text-[18px] text-black leading-8 md:leading-8 lg:leading-9"
           >
             <div class="Itbms-brand">
               <p>Brand: {{ selectSaleItem.brandName }}</p>
@@ -163,7 +163,7 @@ onMounted(fetchSaleItemById)
     </div>
   </div>
 
-  <dialog v-if="isNotFound" class="modal modal-open">
+  <div v-if="isNotFound" class="modal modal-open">
     <div class="modal-box text-center">
       <h3 class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-red-500">Product Not Found</h3>
       <p class="py-4 text-[12px] md:text-[14px] lg:text-[16px]">
@@ -172,13 +172,13 @@ onMounted(fetchSaleItemById)
       <div class="modal-action justify-center">
         <button
           @click="router.push({ name: 'sale-items' })"
-          class="btn btn-primary"
+          class="btn btn-primary bg-purple-700"
         >
           OK
         </button>
       </div>
     </div>
-  </dialog>
+  </div>
 </template>
 
 <style scoped></style>
