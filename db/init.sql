@@ -22,7 +22,7 @@ create table if not exists products (
   description varchar(400),
   price integer not null,
   ramGb integer,
-  screenSizeInch decimal(3,1),
+  screenSizeInch decimal(4,2),
   storageGb integer,
   color varchar(40),
   quantity integer not null default 1,
