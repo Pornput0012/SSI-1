@@ -1,4 +1,5 @@
 <script setup>
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import SaleItemList from "@/components/SaleItemList.vue";
 import SaleItemModel from "@/components/SaleItemModel.vue";
 import { getAllSaleItems } from "@/services/SaleItemService";
@@ -25,7 +26,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="w-full h-full p-10 md:p-20">
+  <Breadcrumbs :crumbs="[{ label: 'Product', to: '/sale-items' }]" />
+  <div class="w-full h-full px-10 md:px-20">
     <div class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Products</h1>
       <label class="w-fit h-8 input input-xs hidden sm:flex">

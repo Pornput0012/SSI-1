@@ -43,7 +43,7 @@ onMounted(() => {
                   <div
                     class="mask mask-squircle bg-white w-20 h-20 flex items-center justify-center mb-4 mx-auto"
                   >
-                    <span class="text-xl font-bold">ITB</span>
+                    <span class="text-xl font-bold select-none">ITB</span>
                   </div>
                 </div>
 
