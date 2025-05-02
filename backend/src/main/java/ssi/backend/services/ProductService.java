@@ -23,7 +23,7 @@ public class ProductService {
     private ModelMapper modelMapper;
 
     public List<ProductItemDTO> getAllProducts() {
-        return listMapper.mapList(productRepository.findAll(), ProductItemDTO.class, modelMapper);
+        return listMapper.mapList(productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"),Sort.Order.asc("id"))), ProductItemDTO.class, modelMapper);
     }
 
     public ProductDetailDTO getProductById(Integer id) {
