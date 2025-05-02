@@ -2,6 +2,7 @@ package ssi.backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ssi.backend.dtos.ProductDetailDTO;
 import ssi.backend.dtos.ProductItemDTO;
@@ -22,7 +23,7 @@ public class ProductService {
     private ModelMapper modelMapper;
 
     public List<ProductItemDTO> getAllProducts() {
-        return listMapper.mapList(productRepository.findAll(), ProductItemDTO.class, modelMapper);
+        return listMapper.mapList(productRepository.findAll(Sort.by(Sort.Direction.ASC,"createdOn")), ProductItemDTO.class, modelMapper);
     }
 
     public ProductDetailDTO getProductById(Integer id) {
