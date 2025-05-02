@@ -4,21 +4,21 @@ import { useSaleItemStore } from "@/stores/SaleItemStore";
 const props = defineProps({
   id: {
     type: Number,
-    require: true,
+    required: true,
   },
   brand: {
     type: String,
-    require: true,
+    required: true,
   },
   model: {
     type: String,
-    require: true,
+    required: true,
   },
   ramGb: Number,
   storageGb: Number,
   price: {
     type: Number,
-    require: true,
+    required: true,
   },
   color: String,
 });
