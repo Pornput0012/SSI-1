@@ -32,7 +32,9 @@ const fetchSaleItemById = async () => {
     if (response && !response.error) {
       selectSaleItem.value = response
     } else {
-      throw new Error("The requested sale item does not exist or has been removed.")
+      throw new Error(
+        'The requested sale item does not exist or has been removed.'
+      )
     }
   } catch (error) {
     console.error(error)
@@ -44,7 +46,7 @@ onMounted(fetchSaleItemById)
 </script>
 
 <template>
-  <div class="Itbms-row bg-pink-200 w-full md:max-w-7xl h-full mx-auto p-6">
+  <div class="Itbms-row w-full md:max-w-7xl h-full mx-auto p-6">
     <div v-if="selectSaleItem">
       <div class="flex flex-col md:flex-row gap-4">
         <div class="md:hidden">
@@ -142,7 +144,8 @@ onMounted(fetchSaleItemById)
                     !selectSaleItem.storageGb && selectSaleItem.storageGb !== 0,
                 }"
               >
-                {{ selectSaleItem.storageGb ?? '-' }}<span v-if="selectSaleItem.storageGb">GB</span>
+                {{ selectSaleItem.storageGb ?? '-'
+                }}<span v-if="selectSaleItem.storageGb">GB</span>
               </span>
             </div>
             <div class="Itbms-color">
@@ -159,6 +162,23 @@ onMounted(fetchSaleItemById)
       </div>
     </div>
   </div>
+
+  <dialog v-if="isNotFound" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3 class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-red-500">Product Not Found</h3>
+      <p class="py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        The requested sale item does not exist or has been removed.
+      </p>
+      <div class="modal-action justify-center">
+        <button
+          @click="router.push({ name: 'sale-items' })"
+          class="btn btn-primary"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </dialog>
 </template>
 
 <style scoped></style>
