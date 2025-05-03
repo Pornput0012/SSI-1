@@ -27,7 +27,7 @@ onMounted(async () => {
 
 <template>
   <Breadcrumbs :crumbs="[{ label: 'Product', to: '/sale-items' }]" />
-  <div class="w-full h-full px-10 md:px-20">
+  <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
     <div class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Products</h1>
       <label class="w-fit h-8 input input-xs hidden sm:flex">
