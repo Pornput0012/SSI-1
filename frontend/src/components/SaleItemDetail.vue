@@ -96,7 +96,7 @@ onMounted(fetchSaleItemById)
             <div
               class="Itbms-price-unit font-bold text-[18px] md:text-[20px] lg:text-[24px] text-purple-700"
             >
-              {{ selectSaleItem.price.toLocaleString() }}฿
+              {{ selectSaleItem.price.toLocaleString() }}<span>฿</span>
             </div>
             <button class="cursor-pointer">
               <img :src="heart" class="w-[25px] md:w-[25px] lg:w-[30px]" />
@@ -162,7 +162,7 @@ onMounted(fetchSaleItemById)
             </div>
             <div class="Itbms-quantity-unit">
               <span class="font-semibold"> Quantity: </span>
-              {{ selectSaleItem.quantity }} units
+              {{ selectSaleItem.quantity }}
             </div>
           </div>
         </div>
