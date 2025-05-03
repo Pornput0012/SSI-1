@@ -1,51 +1,51 @@
 <script setup>
-import { useRouter, useRoute } from "vue-router";
-import arrowleft from "../assets/icons/arrowleft.svg";
-import dot from "../assets/icons/dot.svg";
-import heart from "../assets/icons/heart.svg";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { onMounted, ref } from "vue";
-import { getSaleItemById } from "@/services/SaleItemService";
-import Breadcrumbs from "./Breadcrumbs.vue";
+import { useRouter, useRoute } from 'vue-router'
+import arrowleft from '../assets/icons/arrowleft.svg'
+import dot from '../assets/icons/dot.svg'
+import heart from '../assets/icons/heart.svg'
+import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { onMounted, ref } from 'vue'
+import { getSaleItemById } from '@/services/SaleItemService'
+import Breadcrumbs from './Breadcrumbs.vue'
 
-const route = useRoute();
-const router = useRouter();
+const route = useRoute()
+const router = useRouter()
 
-const saleItemStore = useSaleItemStore();
+const saleItemStore = useSaleItemStore()
 
-const saleItemId = route.params.id;
+const saleItemId = route.params.id
 
-const selectSaleItem = ref(null);
+const selectSaleItem = ref(null)
 
-const isNotFound = ref(false);
-const errorMessage = ref("");
+const isNotFound = ref(false)
+const errorMessage = ref('')
 
 const fetchSaleItemById = async () => {
   try {
     if (!saleItemId) {
-      throw new Error("Invalid ID");
+      throw new Error('Invalid ID')
     }
-    const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId);
+    const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId)
     if (saleItemFromStore) {
-      selectSaleItem.value = saleItemFromStore;
-      return;
+      selectSaleItem.value = saleItemFromStore
+      return
     }
-    const response = await getSaleItemById(saleItemId);
+    const response = await getSaleItemById(saleItemId)
     if (response && !response.error) {
-      selectSaleItem.value = response;
+      selectSaleItem.value = response
     } else {
-      throw new Error("The requested sale item does not exist.");
+      throw new Error('The requested sale item does not exist.')
     }
   } catch (error) {
-    errorMessage.value = error.message;
-    isNotFound.value = true;
+    errorMessage.value = error.message
+    isNotFound.value = true
     setTimeout(() => {
-      router.push({ name: "sale-items" });
-    }, 1000);
+      router.push({ name: 'sale-items' })
+    }, 1000)
   }
-};
+}
 
-onMounted(fetchSaleItemById);
+onMounted(fetchSaleItemById)
 </script>
 
 <template>
@@ -119,11 +119,11 @@ onMounted(fetchSaleItemById);
             <div class="itbms-description">
               <p class="font-semibold">Description:</p>
               <span :class="{ 'text-gray-400': !selectSaleItem.description }">{{
-                selectSaleItem.description || "No description provided"
+                selectSaleItem.description || 'No description provided'
               }}</span>
             </div>
             <div class="itbms-ramGb-unit">
-              <span class="font-semibold"> Ram: </span>
+              <span class="font-semibold">Ram: </span>
               <span
                 :class="{
                   'text-gray-400':
@@ -131,23 +131,24 @@ onMounted(fetchSaleItemById);
                 }"
               >
                 <span class="itbms-ramGb"
-                  >{{ selectSaleItem.ramGb || "-" }}
+                  >{{ selectSaleItem.ramGb || '-' }}
                 </span>
-                <span v-if="selectSaleItem.ramGb">GB</span>
+                <span class="itbms-ramGb-unit" v-if="selectSaleItem.ramGb"
+                  >GB</span
+                >
               </span>
             </div>
             <div class="itbms-screenSizeInch-unit">
-              <span class="font-semibold"> Screen Size: </span>
+              <span class="font-semibold">Screen Size: </span>
               <span
                 :class="{
                   'text-gray-400':
                     !selectSaleItem.screenSizeInch &&
                     selectSaleItem.screenSizeInch !== 0,
                 }"
-                class="itbms-screenSizeInch"
               >
-                <span class="itbms-storageGb">{{
-                  isNaN(parseFloat(selectSaleItem.screenSizeInch).toString()) ? "-" : parseFloat(selectSaleItem.screenSizeInch).toString()
+                <span class="itbms-screenSizeInch">{{
+                  selectSaleItem.screenSizeInch || '-'
                 }}</span>
                 <span
                   v-if="selectSaleItem.screenSizeInch"
@@ -157,7 +158,7 @@ onMounted(fetchSaleItemById);
               </span>
             </div>
             <div class="itbms-storageGb-unit">
-              <span class="font-semibold"> Storage: </span>
+              <span class="font-semibold">Storage: </span>
               <span
                 :class="{
                   'text-gray-400':
@@ -165,7 +166,7 @@ onMounted(fetchSaleItemById);
                 }"
               >
                 <span class="itbms-storageGb">
-                  {{ selectSaleItem.storageGb ?? "-" }}
+                  {{ selectSaleItem.storageGb || '-' }}
                 </span>
                 <span
                   v-if="selectSaleItem.storageGb"
@@ -175,13 +176,13 @@ onMounted(fetchSaleItemById);
               </span>
             </div>
             <div class="itbms-color">
-              <span class="font-semibold"> Color: </span>
+              <span class="font-semibold">Color: </span>
               <span :class="{ 'text-gray-400': !selectSaleItem.color }">
-                {{ selectSaleItem.color || "-" }}
+                {{ selectSaleItem.color || '-' }}
               </span>
             </div>
-            <div class="">
-              <span class="font-semibold"> Quantity: </span>
+            <div>
+              <span class="font-semibold">Quantity: </span>
               <span class="itbms-quantity">
                 {{ selectSaleItem.quantity }}
               </span>
