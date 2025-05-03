@@ -96,7 +96,7 @@ onMounted(fetchSaleItemById);
             <div
               class="Itbms-price-unit font-bold text-[18px] md:text-[20px] lg:text-[24px] text-purple-700"
             >
-              {{ selectSaleItem.price }}฿
+              {{ selectSaleItem.price.toLocaleString() }}฿
             </div>
             <button class="cursor-pointer">
               <img :src="heart" class="w-[25px] md:w-[25px] lg:w-[30px]" />
