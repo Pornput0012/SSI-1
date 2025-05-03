@@ -1,49 +1,49 @@
 <script setup>
-import { useRouter, useRoute } from "vue-router";
-import arrowleft from "../assets/icons/arrowleft.svg";
-import dot from "../assets/icons/dot.svg";
-import heart from "../assets/icons/heart.svg";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { onMounted, ref } from "vue";
-import { getSaleItemById } from "@/services/SaleItemService";
-import Breadcrumbs from "./Breadcrumbs.vue";
+import { useRouter, useRoute } from 'vue-router'
+import arrowleft from '../assets/icons/arrowleft.svg'
+import dot from '../assets/icons/dot.svg'
+import heart from '../assets/icons/heart.svg'
+import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { onMounted, ref } from 'vue'
+import { getSaleItemById } from '@/services/SaleItemService'
+import Breadcrumbs from './Breadcrumbs.vue'
 
-const route = useRoute();
-const router = useRouter();
+const route = useRoute()
+const router = useRouter()
 
-const saleItemStore = useSaleItemStore();
+const saleItemStore = useSaleItemStore()
 
-const saleItemId = route.params.id;
+const saleItemId = route.params.id
 
-const selectSaleItem = ref(null);
+const selectSaleItem = ref(null)
 
-const isNotFound = ref(false);
+const isNotFound = ref(false)
 
 const fetchSaleItemById = async () => {
   try {
     if (!saleItemId) {
-      throw new Error("Invalid ID");
+      throw new Error('Invalid ID')
     }
-    const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId);
+    const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId)
     if (saleItemFromStore) {
-      selectSaleItem.value = saleItemFromStore;
-      return;
+      selectSaleItem.value = saleItemFromStore
+      return
     }
-    const response = await getSaleItemById(saleItemId);
+    const response = await getSaleItemById(saleItemId)
     if (response && !response.error) {
-      selectSaleItem.value = response;
+      selectSaleItem.value = response
     } else {
       throw new Error(
-        "The requested sale item does not exist or has been removed."
-      );
+        'The requested sale item does not exist or has been removed.'
+      )
     }
   } catch (error) {
-    console.error(error);
-    isNotFound.value = true;
+    console.error(error)
+    isNotFound.value = true
   }
-};
+}
 
-onMounted(fetchSaleItemById);
+onMounted(fetchSaleItemById)
 </script>
 
 <template>
@@ -60,7 +60,7 @@ onMounted(fetchSaleItemById);
           <div class="flex justify-between items-center">
             <button
               @click="$router.go(-1)"
-              class="btn-circle w-[35px] h-[35px] cursor-pointer border"
+              class="btn-circle w-[35px] h-[35px] cursor-pointer"
             >
               <img :src="arrowleft" class="m-auto w-[25px]" />
             </button>
@@ -114,7 +114,7 @@ onMounted(fetchSaleItemById);
             <div class="Itbms-description">
               <p class="font-semibold">Description:</p>
               <span :class="{ 'text-gray-400': !selectSaleItem.description }">{{
-                selectSaleItem.description || "No description provided"
+                selectSaleItem.description || 'No description provided'
               }}</span>
             </div>
             <div class="Itbms-ramGb-unit">
@@ -125,7 +125,7 @@ onMounted(fetchSaleItemById);
                     !selectSaleItem.ramGb && selectSaleItem.ramGb !== 0,
                 }"
               >
-                {{ selectSaleItem.ramGb ?? "-"
+                {{ selectSaleItem.ramGb ?? '-'
                 }}<span v-if="selectSaleItem.ramGb">GB</span>
               </span>
             </div>
@@ -138,8 +138,8 @@ onMounted(fetchSaleItemById);
                     selectSaleItem.screenSizeInch !== 0,
                 }"
               >
-                {{ selectSaleItem.screenSizeInch ?? "-"
-                }}<span v-if="selectSaleItem.screenSizeInch">Inch</span>
+                {{ selectSaleItem.screenSizeInch ? parseFloat(selectSaleItem.screenSizeInch).toFixed(1) : '-'
+                }}<span v-if="selectSaleItem.screenSizeInch">Inches</span>
               </span>
             </div>
             <div class="Itbms-storageGb-unit">
@@ -150,18 +150,18 @@ onMounted(fetchSaleItemById);
                     !selectSaleItem.storageGb && selectSaleItem.storageGb !== 0,
                 }"
               >
-                {{ selectSaleItem.storageGb ?? "-"
+                {{ selectSaleItem.storageGb ?? '-'
                 }}<span v-if="selectSaleItem.storageGb">GB</span>
               </span>
             </div>
             <div class="Itbms-color">
               <span class="font-semibold"> Color: </span>
               <span :class="{ 'text-gray-400': !selectSaleItem.color }">
-                {{ selectSaleItem.color || "-" }}
+                {{ selectSaleItem.color || '-' }}
               </span>
             </div>
             <div class="Itbms-quantity-unit">
-              <span class="font-semibold"> Available quantity: </span>
+              <span class="font-semibold"> Quantity: </span>
               {{ selectSaleItem.quantity }} units
             </div>
           </div>
@@ -180,7 +180,7 @@ onMounted(fetchSaleItemById);
       <p class="Itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
         The requested sale item does not exist or has been removed.
       </p>
-      <div class="itbms-button modal-action justify-center">
+      <div class="Itbms-button modal-action justify-center">
         <button
           @click="router.push({ name: 'sale-items' })"
           class="btn btn-primary bg-purple-700"
