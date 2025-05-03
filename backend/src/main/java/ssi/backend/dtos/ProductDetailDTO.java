@@ -18,7 +18,7 @@ public class ProductDetailDTO {
 
     private Integer ramGb;
 
-    private String screenSizeInch;
+    private Double screenSizeInch;
 
     private Integer quantity;
 
