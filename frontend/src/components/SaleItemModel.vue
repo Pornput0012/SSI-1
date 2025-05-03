@@ -68,7 +68,7 @@ const props = defineProps({
           <p
             class="Itbms-price text-[11px] font-semibold text-purple-700 sm:text-sm"
           >
-            <span class="Itbms-price-unit">Bath </span>{{ price }}
+            <span class="Itbms-price-unit">Bath </span>{{ price.toLocaleString() }}
           </p>
           <button class="ml-1 btn btn-sm btn-primary bg-purple-700 btn-square hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out">
             <svg class="p-1 sm:p-0"
