@@ -53,7 +53,7 @@ onMounted(fetchSaleItemById);
       { label: selectSaleItem?.model, to: '' },
     ]"
   />
-  <div class="Itbms-row w-full md:max-w-7xl h-full mx-auto px-6 mt-4 md:mt-6">
+  <div class="Itbms-row w-full md:max-w-7xl h-full mx-auto px-6 pb-10 mt-4 md:mt-6">
     <div v-if="selectSaleItem">
       <div class="flex flex-col md:flex-row gap-4">
         <div class="md:hidden">
