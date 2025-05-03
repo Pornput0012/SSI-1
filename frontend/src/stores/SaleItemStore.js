@@ -15,6 +15,9 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
   }
 
   function getSaleItemById(id) {
+    if(!Array.isArray(saleItems.value)){
+      return null
+    }
     const index = saleItems.value.findIndex((item) => item.id === id);
     if (index === -1) {
       return null;
