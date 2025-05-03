@@ -1,0 +1,5 @@
+frontend/.env
+
+frontend/cypress.config.js
+
+backend/src/main/resources/application.properties

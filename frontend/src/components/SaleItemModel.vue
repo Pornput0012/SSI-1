@@ -25,12 +25,12 @@ const props = defineProps({
 </script>
 
 <template>
-  <RouterLink 
-    class="Itbms-row"
+  <RouterLink
+    class="itbms-row"
     :to="{ name: 'sale-item-detail', params: { id } }"
   >
     <div
-      class="card w-full h-72 bg-base-100 shadow-md rounded-xl flex flex-col md:h-80 lg:h-[350px] xl:h-[360px]  hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+      class="card w-full h-72 bg-base-100 shadow-md rounded-xl flex flex-col md:h-80 lg:h-[350px] xl:h-[360px] hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
     >
       <div
         class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
@@ -48,30 +48,36 @@ const props = defineProps({
         class="flex-[1] flex flex-col justify-between w-full h-full p-3 text-[10px] sm:text-xs sm:p-3 lg:p-4"
       >
         <div class="pt-2 pb-0">
-          <p class="Itbms-brand text-gray-500 font-medium">{{ brand }}</p>
-          <p class="Itbms-model font-semibold">{{ model }}</p>
+          <p class="itbms-brand text-gray-500 font-medium">{{ brand }}</p>
+          <p class="itbms-model font-semibold">{{ model }}</p>
 
           <div class="flex items-center font-light">
-            <p v-if="ramGb" class="Itbms-ramGb">{{ ramGb }}</p>
-            <p v-if="ramGb && storageGb">/</p>
+            <p v-if="ramGb" class="itbms-ramGb">{{ ramGb }}</p>
+            <span v-else class="itbms-ramGb">-</span>
+            <p>/</p>
             <div v-if="storageGb" class="flex gap-1">
-              <p class="Itbms-storageGb">{{ storageGb }}</p>
-              <p class="Itbms-storageGb-unit">GB</p>
+              <p class="itbms-storageGb">{{ storageGb }}</p>
             </div>
+            <p v-else class="itbms-storageGb mx-1">-</p>
+            <p class="itbms-storageGb-unit ">GB</p>
           </div>
 
-          <p v-if="color" class="Itbms-color text-gray-600">
+          <p v-if="color" class="itbms-color text-gray-600">
             color : {{ color }}
           </p>
         </div>
         <div class="pt-1 flex justify-between items-center">
           <p
-            class="Itbms-price text-[11px] font-semibold text-purple-700 sm:text-sm"
+            class="itbms-price text-[11px] font-semibold text-purple-700 sm:text-sm"
           >
-            <span class="Itbms-price-unit">Bath </span>{{ price.toLocaleString() }}
+            <span class="itbms-price-unit">Bath </span
+            >{{ price.toLocaleString() }}
           </p>
-          <button class="ml-1 btn btn-sm btn-primary bg-purple-700 btn-square hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out">
-            <svg class="p-1 sm:p-0"
+          <button
+            class="ml-1 btn btn-sm btn-primary bg-purple-700 btn-square hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+          >
+            <svg
+              class="p-1 sm:p-0"
               xmlns="http://www.w3.org/2000/svg"
               width="24"
               height="24"
