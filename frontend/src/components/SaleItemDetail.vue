@@ -138,7 +138,7 @@ onMounted(fetchSaleItemById)
                     selectSaleItem.screenSizeInch !== 0,
                 }"
               >
-                {{ selectSaleItem.screenSizeInch ? parseFloat(selectSaleItem.screenSizeInch).toFixed(1) : '-'
+                {{ selectSaleItem.screenSizeInch ? parseFloat(selectSaleItem.screenSizeInch).toString() : '-'
                 }}<span v-if="selectSaleItem.screenSizeInch">Inches</span>
               </span>
             </div>
