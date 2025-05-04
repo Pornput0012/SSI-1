@@ -1,6 +1,7 @@
 package ssi.backend.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ssi.backend.dtos.ProductDetailDTO;
@@ -26,4 +27,27 @@ public class ProductController {
     public ResponseEntity<ProductDetailDTO> getProductById(@PathVariable Integer id) {
         return ResponseEntity.ok(productService.getProductById(id));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ProductItemDTO> deleteProductById(@PathVariable Integer id) {
+        return ResponseEntity.ok(productService.deleteProduct(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<ProductItemDTO> createProduct(@RequestBody Product product) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(
+            @PathVariable Integer id,
+            @RequestBody Product product) {
+
+        return ResponseEntity.ok(productService.updateProduct(id,product));
+    }
+
+
+
+
+
 }

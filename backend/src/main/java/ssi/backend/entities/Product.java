@@ -18,7 +18,7 @@ import java.time.Instant;
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id")
     private Integer id;
 
     @JsonIgnore
@@ -59,15 +59,11 @@ public class Product {
     private Integer quantity;
 
     @JsonIgnore
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "createdOn", nullable = false)
+    @Column(name = "createdOn", insertable = false, updatable = false)
     private Instant createdOn;
 
     @JsonIgnore
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updatedOn", nullable = false)
+    @Column(name = "updatedOn", insertable = false, updatable = false)
     private Instant updatedOn;
 
 }
