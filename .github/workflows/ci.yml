@@ -45,6 +45,7 @@ jobs:
           echo "🔁 Waiting for backend to be ready..."
           until docker exec backend curl -s http://localhost:8080/itb-mshop/v1/sale-items > /dev/null; do
             echo "⏳ Backend not ready yet, retrying in 5 seconds..."
+            docker logs backend
             sleep 5
           done
           echo "✅ Backend is ready!"
