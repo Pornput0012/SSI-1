@@ -24,7 +24,7 @@ services:
     ports:
       - 8080:8080
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db_server:3306/${MYSQL_DATABASE:-products}?serverTimezone=Asia/Bangkok
+      SPRING_DATASOURCE_URL: jdbc:mysql://db_server:3306/${MYSQL_DATABASE:-INT221}?serverTimezone=Asia/Bangkok
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
       TZ: Asia/Bangkok
