@@ -1,0 +1,54 @@
+name: CI for Production
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Copy frontend build to nginx folder
+        run: |
+          mkdir -p ./nginx/html
+          cp -r ./frontend/dist/* ./nginx/html/
+
+      - name: Set up Docker Compose
+        run: |
+          docker compose up -d
+          echo "⌚ Waiting for containers to initialize"
+          sleep 20
+
+      - name: Run test DB
+        run: docker exec db_server mysqladmin ping -h localhost
+
+      - name: Run test Backend
+        run: curl http://localhost:8080/itb-mshop/sale-items
+
+      - name: Run test Frontend via Nginx
+        run: curl -I http://localhost
+
+      - name: Shutdown Docker Compose
+        if: always()
+        run: docker compose down -v
