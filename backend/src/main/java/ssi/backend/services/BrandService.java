@@ -30,8 +30,8 @@ public class BrandService {
 
 
     public Brand createBrand(Brand brand) {
-        Brand updateBrand = brandRepository.save(brand);
-        return brandRepository.findById(updateBrand.getId()).orElse(null);
+        Brand createdBrand = brandRepository.save(brand);
+        return brandRepository.findById(createdBrand.getId()).orElse(null);
     }
 
     public Brand updateBrand(Integer id,Brand brand) {

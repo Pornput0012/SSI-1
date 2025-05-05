@@ -22,6 +22,10 @@ public class ProductController {
     public ResponseEntity<List<ProductItemDTO>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
+    @GetMapping("/hi")
+    public ResponseEntity<List<Product>> getAll2Products() {
+        return ResponseEntity.ok(productService.getAll2Products());
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDetailDTO> getProductById(@PathVariable Integer id) {
@@ -34,8 +38,8 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductItemDTO> createProduct(@RequestBody Product product) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product));
+    public ResponseEntity<ProductItemDTO> createProduct(@RequestBody Product product,@RequestParam(required = true) Integer brandId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product,brandId));
     }
 
     @PutMapping("/{id}")
