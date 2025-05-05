@@ -41,7 +41,7 @@ jobs:
           sleep 20
 
       - name: Run test DB
-        run: docker exec -it db_server mysqladmin -u root -prootpassword ping -h localhost
+        run: docker exec -i db_server mysqladmin -u root -prootpassword ping -h localhost
 
       - name: Run test Backend
         run: curl http://localhost:8080/itb-mshop/v1/sale-items
