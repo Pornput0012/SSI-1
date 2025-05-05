@@ -29,10 +29,21 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
-      - name: Copy frontend build to nginx folder
+      - name: Install Nginx
         run: |
-          mkdir -p ./nginx/html
-          cp -r ./frontend/dist/* ./nginx/html/
+          sudo apt update
+          sudo apt install -y nginx
+
+      - name: Copy frontend build to Nginx html directory
+        run: |
+          sudo rm -rf /var/www/html/*
+          sudo cp -r ./frontend/dist/* /var/www/html/
+
+      - name: Restart Nginx
+        run: sudo systemctl restart nginx
+
+      - name: Test Frontend via Nginx
+        run: curl -I http://localhost
 
       - name: Set up Docker Compose
         run: |
@@ -42,9 +53,6 @@ jobs:
 
       - name: Run test Backend
         run: curl http://localhost:8080/itb-mshop/v1/sale-items
-
-      - name: Run test Frontend via Nginx
-        run: curl -I http://localhost
 
       - name: Shutdown Docker Compose
         if: always()
