@@ -39,9 +39,6 @@ const fetchSaleItemById = async () => {
   } catch (error) {
     errorMessage.value = error.message
     isNotFound.value = true
-    setTimeout(() => {
-      router.push({ name: 'sale-items' })
-    }, 1000)
   }
 }
 
