@@ -40,8 +40,16 @@ jobs:
           echo "⌚ Waiting for containers to initialize"
           sleep 20
 
-      - name: Run test DB
-        run: docker exec -i db_server mysqladmin -u root -prootpassword ping -h localhost
+      - name: Run test Backend (wait until ready)
+        run: |
+          echo "🔁 Waiting for backend to be ready..."
+          until docker exec backend curl -s http://localhost:8080/itb-mshop/v1/sale-items > /dev/null; do
+            echo "⏳ Backend not ready yet, retrying in 5 seconds..."
+            sleep 5
+          done
+          echo "✅ Backend is ready!"
+          docker exec backend curl http://localhost:8080/itb-mshop/v1/sale-items
+
 
       - name: Run test Backend
         run: docker exec backend curl http://localhost:8080/itb-mshop/v1/sale-items
