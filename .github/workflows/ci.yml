@@ -44,7 +44,7 @@ jobs:
         run: docker exec db_server mysqladmin ping -h localhost
 
       - name: Run test Backend
-        run: curl http://localhost:8080/itb-mshop/sale-items
+        run: curl http://localhost:8080/itb-mshop/v1/sale-items
 
       - name: Run test Frontend via Nginx
         run: curl -I http://localhost
