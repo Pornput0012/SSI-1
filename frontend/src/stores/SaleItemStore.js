@@ -8,7 +8,7 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
   function setSaleItems(itemArray) {
     saleItems.value = itemArray;
   }
-
+  
   // getter
   function getSaleItems() {
     return saleItems.value;
