@@ -1,57 +1,59 @@
 <script setup>
-import { useRouter, useRoute } from 'vue-router'
-import arrowleft from '../assets/icons/arrowleft.svg'
-import dot from '../assets/icons/dot.svg'
-import heart from '../assets/icons/heart.svg'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { onMounted, ref } from 'vue'
-import { getSaleItemById } from '@/services/SaleItemService'
-import Breadcrumbs from './Breadcrumbs.vue'
+import { useRouter, useRoute } from "vue-router";
+import arrowleft from "../assets/icons/arrowleft.svg";
+import dot from "../assets/icons/dot.svg";
+import heart from "../assets/icons/heart.svg";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { onMounted, ref } from "vue";
+import { getSaleItemById } from "@/services/SaleItemService";
+import Breadcrumbs from "./Breadcrumbs.vue";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const saleItemStore = useSaleItemStore()
+const saleItemStore = useSaleItemStore();
 
-const saleItemId = route.params.id
+const saleItemId = route.params.id;
 
-const selectSaleItem = ref(null)
+const selectSaleItem = ref(null);
 
-const isNotFound = ref(false)
-const errorMessage = ref('')
+const isNotFound = ref(false);
+const errorMessage = ref("");
+
+const showDeleteModal = ref(false);
 
 const fetchSaleItemById = async () => {
   try {
     if (!saleItemId) {
-      throw new Error('Invalid ID')
+      throw new Error("Invalid ID");
     }
-    const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId)
+    const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId);
     if (saleItemFromStore) {
-      selectSaleItem.value = saleItemFromStore
-      return
+      selectSaleItem.value = saleItemFromStore;
+      return;
     }
-    const response = await getSaleItemById(saleItemId)
+    const response = await getSaleItemById(saleItemId);
     if (response && !response.error) {
-      selectSaleItem.value = response
+      selectSaleItem.value = response;
     } else {
-      throw new Error('The requested sale item does not exist.')
+      throw new Error("The requested sale item does not exist.");
     }
   } catch (error) {
-    errorMessage.value = error.message
-    isNotFound.value = true
+    errorMessage.value = error.message;
+    isNotFound.value = true;
   }
-}
+};
 
-onMounted(fetchSaleItemById)
+onMounted(fetchSaleItemById);
+
+const handleDelete = () => {
+  try {
+  } catch (e) {}
+};
 </script>
 
 <template>
-  <Breadcrumbs
-    :crumbs="[
-      { label: 'Product', to: '/sale-items' },
-      { label: selectSaleItem?.model, to: '' },
-    ]"
-  />
+  <Breadcrumbs :crumbs="[{ label: selectSaleItem?.model, to: '' }]" />
   <div
     class="itbms-row w-full md:max-w-7xl h-full mx-auto px-6 pb-10 mt-4 md:mt-6"
   >
@@ -116,7 +118,7 @@ onMounted(fetchSaleItemById)
             <div class="itbms-description">
               <p class="font-semibold">Description:</p>
               <span :class="{ 'text-gray-400': !selectSaleItem.description }">{{
-                selectSaleItem.description || 'No description provided'
+                selectSaleItem.description || "No description provided"
               }}</span>
             </div>
             <div class="itbms-ramGb-unit">
@@ -128,7 +130,7 @@ onMounted(fetchSaleItemById)
                 }"
               >
                 <span class="itbms-ramGb"
-                  >{{ selectSaleItem.ramGb || '-' }}
+                  >{{ selectSaleItem.ramGb || "-" }}
                 </span>
                 <span class="itbms-ramGb-unit" v-if="selectSaleItem.ramGb"
                   >GB</span
@@ -145,7 +147,7 @@ onMounted(fetchSaleItemById)
                 }"
               >
                 <span class="itbms-screenSizeInch">{{
-                  selectSaleItem.screenSizeInch || '-'
+                  selectSaleItem.screenSizeInch || "-"
                 }}</span>
                 <span
                   v-if="selectSaleItem.screenSizeInch"
@@ -163,7 +165,7 @@ onMounted(fetchSaleItemById)
                 }"
               >
                 <span class="itbms-storageGb">
-                  {{ selectSaleItem.storageGb || '-' }}
+                  {{ selectSaleItem.storageGb || "-" }}
                 </span>
                 <span
                   v-if="selectSaleItem.storageGb"
@@ -175,7 +177,7 @@ onMounted(fetchSaleItemById)
             <div class="itbms-color">
               <span class="font-semibold">Color: </span>
               <span :class="{ 'text-gray-400': !selectSaleItem.color }">
-                {{ selectSaleItem.color || '-' }}
+                {{ selectSaleItem.color || "-" }}
               </span>
             </div>
             <div>
@@ -183,6 +185,43 @@ onMounted(fetchSaleItemById)
               <span class="itbms-quantity">
                 {{ selectSaleItem.quantity }}
               </span>
+            </div>
+            <div class="flex gap-4 mt-4">
+              <router-link
+                :to="{ name: 'edit-sale-item', params: saleItemId }"
+                class="itbms-edit-button btn btn-warning btn-outline"
+                >Edit</router-link
+              >
+              <button
+                @click="showDeleteModal = true"
+                class="itbms-delete-button btn btn-error btn-outline"
+              >
+                Delete
+              </button>
+              <dialog
+                class="modal"
+                :open="showDeleteModal"
+                v-if="showDeleteModal"
+              >
+                <div class="modal-box">
+                  <h3 class="text-lg font-bold">Delete Confirmation</h3>
+
+                  <p class="itbms-message py-4">Do you want to delete this sale item?</p>
+                  <div class="modal-action">
+                    <form method="dialog">
+                      <button
+                        @click="showDeleteModal = false"
+                        class="btn btn-error itbms-button-cancel"
+                      >
+                        Cancel
+                      </button>
+                    </form>
+                    <button @click="handleDelete" class="btn btn-success itms-button-confirm">
+                      Confirm
+                    </button>
+                  </div>
+                </div>
+              </dialog>
             </div>
           </div>
         </div>
