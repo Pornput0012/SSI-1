@@ -24,6 +24,9 @@ const formData = ref({
   color: "",
   quantity: null,
 });
+const errorTitle = ref("");
+const errorMessage = ref("");
+const showModal = ref(false);
 
 onMounted(async () => {
   if (brands.value === null) {
@@ -33,19 +36,20 @@ onMounted(async () => {
         throw new Error(response.error);
       }
     } catch (e) {
-      console.log(e);
+      errorTitle.value = "Something Wrong!";
+      errorMessage.value = e.message;
+      showModal.value = true;
     }
   }
 });
 
-const hasError = ref("");
-const showModal = ref(false);
-
 const handleSubmit = () => {
-  const requireField = ["brand", "model", "price", "description", "quantity"];
+  const requireField = ["model", "price", "description", "quantity"];
+  
   for (const field of requireField) {
-    if (!formData[requireField]) {
-      hasError.value = `Please fill out the required field: ${field}`;
+    if (!formData.value[field]) {
+      errorTitle.value = "Missing Required Field";
+      errorMessage.value = `Please fill out the required field: ${field}`;
       showModal.value = true;
       return;
     }
@@ -168,12 +172,7 @@ const handleSubmit = () => {
           <div
             class="flex items- jus w-full gap-4 col-span-2 justify-center mt-4 lg:justify-end"
           >
-            <button
-              @click="handleSubmit"
-              class="btn btn-primary"
-            >
-              Save
-            </button>
+            <button @click="handleSubmit" class="btn btn-primary">Save</button>
             <button class="btn">Cancle</button>
           </div>
         </div>
@@ -185,10 +184,10 @@ const handleSubmit = () => {
       <h3
         class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-red-500"
       >
-        Missing Required Field
+        {{ errorTitle }}
       </h3>
       <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        {{ hasError }}
+        {{ errorMessage }}
       </p>
       <div class="itbms-button modal-action justify-center">
         <button
