@@ -5,24 +5,28 @@ import { computed, onMounted, ref, watchEffect } from "vue";
 import Breadcrumbs from "./Breadcrumbs.vue";
 
 const emit = defineEmits(["onSubmit"]);
-
 const { getBrands } = useBrandStore();
-
 const brands = computed(() => getBrands());
+const isSave = ref(true);
 
+const props = defineProps({
+  saleItemDetail: {
+    type: Object,
+  },
+});
 const formData = ref({
   brand: {
     id: 0,
-    name: "",
+    name: props.saleItemDetail?.brandName || "",
   },
-  model: "",
-  price: null,
-  description: "",
-  ramGb: null,
-  screenSizeInch: null,
-  storageGb: null,
-  color: "",
-  quantity: null,
+  model: props.saleItemDetail?.model || "",
+  price: props.saleItemDetail?.price || null,
+  description: props.saleItemDetail?.description || "",
+  ramGb: props.saleItemDetail?.ramGb || null,
+  screenSizeInch: props.saleItemDetail?.screenSizeInch || null,
+  storageGb: props.saleItemDetail?.storageGb || null,
+  color: props.saleItemDetail?.color || "",
+  quantity: props.saleItemDetail?.quantity || null,
 });
 const errorTitle = ref("");
 const errorMessage = ref("");
@@ -43,9 +47,18 @@ onMounted(async () => {
   }
 });
 
+const requireField = ["brand", "model", "price", "description", "quantity"];
+const fieldCheckOldData = [
+  "model",
+  "price",
+  "description",
+  "ramGb",
+  "screenSizeInch",
+  "storageGb",
+  "color",
+  "quantity",
+];
 const handleSubmit = () => {
-  const requireField = ["model", "price", "description", "quantity"];
-  
   for (const field of requireField) {
     if (!formData.value[field]) {
       errorTitle.value = "Missing Required Field";
@@ -56,10 +69,45 @@ const handleSubmit = () => {
   }
   emit("onSubmit", formData.value);
 };
+
+watchEffect(() => {
+  if (brands.value && brands.value.length > 0 && formData.value.brand.name) {
+    const foundBrand = brands.value.find(
+      (brand) => brand.name === formData.value.brand.name
+    );
+    if (foundBrand) {
+      formData.value.brand = foundBrand;
+    }
+  }
+});
+
+watchEffect(() => {
+  for (const field of requireField) {
+    if (!formData.value[field]) {
+      isSave.value = true; // ยังกรอกไม่ครบ ไม่ควรบันทึก
+      return;
+    }
+  }
+  let hasChanges = false;
+
+  if (formData.value.brand.name !== props.saleItemDetail.brandName) {
+    hasChanges = true;
+  }
+
+  if (!hasChanges) {
+    for (const field of fieldCheckOldData) {
+      if (formData.value[field] !== props.saleItemDetail[field]) {
+        hasChanges = true;
+        break;
+      }
+    }
+  }
+
+  isSave.value = !hasChanges;
+});
 </script>
 
 <template>
-  <Breadcrumbs :crumbs="[{ label: 'New Sale Item', to: '/sale-items/add' }]" />
   <div class="mt-10 lg:mt-0 lg:mx-16 mb-14">
     <div class="flex flex-col lg:flex-row">
       <div class="w-full lg:w-2/4 mx-auto overflow-auto mb-10 lg:mb-10">
@@ -90,7 +138,7 @@ const handleSubmit = () => {
             class="itbms-brand select"
             v-model="formData.brand"
           >
-            <option disabled selected>Select Brand</option>
+            <option :value="{ id: 0, name: '' }" disabled>Select Brand</option>
             <option v-for="(brand, i) in brands" :value="brand" :key="i">
               {{ brand.name }}
             </option>
@@ -172,8 +220,19 @@ const handleSubmit = () => {
           <div
             class="flex items- jus w-full gap-4 col-span-2 justify-center mt-4 lg:justify-end"
           >
-            <button @click="handleSubmit" class="btn btn-primary">Save</button>
-            <button class="btn">Cancle</button>
+            <button
+              @click="handleSubmit"
+              class="itbms-save-button btn"
+              :class="isSave ? '' : 'btn-primary'"
+              :disabled="isSave"
+            >
+              Save
+            </button>
+            <router-link
+              :to="{ name: 'sale-items' }"
+              class="itbms-cancel-button btn"
+              >Cancle</router-link
+            >
           </div>
         </div>
       </div>

@@ -1,4 +1,5 @@
 <script setup>
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
 
 const createSaleItem = (formData) => {
@@ -11,6 +12,8 @@ const createSaleItem = (formData) => {
 </script>
 
 <template>
+  <Breadcrumbs :crumbs="[{ label: 'New Sale Item', to: '' }]" />
+
   <div>
     <FormSaleItem @on-submit="createSaleItem" />
   </div>
