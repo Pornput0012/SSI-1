@@ -3,7 +3,9 @@ package ssi.backend.services;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ssi.backend.dtos.ProductDetailDTO;
 import ssi.backend.dtos.ProductItemDTO;
 import ssi.backend.entities.Product;
@@ -27,7 +29,12 @@ public class ProductService {
     }
 
     public ProductDetailDTO getProductById(Integer id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
+        Product product = productRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id : " + id));
         return modelMapper.map(product, ProductDetailDTO.class);
+    }
+
+    public void deleteProductById(Integer id) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+        productRepository.delete(product);
     }
 }
