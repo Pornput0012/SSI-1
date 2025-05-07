@@ -3,6 +3,7 @@ import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watchEffect } from "vue";
 import Breadcrumbs from "./Breadcrumbs.vue";
+import router from "@/router";
 
 const emit = defineEmits(["onSubmit"]);
 const { getBrands } = useBrandStore();
@@ -225,16 +226,14 @@ watchEffect(() => {
             <button
               @click="handleSubmit"
               class="itbms-save-button btn"
-              :class="isSave || disableSaveBtn? '' : 'btn-primary'"
+              :class="isSave || disableSaveBtn ? '' : 'btn-primary'"
               :disabled="isSave || disableSaveBtn"
             >
               Save
             </button>
-            <router-link
-              :to="{ name: 'sale-items' }"
-              class="itbms-cancel-button btn"
-              >Cancle</router-link
-            >
+            <button @click="router.go(-1)" class="itbms-cancel-button btn">
+              Cancle
+            </button>
           </div>
         </div>
       </div>
