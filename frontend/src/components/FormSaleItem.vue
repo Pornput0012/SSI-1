@@ -13,6 +13,7 @@ const props = defineProps({
   saleItemDetail: {
     type: Object,
   },
+  disableSaveBtn: Boolean,
 });
 const formData = ref({
   brand: {
@@ -58,6 +59,7 @@ const fieldCheckOldData = [
   "color",
   "quantity",
 ];
+
 const handleSubmit = () => {
   for (const field of requireField) {
     if (!formData.value[field]) {
@@ -90,7 +92,7 @@ watchEffect(() => {
   }
   let hasChanges = false;
 
-  if (formData.value.brand.name !== props.saleItemDetail.brandName) {
+  if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
     hasChanges = true;
   }
 
@@ -223,8 +225,8 @@ watchEffect(() => {
             <button
               @click="handleSubmit"
               class="itbms-save-button btn"
-              :class="isSave ? '' : 'btn-primary'"
-              :disabled="isSave"
+              :class="isSave || disableSaveBtn? '' : 'btn-primary'"
+              :disabled="isSave || disableSaveBtn"
             >
               Save
             </button>

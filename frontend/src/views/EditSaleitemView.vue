@@ -6,6 +6,8 @@ import { getSaleItemById } from "@/services/SaleItemService";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
 
+const isCreating = ref(false);
+
 const route = useRoute();
 const router = useRouter();
 
@@ -44,8 +46,10 @@ onMounted(fetchSaleItemById);
 
 const editSaleItem = (formData) => {
   try {
+    isCreating.value = true;
     console.log(formData);
   } catch (error) {
+    isCreating.value = false;
     console.log(error.message);
   }
 };
@@ -62,6 +66,7 @@ const editSaleItem = (formData) => {
       v-if="selectSaleItem"
       :saleItemDetail="selectSaleItem"
       @on-submit="editSaleItem"
+      :disable-save-btn="isCreating"
     />
   </div>
   <div v-if="isNotFound" class="modal modal-open">
