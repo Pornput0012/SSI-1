@@ -35,15 +35,13 @@ public class ProductService {
 
     public ProductDetailDTO getProductById(Integer id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id : " + id));
+                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
         return modelMapper.map(product, ProductDetailDTO.class);
     }
 
     public ProductDetailDTO updateProduct(Integer id, ProductDetailDTO productDetailDTO) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
-        Brand brand = brandRepository.findById(productDetailDTO.getBrand().getId())
-                .orElseThrow(() -> new ItemNotFoundException("Brand id " + productDetailDTO.getBrand().getId() + " does not exist"));
 
         existingProduct.setModel(productDetailDTO.getModel());
         existingProduct.setDescription(productDetailDTO.getDescription());
@@ -53,7 +51,6 @@ public class ProductService {
         existingProduct.setStorageGb(productDetailDTO.getStorageGb());
         existingProduct.setColor(productDetailDTO.getColor());
         existingProduct.setQuantity(productDetailDTO.getQuantity());
-        existingProduct.setBrand(brand);
 
         productRepository.save(existingProduct);
         return modelMapper.map(existingProduct, ProductDetailDTO.class);
