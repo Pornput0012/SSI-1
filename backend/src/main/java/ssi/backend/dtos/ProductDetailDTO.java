@@ -25,4 +25,6 @@ public class ProductDetailDTO {
     private Integer storageGb;
 
     private String color;
+
+    private BrandDTO brand;
 }
