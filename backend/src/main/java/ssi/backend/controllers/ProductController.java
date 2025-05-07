@@ -1,6 +1,7 @@
 package ssi.backend.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ssi.backend.dtos.ProductDetailDTO;
@@ -20,6 +21,10 @@ public class ProductController {
     @GetMapping("")
     public ResponseEntity<List<ProductItemDTO>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
+    }
+    @GetMapping("/hi")
+    public ResponseEntity<List<Product>> getAll2Products() {
+        return ResponseEntity.ok(productService.getAll2Products());
     }
 
     @GetMapping("/{id}")

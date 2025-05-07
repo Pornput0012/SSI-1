@@ -40,14 +40,14 @@ public class Brand {
     @Column(name = "countryOfOrigin", length = 80)
     private String countryOfOrigin;
 
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "createdOn", nullable = false)
+
+
+    @Column(name = "createdOn", insertable = false, updatable = false)
     private Instant createdOn;
 
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updatedOn", nullable = false)
+
+
+    @Column(name = "updatedOn", insertable = false, updatable = false)
     private Instant updatedOn;
 
     @JsonIgnore

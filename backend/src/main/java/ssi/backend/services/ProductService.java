@@ -10,6 +10,7 @@ import ssi.backend.dtos.ProductDetailDTO;
 import ssi.backend.dtos.ProductItemDTO;
 import ssi.backend.entities.Product;
 import ssi.backend.exceptions.ItemNotFoundException;
+import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.ProductRepository;
 import ssi.backend.utils.ListMapper;
 
@@ -23,10 +24,17 @@ public class ProductService {
     private ListMapper listMapper;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private BrandRepository brandRepository;
 
     public List<ProductItemDTO> getAllProducts() {
         return listMapper.mapList(productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"),Sort.Order.asc("id"))), ProductItemDTO.class, modelMapper);
     }
+
+    public List<Product> getAll2Products() {
+        return productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"),Sort.Order.asc("id")));
+    }
+
 
     public ProductDetailDTO getProductById(Integer id) {
         Product product = productRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id : " + id));

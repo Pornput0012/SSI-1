@@ -25,11 +25,17 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     return saleItems.value[index];
   }
 
+  function deleteSaleItemById(saleItemId) {
+    const saleItemIndex = saleItems.value.findIndex((ele) => ele.id === saleItemId);
+    saleItems.value.splice(saleItemIndex, 1);
+  }
+
   return {
     saleItems,
     setSaleItems,
     getSaleItems,
     getSaleItemById,
+    deleteSaleItemById,
   };
 });
 
