@@ -33,25 +33,8 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ProductItemDTO> deleteProductById(@PathVariable Integer id) {
-        return ResponseEntity.ok(productService.deleteProduct(id));
+    public ResponseEntity<Void> deleteProductById(@PathVariable Integer id) {
+        productService.deleteProductById(id);
+        return ResponseEntity.noContent().build();
     }
-
-    @PostMapping
-    public ResponseEntity<ProductItemDTO> createProduct(@RequestBody Product product,@RequestParam(required = true) Integer brandId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product,brandId));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(
-            @PathVariable Integer id,
-            @RequestBody Product product) {
-
-        return ResponseEntity.ok(productService.updateProduct(id,product));
-    }
-
-
-
-
-
 }

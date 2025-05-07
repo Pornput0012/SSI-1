@@ -3,7 +3,9 @@ package ssi.backend.services;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ssi.backend.dtos.ProductDetailDTO;
 import ssi.backend.dtos.ProductItemDTO;
 import ssi.backend.entities.Product;
@@ -35,43 +37,12 @@ public class ProductService {
 
 
     public ProductDetailDTO getProductById(Integer id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
+        Product product = productRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id : " + id));
         return modelMapper.map(product, ProductDetailDTO.class);
     }
 
-    public ProductItemDTO deleteProduct(Integer id) {
-        Product product = productRepository.findById(id).orElseThrow(()-> new ItemNotFoundException("SaleItem not found for this id :: " + id));
-        productRepository.deleteById(id);
-        return modelMapper.map(product,ProductItemDTO.class);
+    public void deleteProductById(Integer id) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+        productRepository.delete(product);
     }
-
-    public ProductItemDTO createProduct(Product product,Integer brandId) {
-        System.out.println(product.getBrand());
-        product.setBrand(brandRepository.findById(brandId).orElseThrow(()-> new ItemNotFoundException("Brand not found for this id :: " + brandId)));
-        Product savedProduct = productRepository.save(product);
-        return modelMapper.map(productRepository.findById(savedProduct.getId()).orElse(null),ProductItemDTO.class);
-    }
-
-    public Product updateProduct(Integer id, Product product) {
-        Product existingProduct = productRepository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundException("Product not found for this id :: " + id));
-
-        existingProduct.setModel(product.getModel());
-        existingProduct.setDescription(product.getDescription());
-        existingProduct.setPrice(product.getPrice());
-        existingProduct.setRamGb(product.getRamGb());
-        existingProduct.setScreenSizeInch(product.getScreenSizeInch());
-        existingProduct.setStorageGb(product.getStorageGb());
-        existingProduct.setColor(product.getColor());
-        existingProduct.setQuantity(product.getQuantity());
-
-
-        return productRepository.save(existingProduct);
-    }
-
-
-
-
-
-
 }
