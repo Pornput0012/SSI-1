@@ -39,7 +39,6 @@ const getSaleItemById = async (id) => {
   }
 };
 
-
 const deleteSaleItemById = async (id) => {
   try {
     if (!id) throw new Error(`Sale Item ID is required for deletion.`);
@@ -53,8 +52,7 @@ const deleteSaleItemById = async (id) => {
         `Failed to delete Sale Item  with ID ${id}. Server responded with status ${response.status}`
       );
     }
-    return {success : true}
-
+    return { success: true };
   } catch (error) {
     return {
       error: `Error deleting Sale Item: ${error.message}`,
@@ -62,7 +60,4 @@ const deleteSaleItemById = async (id) => {
   }
 };
 
-
-
-
-export { getAllSaleItems, getSaleItemById,deleteSaleItemById };
+export { getAllSaleItems, getSaleItemById, deleteSaleItemById };

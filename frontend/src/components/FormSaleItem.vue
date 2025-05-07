@@ -3,6 +3,7 @@ import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watchEffect } from "vue";
 import Breadcrumbs from "./Breadcrumbs.vue";
+import router from "@/router";
 
 const emit = defineEmits(["onSubmit"]);
 const { getBrands } = useBrandStore();
@@ -13,6 +14,7 @@ const props = defineProps({
   saleItemDetail: {
     type: Object,
   },
+  disableSaveBtn: Boolean,
 });
 const formData = ref({
   brand: {
@@ -58,6 +60,7 @@ const fieldCheckOldData = [
   "color",
   "quantity",
 ];
+
 const handleSubmit = () => {
   for (const field of requireField) {
     if (!formData.value[field]) {
@@ -90,7 +93,7 @@ watchEffect(() => {
   }
   let hasChanges = false;
 
-  if (formData.value.brand.name !== props.saleItemDetail.brandName) {
+  if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
     hasChanges = true;
   }
 
@@ -223,16 +226,14 @@ watchEffect(() => {
             <button
               @click="handleSubmit"
               class="itbms-save-button btn"
-              :class="isSave ? '' : 'btn-primary'"
-              :disabled="isSave"
+              :class="isSave || disableSaveBtn ? '' : 'btn-primary'"
+              :disabled="isSave || disableSaveBtn"
             >
               Save
             </button>
-            <router-link
-              :to="{ name: 'sale-items' }"
-              class="itbms-cancel-button btn"
-              >Cancle</router-link
-            >
+            <button @click="router.go(-1)" class="itbms-cancel-button btn">
+              Cancle
+            </button>
           </div>
         </div>
       </div>
