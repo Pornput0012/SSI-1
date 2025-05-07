@@ -1,5 +1,6 @@
 package ssi.backend.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,12 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductDetailDTO> getProductById(@PathVariable Integer id) {
         return ResponseEntity.ok(productService.getProductById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductDetailDTO> updateProduct(@PathVariable Integer id, @Valid @RequestBody ProductDetailDTO productDetailDTO) {
+        ProductDetailDTO updated = productService.updateProduct(id, productDetailDTO);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")

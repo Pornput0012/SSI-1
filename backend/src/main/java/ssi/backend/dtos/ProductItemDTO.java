@@ -19,5 +19,4 @@ public class ProductItemDTO {
     private Integer storageGb;
 
     private String color;
-
 }
