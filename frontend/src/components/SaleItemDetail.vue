@@ -5,7 +5,10 @@ import dot from "../assets/icons/dot.svg";
 import heart from "../assets/icons/heart.svg";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { onMounted, ref } from "vue";
-import { getSaleItemById } from "@/services/SaleItemService";
+import {
+  getSaleItemById,
+  deleteSaleItemById,
+} from "@/services/SaleItemService";
 import Breadcrumbs from "./Breadcrumbs.vue";
 
 const route = useRoute();
@@ -21,6 +24,10 @@ const isNotFound = ref(false);
 const errorMessage = ref("");
 
 const showDeleteModal = ref(false);
+
+const deleteSuccess = ref(false);
+
+console.log(deleteSuccess.value)
 
 const fetchSaleItemById = async () => {
   try {
@@ -46,10 +53,33 @@ const fetchSaleItemById = async () => {
 
 onMounted(fetchSaleItemById);
 
-const handleDelete = () => {
+const handleDelete = async (id) => {
   try {
-  } catch (e) {}
+    console.log(selectSaleItem.value.id)
+    if (selectSaleItem.value && selectSaleItem.value.id) {
+      const response = await deleteSaleItemById(selectSaleItem.value.id);
+      showDeleteModal.value = false
+      console.log(response)
+      if (response.success) {
+        saleItemStore.deleteSaleItemById(selectSaleItem.value.id)
+        deleteSuccess.value = true;
+        selectSaleItem.value = null;
+        console.log(selectSaleItem.value)
+      } else {
+        throw new Error("The requested sale item does not exist.");
+      }
+    }
+  } catch (e) {
+    errorMessage.value = e.message;
+    isNotFound.value = true;
+  }
 };
+
+
+const successOk = () => {
+  deleteSuccess.value = false
+  router.push({ name: 'sale-items' })
+}
 </script>
 
 <template>
@@ -206,7 +236,9 @@ const handleDelete = () => {
                 <div class="modal-box">
                   <h3 class="text-lg font-bold">Delete Confirmation</h3>
 
-                  <p class="itbms-message py-4">Do you want to delete this sale item?</p>
+                  <p class="itbms-message py-4">
+                    Do you want to delete this sale item?
+                  </p>
                   <div class="modal-action">
                     <form method="dialog">
                       <button
@@ -216,7 +248,10 @@ const handleDelete = () => {
                         Cancel
                       </button>
                     </form>
-                    <button @click="handleDelete" class="btn btn-success itms-button-confirm">
+                    <button
+                      @click="handleDelete"
+                      class="btn btn-success itms-button-confirm"
+                    >
                       Confirm
                     </button>
                   </div>
@@ -242,6 +277,22 @@ const handleDelete = () => {
       <div class="itbms-button modal-action justify-center">
         <button
           @click="router.push({ name: 'sale-items' })"
+          class="btn btn-primary bg-purple-700"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+
+  </div>
+  <div v-if="deleteSuccess" class="modal modal-open">
+    <div class="modal-box text-center">
+      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        The sale item has been deleted
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button
+          @click="successOk"
           class="btn btn-primary bg-purple-700"
         >
           OK

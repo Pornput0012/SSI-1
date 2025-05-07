@@ -39,4 +39,30 @@ const getSaleItemById = async (id) => {
   }
 };
 
-export { getAllSaleItems, getSaleItemById };
+
+const deleteSaleItemById = async (id) => {
+  try {
+    if (!id) throw new Error(`Sale Item ID is required for deletion.`);
+
+    const response = await fetch(`${SALE_ITEM_API_URL}/${id}`, {
+      method: "DELETE",
+    });
+
+    if (response.status !== 204) {
+      throw new Error(
+        `Failed to delete Sale Item  with ID ${id}. Server responded with status ${response.status}`
+      );
+    }
+    return {success : true}
+
+  } catch (error) {
+    return {
+      error: `Error deleting Sale Item: ${error.message}`,
+    };
+  }
+};
+
+
+
+
+export { getAllSaleItems, getSaleItemById,deleteSaleItemById };
