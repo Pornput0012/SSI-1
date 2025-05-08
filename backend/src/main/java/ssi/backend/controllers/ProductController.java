@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ssi.backend.dtos.ProductDetailDTO;
 import ssi.backend.dtos.ProductItemDTO;
+import ssi.backend.dtos.ProductItemRequestDTO;
+import ssi.backend.dtos.ProductItemResponseDTO;
 import ssi.backend.entities.Product;
 import ssi.backend.services.ProductService;
 
@@ -43,5 +45,11 @@ public class ProductController {
     public ResponseEntity<Void> deleteProductById(@PathVariable Integer id) {
         productService.deleteProductById(id);
         return ResponseEntity.noContent().build();
+    }
+
+
+    @PostMapping("")
+    public ResponseEntity<ProductItemResponseDTO> createProduct(@Valid @RequestBody ProductItemRequestDTO product) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product));
     }
 }
