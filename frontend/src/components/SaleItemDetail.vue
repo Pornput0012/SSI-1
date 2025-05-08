@@ -37,11 +37,13 @@ const fetchSaleItemById = async () => {
     const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId);
     if (saleItemFromStore) {
       selectSaleItem.value = saleItemFromStore;
+      console.log(selectSaleItem.value)
       return;
     }
     const response = await getSaleItemById(saleItemId);
     if (response && !response.error) {
       selectSaleItem.value = response;
+      console.log(selectSaleItem.value)
     } else {
       throw new Error("The requested sale item does not exist.");
     }

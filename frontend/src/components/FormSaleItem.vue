@@ -70,6 +70,8 @@ const handleSubmit = () => {
       return;
     }
   }
+  console.log(formData.value);
+  
   emit("onSubmit", formData.value);
 };
 

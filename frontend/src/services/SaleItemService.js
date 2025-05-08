@@ -39,6 +39,8 @@ const getSaleItemById = async (id) => {
   }
 };
 
+
+// DELETE sale-item by ID
 const deleteSaleItemById = async (id) => {
   try {
     if (!id) throw new Error(`Sale Item ID is required for deletion.`);
@@ -60,4 +62,62 @@ const deleteSaleItemById = async (id) => {
   }
 };
 
-export { getAllSaleItems, getSaleItemById, deleteSaleItemById };
+const createSaleItem = async (saleItem) => {
+  try {
+    //เช็ค required fieldในหน้า form แล้ว
+
+    const response = await fetch(`${SALE_ITEM_API_URL}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(saleItem),
+    });
+
+    
+
+    if (response.status !== 201) {
+      throw new Error(
+        `Failed to create sale item. Server responded with status ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+    console.log(data);
+    
+    return data;
+
+  } catch (error) {
+    console.log(error)
+    return {
+      error: `Error creating sale item: ${error.message}`,
+    };
+  }
+};
+
+const updateSaleItemById = async (id, saleItem) => {
+  try {
+    if (!id) throw new Error(`Sale Item is required for updating.`);
+
+    //เช็ค required fieldในหน้า form แล้ว
+    const response = await fetch(`${SALE_ITEM_API_URL}/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(saleItem),
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to create sale item. Server responded with status ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+    return data;
+
+  } catch (error) {
+    return {
+      error: `Error creating sale item: ${error.message}`,
+    };
+  }
+};
+
+export { getAllSaleItems, getSaleItemById, deleteSaleItemById ,updateSaleItemById,createSaleItem};
