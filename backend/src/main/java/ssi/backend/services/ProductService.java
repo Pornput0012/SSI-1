@@ -64,8 +64,8 @@ public class ProductService {
         existingProduct.setQuantity(productItemRequestDTO.getQuantity());
         existingProduct.setBrand(existingBrand);
 
-        productRepository.save(existingProduct);
-        return modelMapper.map(existingProduct, ProductItemResponseDTO.class);
+
+        return modelMapper.map(productRepository.save(existingProduct), ProductItemResponseDTO.class);
     }
 
     public void deleteProductById(Integer id) {
