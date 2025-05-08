@@ -1,28 +1,49 @@
 <script setup>
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
+import router from "@/router";
+import { createSaleItem } from "@/services/SaleItemService";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { ref } from "vue";
 
-const isCreating = ref(false);
+const isSaving = ref(false);
 const showModal = ref(false);
-const createSaleItem = (formData) => {
+const saleItemStore = useSaleItemStore();
+const handleCreateSaleItem = async (formData) => {
   try {
-    isCreating.value = true;
+    isSaving.value = true;
     console.log(formData);
-    showModal.value = true;
+    if (formData) {
+      const response = await createSaleItem(formData);
+      console.log(response)
+      console.log(response.error)
+      if (response && !response.error) {
+        saleItemStore.createSaleItem(response)
+        showModal.value = true;
+      } else {
+        throw new Error("Failed to add sale item");
+      }
+    }
+    
   } catch (error) {
-    isCreating.value = false;
-    showModal.value = false;
+    isSaving.value = false;
     console.log(error.message);
   }
 };
+
+
+const createSuccess = () => {
+    showModal.value = false
+    isSaving.value = false
+    router.push({ name: 'sale-items' })
+}
 </script>
 
 <template>
   <Breadcrumbs :crumbs="[{ label: 'New Sale Item', to: '' }]" />
 
   <div>
-    <FormSaleItem @on-submit="createSaleItem" :disableSaveBtn="isCreating" />
+    <FormSaleItem @on-submit="handleCreateSaleItem" :disableSaveBtn="isSaving" />
   </div>
   <div v-if="showModal" class="modal modal-open">
     <div class="modal-box text-center">
@@ -36,7 +57,7 @@ const createSaleItem = (formData) => {
       </p>
       <div class="itbms-button modal-action justify-center">
         <button
-          @click="showModal = false"
+          @click="createSuccess"
           class="btn btn-primary bg-purple-700"
         >
           OK
