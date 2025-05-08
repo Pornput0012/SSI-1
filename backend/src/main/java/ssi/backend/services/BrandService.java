@@ -2,6 +2,7 @@ package ssi.backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ssi.backend.dtos.BrandDTO;
 import ssi.backend.repositories.BrandRepository;
@@ -19,6 +20,6 @@ public class BrandService {
     private ListMapper listMapper;
 
     public List<BrandDTO> getAllBrands() {
-        return listMapper.mapList(brandRepository.findAll(), BrandDTO.class, modelMapper);
+        return listMapper.mapList(brandRepository.findAll(Sort.by(Sort.Order.asc("id"), Sort.Order.asc("name"))), BrandDTO.class, modelMapper);
     }
 }
