@@ -61,10 +61,12 @@ public class Product {
 
     @JsonIgnore
     @Column(name = "createdOn", insertable = false, updatable = false)
+    @ColumnDefault("CURRENT_TIMESTAMP")
     private Instant createdOn;
 
     @JsonIgnore
     @Column(name = "updatedOn", insertable = false, updatable = false)
+    @ColumnDefault("CURRENT_TIMESTAMP")
     private Instant updatedOn;
 
 }
