@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Generated;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -61,12 +63,12 @@ public class Product {
 
     @JsonIgnore
     @Column(name = "createdOn", insertable = false, updatable = false)
-    @ColumnDefault("CURRENT_TIMESTAMP")
+    @org.hibernate.annotations.Generated(org.hibernate.annotations.GenerationTime.INSERT)
     private Instant createdOn;
 
     @JsonIgnore
     @Column(name = "updatedOn", insertable = false, updatable = false)
-    @ColumnDefault("CURRENT_TIMESTAMP")
+    @org.hibernate.annotations.Generated(org.hibernate.annotations.GenerationTime.ALWAYS)
     private Instant updatedOn;
 
 }
