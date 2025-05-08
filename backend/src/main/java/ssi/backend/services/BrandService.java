@@ -20,6 +20,6 @@ public class BrandService {
     private ListMapper listMapper;
 
     public List<BrandDTO> getAllBrands() {
-        return listMapper.mapList(brandRepository.findAll(Sort.by(Sort.Order.asc("id"), Sort.Order.asc("name"))), BrandDTO.class, modelMapper);
+        return listMapper.mapList(brandRepository.findAll(Sort.by(Sort.Order.asc("name"))), BrandDTO.class, modelMapper);
     }
 }
