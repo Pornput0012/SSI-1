@@ -44,21 +44,28 @@ public class ProductService {
         return modelMapper.map(product, ProductDetailDTO.class);
     }
 
-    public ProductDetailDTO updateProduct(Integer id, ProductDetailDTO productDetailDTO) {
+    public ProductItemResponseDTO updateProduct(Integer id, ProductItemRequestDTO productItemRequestDTO) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+        Brand existingBrand = brandRepository.findById(productItemRequestDTO.getBrand().getId())
+                .orElseThrow(() -> new ItemNotFoundException("Brand id " + productItemRequestDTO.getBrand().getId() + " does not exist"));
 
-        existingProduct.setModel(productDetailDTO.getModel());
-        existingProduct.setDescription(productDetailDTO.getDescription());
-        existingProduct.setPrice(productDetailDTO.getPrice());
-        existingProduct.setRamGb(productDetailDTO.getRamGb());
-        existingProduct.setScreenSizeInch(BigDecimal.valueOf(productDetailDTO.getScreenSizeInch()));
-        existingProduct.setStorageGb(productDetailDTO.getStorageGb());
-        existingProduct.setColor(productDetailDTO.getColor());
-        existingProduct.setQuantity(productDetailDTO.getQuantity());
+        if (!existingBrand.getName().equals(productItemRequestDTO.getBrand().getName())) {
+            throw new BadRequestException("Brand ID and name do not match");
+        }
+
+        existingProduct.setModel(productItemRequestDTO.getModel());
+        existingProduct.setDescription(productItemRequestDTO.getDescription());
+        existingProduct.setPrice(productItemRequestDTO.getPrice());
+        existingProduct.setRamGb(productItemRequestDTO.getRamGb());
+        existingProduct.setScreenSizeInch(productItemRequestDTO.getScreenSizeInch());
+        existingProduct.setStorageGb(productItemRequestDTO.getStorageGb());
+        existingProduct.setColor(productItemRequestDTO.getColor());
+        existingProduct.setQuantity(productItemRequestDTO.getQuantity());
+        existingProduct.setBrand(existingBrand);
 
         productRepository.save(existingProduct);
-        return modelMapper.map(existingProduct, ProductDetailDTO.class);
+        return modelMapper.map(existingProduct, ProductItemResponseDTO.class);
     }
 
     public void deleteProductById(Integer id) {
@@ -69,7 +76,11 @@ public class ProductService {
 
     public ProductItemResponseDTO createProduct(ProductItemRequestDTO product) {
 
-        Brand existingBrand = brandRepository.findById(product.getBrand().getId()).orElseThrow(() -> new ItemNotFoundException("Brand id " + product.getBrand().getId() + " does not exist"));
+        Brand existingBrand = brandRepository.findById(product.getBrand().getId())
+                .orElseThrow(() -> new ItemNotFoundException("Brand id " + product.getBrand().getId() + " does not exist"));
+        if (!existingBrand.getName().equals(product.getBrand().getName())) {
+            throw new BadRequestException("Brand ID and name do not match");
+        }
         Product creatingProduct = modelMapper.map(product,Product.class);
         creatingProduct.setBrand(existingBrand);
 //        Product existingProduct = productRepository.findById(product.getId())
