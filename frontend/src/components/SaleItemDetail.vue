@@ -32,13 +32,7 @@ const fetchSaleItemById = async () => {
     if (!saleItemId) {
       throw new Error("Invalid ID");
     }
-    const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId);
-    console.log(saleItemFromStore);
     
-    if (saleItemFromStore) {
-      selectSaleItem.value = saleItemFromStore;
-      return;
-    }
     const response = await getSaleItemById(saleItemId);
     if (response && !response.error) {
       selectSaleItem.value = response;
