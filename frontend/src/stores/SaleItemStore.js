@@ -46,7 +46,7 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
       storageGb: saleItem.storageGb,
       color: saleItem.color,
     };
-    saleItems.value.push(createSaleItem);
+    saleItems.value.unshift(createSaleItem)
   }
 
   function updateSaleItemById(saleItemId, saleItem) {
