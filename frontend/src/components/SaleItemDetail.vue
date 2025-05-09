@@ -242,14 +242,14 @@ const successOk = () => {
                     <form method="dialog">
                       <button
                         @click="showDeleteModal = false"
-                        class="btn btn-error itbms-button-cancel"
+                        class="btn btn-error itbms-cancel-button"
                       >
                         Cancel
                       </button>
                     </form>
                     <button
                       @click="handleDelete"
-                      class="btn btn-success itms-button-confirm"
+                      class="btn btn-success itbms-confirm-button"
                     >
                       Confirm
                     </button>
