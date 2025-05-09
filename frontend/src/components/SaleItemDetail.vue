@@ -27,23 +27,21 @@ const showDeleteModal = ref(false);
 
 const deleteSuccess = ref(false);
 
-console.log(deleteSuccess.value)
-
 const fetchSaleItemById = async () => {
   try {
     if (!saleItemId) {
       throw new Error("Invalid ID");
     }
     const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId);
+    console.log(saleItemFromStore);
+    
     if (saleItemFromStore) {
       selectSaleItem.value = saleItemFromStore;
-      console.log(selectSaleItem.value)
       return;
     }
     const response = await getSaleItemById(saleItemId);
     if (response && !response.error) {
       selectSaleItem.value = response;
-      console.log(selectSaleItem.value)
     } else {
       throw new Error("The requested sale item does not exist.");
     }
@@ -57,16 +55,16 @@ onMounted(fetchSaleItemById);
 
 const handleDelete = async (id) => {
   try {
-    console.log(selectSaleItem.value.id)
+    console.log(selectSaleItem.value.id);
     if (selectSaleItem.value && selectSaleItem.value.id) {
       const response = await deleteSaleItemById(selectSaleItem.value.id);
-      showDeleteModal.value = false
-      console.log(response)
+      showDeleteModal.value = false;
+      console.log(response);
       if (response.success) {
-        saleItemStore.deleteSaleItemById(selectSaleItem.value.id)
+        saleItemStore.deleteSaleItemById(selectSaleItem.value.id);
         deleteSuccess.value = true;
         selectSaleItem.value = null;
-        console.log(selectSaleItem.value)
+        console.log(selectSaleItem.value);
       } else {
         throw new Error("The requested sale item does not exist.");
       }
@@ -77,11 +75,10 @@ const handleDelete = async (id) => {
   }
 };
 
-
 const successOk = () => {
-  deleteSuccess.value = false
-  router.push({ name: 'sale-items' })
-}
+  deleteSuccess.value = false;
+  router.push({ name: "sale-items" });
+};
 </script>
 
 <template>
@@ -220,7 +217,7 @@ const successOk = () => {
             </div>
             <div class="flex gap-4 mt-4">
               <router-link
-                :to="{ name: 'edit-sale-item', params: saleItemId }"
+                :to="{ name: 'edit-sale-item', params: { id: saleItemId } }"
                 class="itbms-edit-button btn btn-warning btn-outline"
                 >Edit</router-link
               >
@@ -285,7 +282,6 @@ const successOk = () => {
         </button>
       </div>
     </div>
-
   </div>
   <div v-if="deleteSuccess" class="modal modal-open">
     <div class="modal-box text-center">
@@ -293,10 +289,7 @@ const successOk = () => {
         The sale item has been deleted
       </p>
       <div class="itbms-button modal-action justify-center">
-        <button
-          @click="successOk"
-          class="btn btn-primary bg-purple-700"
-        >
+        <button @click="successOk" class="btn btn-primary bg-purple-700">
           OK
         </button>
       </div>

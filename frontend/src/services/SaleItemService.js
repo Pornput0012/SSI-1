@@ -65,7 +65,8 @@ const deleteSaleItemById = async (id) => {
 const createSaleItem = async (saleItem) => {
   try {
     //เช็ค required fieldในหน้า form แล้ว
-
+    console.log(saleItem);
+    
     const response = await fetch(`${SALE_ITEM_API_URL}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

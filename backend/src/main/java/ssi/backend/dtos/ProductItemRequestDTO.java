@@ -35,12 +35,10 @@ public class ProductItemRequestDTO {
 
     private Integer storageGb;
 
-    @NotEmpty
     private String color;
 
     @NotNull(message = "Quantity is required")
     private Integer quantity;
-
 
     public void setModel(String model) {
         this.model = model.trim();

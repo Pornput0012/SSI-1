@@ -2,9 +2,9 @@
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
 import router from "@/router";
-import { createSaleItem } from "@/services/SaleItemService";
+import { createSaleItem, getAllSaleItems } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 
 const isSaving = ref(false);
 const showModal = ref(false);
@@ -15,35 +15,47 @@ const handleCreateSaleItem = async (formData) => {
     console.log(formData);
     if (formData) {
       const response = await createSaleItem(formData);
-      console.log(response)
-      console.log(response.error)
       if (response && !response.error) {
-        saleItemStore.createSaleItem(response)
+        saleItemStore.createSaleItem(response);
         showModal.value = true;
       } else {
         throw new Error("Failed to add sale item");
       }
     }
-    
   } catch (error) {
     isSaving.value = false;
     console.log(error.message);
   }
 };
 
-
 const createSuccess = () => {
-    showModal.value = false
-    isSaving.value = false
-    router.push({ name: 'sale-items' })
-}
+  showModal.value = false;
+  isSaving.value = false;
+  router.push({ name: "sale-items" });
+};
+
+onMounted(async () => {
+  if (saleItemStore.getSaleItems() === null) {
+    try {
+      const response = await getAllSaleItems();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+    } catch (e) {
+      hasError.value = e.message;
+    }
+  }
+});
 </script>
 
 <template>
   <Breadcrumbs :crumbs="[{ label: 'New Sale Item', to: '' }]" />
 
   <div>
-    <FormSaleItem @on-submit="handleCreateSaleItem" :disableSaveBtn="isSaving" />
+    <FormSaleItem
+      @on-submit="handleCreateSaleItem"
+      :disableSaveBtn="isSaving"
+    />
   </div>
   <div v-if="showModal" class="modal modal-open">
     <div class="modal-box text-center">
@@ -56,10 +68,7 @@ const createSuccess = () => {
         The sale item has been successfully added
       </p>
       <div class="itbms-button modal-action justify-center">
-        <button
-          @click="createSuccess"
-          class="btn btn-primary bg-purple-700"
-        >
+        <button @click="createSuccess" class="btn btn-primary bg-purple-700">
           OK
         </button>
       </div>

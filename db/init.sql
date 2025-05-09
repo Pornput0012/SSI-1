@@ -14,6 +14,23 @@ create table if not exists brands(
   createdOn datetime not null default current_timestamp,
   updatedOn datetime not null default current_timestamp on update current_timestamp
 );
+create table if not exists products (
+  product_id integer AUTO_INCREMENT PRIMARY KEY,
+  brand_id integer not null,
+  model varchar(60) not null,
+  description varchar(400),
+  price integer not null,
+  ramGb integer,
+  screenSizeInch decimal(4, 2),
+  storageGb integer,
+  color varchar(40),
+  quantity integer not null default 1,
+  createdOn datetime not null default current_timestamp,
+  updatedOn datetime not null default current_timestamp on update current_timestamp,
+  CHECK (price >= 0),
+  CHECK (quantity >= 0),
+  foreign key (brand_id) references brands(brand_id) on update cascade on delete cascade
+);
 
 create table if not exists products (
   product_id integer AUTO_INCREMENT PRIMARY KEY,

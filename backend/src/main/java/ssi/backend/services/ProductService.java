@@ -30,13 +30,13 @@ public class ProductService {
     private BrandRepository brandRepository;
 
     public List<ProductItemDTO> getAllProducts() {
-        return listMapper.mapList(productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id"))), ProductItemDTO.class, modelMapper);
+        return listMapper.mapList(productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id"))),
+                ProductItemDTO.class, modelMapper);
     }
 
     public List<Product> getAll2Products() {
         return productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id")));
     }
-
 
     public ProductDetailDTO getProductById(Integer id) {
         Product product = productRepository.findById(id)
@@ -48,7 +48,8 @@ public class ProductService {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
         Brand existingBrand = brandRepository.findById(productItemRequestDTO.getBrand().getId())
-                .orElseThrow(() -> new ItemNotFoundException("Brand id " + productItemRequestDTO.getBrand().getId() + " does not exist"));
+                .orElseThrow(() -> new ItemNotFoundException(
+                        "Brand id " + productItemRequestDTO.getBrand().getId() + " does not exist"));
 
         if (!existingBrand.getName().equals(productItemRequestDTO.getBrand().getName())) {
             throw new BadRequestException("Brand name does not match");
@@ -64,7 +65,6 @@ public class ProductService {
         existingProduct.setQuantity(productItemRequestDTO.getQuantity());
         existingProduct.setBrand(existingBrand);
 
-
         return modelMapper.map(productRepository.save(existingProduct), ProductItemResponseDTO.class);
     }
 
@@ -77,18 +77,20 @@ public class ProductService {
     public ProductItemResponseDTO createProduct(ProductItemRequestDTO product) {
 
         Brand existingBrand = brandRepository.findById(product.getBrand().getId())
-                .orElseThrow(() -> new ItemNotFoundException("Brand id " + product.getBrand().getId() + " does not exist"));
+                .orElseThrow(
+                        () -> new ItemNotFoundException("Brand id " + product.getBrand().getId() + " does not exist"));
         if (!existingBrand.getName().equals(product.getBrand().getName())) {
             throw new BadRequestException("Brand name does not match");
         }
-        Product creatingProduct = modelMapper.map(product,Product.class);
+        Product creatingProduct = modelMapper.map(product, Product.class);
         creatingProduct.setBrand(existingBrand);
-//        Product existingProduct = productRepository.findById(product.getId())
-//                .orElse(null);
+        // Product existingProduct = productRepository.findById(product.getId())
+        // .orElse(null);
 
-//        if (existingProduct != null) {
-//            throw new BadRequestException("SaleItem id " + product.getId() + " already exist");
-//        }
+        // if (existingProduct != null) {
+        // throw new BadRequestException("SaleItem id " + product.getId() + " already
+        // exist");
+        // }
 
         return modelMapper.map(productRepository.save(creatingProduct), ProductItemResponseDTO.class);
     }

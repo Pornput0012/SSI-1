@@ -10,9 +10,6 @@ const props = defineProps({
   },
   hasError: String,
 });
-
-console.log(props.saleItems);
-console.log(props.hasError);
 </script>
 
 <template>
@@ -54,7 +51,7 @@ console.log(props.hasError);
         />
       </template>
     </ContainerList>
-    
+
     <!-- no sale item -->
     <div
       v-if="saleItems && saleItems.length === 0"
@@ -62,7 +59,6 @@ console.log(props.hasError);
     >
       <p class="text-purple-700 font-medium">no sale item</p>
     </div>
-    
   </div>
 </template>
 

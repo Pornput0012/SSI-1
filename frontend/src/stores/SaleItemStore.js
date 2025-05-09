@@ -18,7 +18,11 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     if (!Array.isArray(saleItems.value)) {
       return null;
     }
-    const index = saleItems.value.findIndex((item) => item.id === id);
+    console.log(saleItems.value);
+    
+    const index = saleItems.value.findIndex((item) => item.id == id);
+    console.log(index);
+    
     if (index === -1) {
       return null;
     }
@@ -33,8 +37,6 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
   }
 
   function createSaleItem(saleItem) {
-    console.log(saleItem);
-    console.log(saleItems.value);
     const createSaleItem = {
       id: saleItem.id,
       brandName: saleItem.brandName,
