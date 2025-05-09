@@ -34,8 +34,7 @@ onMounted(async () => {
       <div class="flex gap-4 items-center">
         <router-link
           :to="{ name: 'create-sale-item' }"
-          class="itbms-sale-item-add btn btn-primary "
-          onclick="create_saleitem.showModal()"
+          class="itbms-sale-item-add btn btn-primary"
         >
           Create +
         </router-link>

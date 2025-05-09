@@ -8,21 +8,64 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
   function setSaleItems(itemArray) {
     saleItems.value = itemArray;
   }
-  
+
   // getter
   function getSaleItems() {
     return saleItems.value;
   }
 
   function getSaleItemById(id) {
-    if(!Array.isArray(saleItems.value)){
-      return null
+    if (!Array.isArray(saleItems.value)) {
+      return null;
     }
-    const index = saleItems.value.findIndex((item) => item.id === id);
+    console.log(saleItems.value);
+    
+    const index = saleItems.value.findIndex((item) => item.id == id);
+    console.log(index);
+    
     if (index === -1) {
       return null;
     }
     return saleItems.value[index];
+  }
+
+  function deleteSaleItemById(saleItemId) {
+    const saleItemIndex = saleItems.value.findIndex(
+      (ele) => ele.id === saleItemId
+    );
+    saleItems.value.splice(saleItemIndex, 1);
+  }
+
+  function createSaleItem(saleItem) {
+    const createSaleItem = {
+      id: saleItem.id,
+      brandName: saleItem.brandName,
+      model: saleItem.model,
+      price: saleItem.price,
+      ramGb: saleItem.ramGb,
+      storageGb: saleItem.storageGb,
+      color: saleItem.color,
+    };
+    saleItems.value.push(createSaleItem);
+  }
+
+  function updateSaleItemById(saleItemId, saleItem) {
+    const saleItemIndex = saleItems.value.findIndex(
+      (ele) => ele.id === saleItemId
+    );
+
+    const updateSaleItem = {
+      id: saleItem.id,
+      brandName: saleItem.brandName,
+      model: saleItem.model,
+      price: saleItem.price,
+      ramGb: saleItem.ramGb,
+      storageGb: saleItem.storageGb,
+      color: saleItem.color,
+    };
+    if (saleItemIndex !== -1 && saleItem) {
+      saleItems.value.splice(saleItemIndex, 1, updateSaleItem);
+    }
   }
 
   return {
@@ -30,6 +73,9 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     setSaleItems,
     getSaleItems,
     getSaleItemById,
+    deleteSaleItemById,
+    createSaleItem,
+    updateSaleItemById,
   };
 });
 

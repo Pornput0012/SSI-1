@@ -7,6 +7,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,7 +22,7 @@ import java.time.Instant;
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id")
     private Integer id;
 
     @JsonIgnore
@@ -59,15 +63,13 @@ public class Product {
     private Integer quantity;
 
     @JsonIgnore
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "createdOn", nullable = false)
+    @Column(name = "createdOn", insertable = false, updatable = false)
+    @Generated(GenerationTime.INSERT)
     private Instant createdOn;
 
     @JsonIgnore
-    @NotNull
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updatedOn", nullable = false)
+    @Column(name = "updatedOn", insertable = false, updatable = false)
+    @Generated(GenerationTime.ALWAYS)
     private Instant updatedOn;
 
 }
