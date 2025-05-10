@@ -8,7 +8,6 @@ import { useNotiStore } from "@/stores/์NotiStore";
 import { onMounted, ref } from "vue";
 
 const isSaving = ref(false);
-// const showModal = ref(false);
 const saleItemStore = useSaleItemStore();
 const handleCreateSaleItem = async (formData) => {
   try {
@@ -28,13 +27,6 @@ const handleCreateSaleItem = async (formData) => {
     console.log(error.message);
   }
 };
-
-// const createSuccess = () => {
-//   showModal.value = false;
-//   isSaving.value = false;
-//   router.push({ name: "sale-items" });
-// };
-
 
 const notiStore = useNotiStore()
 const createSuccess = () => {
