@@ -155,7 +155,7 @@ const successOk = () => {
                 <span class="itbms-ramGb"
                   >{{ selectSaleItem.ramGb || "-" }}
                 </span>
-                <span class="itbms-ramGb-unit" v-if="selectSaleItem.ramGb"
+                <span class="itbms-ramGb-unit" 
                   >GB</span
                 >
               </span>
@@ -173,7 +173,6 @@ const successOk = () => {
                   selectSaleItem.screenSizeInch || "-"
                 }}</span>
                 <span
-                  v-if="selectSaleItem.screenSizeInch"
                   class="itbms-screenSizeInch-unit"
                   >Inches</span
                 >
@@ -191,7 +190,6 @@ const successOk = () => {
                   {{ selectSaleItem.storageGb || "-" }}
                 </span>
                 <span
-                  v-if="selectSaleItem.storageGb"
                   class="itbms-storageGb-unit"
                   >GB</span
                 >
