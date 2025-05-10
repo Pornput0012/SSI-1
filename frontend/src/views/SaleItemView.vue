@@ -36,7 +36,7 @@ onMounted(async () => {
           :to="{ name: 'create-sale-item' }"
           class="itbms-sale-item-add btn btn-primary"
         >
-          Create +
+          Add Sale Item
         </router-link>
         <label class="w-fit h-8 input input-xs hidden sm:flex">
           <input type="search" class="grow" placeholder="Search..." />
