@@ -71,7 +71,7 @@ const handleSubmit = () => {
     }
   }
   console.log(formData.value);
-  
+
   emit("onSubmit", formData.value);
 };
 
@@ -233,9 +233,19 @@ watchEffect(() => {
             >
               Save
             </button>
-            <button @click="router.go(-1)" class="itbms-cancel-button btn">
+            <router-link
+              :to="
+                saleItemDetail
+                  ? {
+                      name: 'sale-item-detail',
+                      params: { id: saleItemDetail.id },
+                    }
+                  : { name: 'sale-items' }
+              "
+              class="itbms-cancel-button btn"
+            >
               Cancle
-            </button>
+            </router-link>
           </div>
         </div>
       </div>
