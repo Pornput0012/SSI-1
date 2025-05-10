@@ -33,7 +33,10 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     const saleItemIndex = saleItems.value.findIndex(
       (ele) => ele.id === saleItemId
     );
-    saleItems.value.splice(saleItemIndex, 1);
+
+    if (saleItemId && saleItemIndex !== -1) {
+      saleItems.value.splice(saleItemIndex, 1);
+    }
   }
 
   function createSaleItem(saleItem) {
@@ -46,7 +49,7 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
       storageGb: saleItem.storageGb,
       color: saleItem.color,
     };
-    saleItems.value.unshift(createSaleItem)
+    saleItems.value.push(createSaleItem)
   }
 
   function updateSaleItemById(saleItemId, saleItem) {
