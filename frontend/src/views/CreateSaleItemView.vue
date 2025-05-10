@@ -2,7 +2,7 @@
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
 import router from "@/router";
-import { createSaleItem, getAllSaleItems } from "@/services/SaleItemService";
+import { createSaleItem } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { onMounted, ref } from "vue";
 
@@ -34,18 +34,7 @@ const createSuccess = () => {
   router.push({ name: "sale-items" });
 };
 
-onMounted(async () => {
-  if (saleItemStore.getSaleItems() === null) {
-    try {
-      const response = await getAllSaleItems();
-      if (response.error) {
-        throw new Error(response.error);
-      }
-    } catch (e) {
-      hasError.value = e.message;
-    }
-  }
-});
+
 </script>
 
 <template>
