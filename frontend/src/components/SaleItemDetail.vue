@@ -85,7 +85,7 @@ const successOk = () => {
         <div class="md:hidden">
           <div class="flex justify-between items-center">
             <button
-              @click="$router.go(-1)"
+              @click="$router.push({ name: 'sale-items' })"
               class="btn-circle w-[35px] h-[35px] cursor-pointer"
             >
               <img :src="arrowleft" class="m-auto w-[25px]" />
@@ -102,7 +102,7 @@ const successOk = () => {
           <div class="mb-[10px] hidden md:block">
             <div class="flex justify-between items-center">
               <button
-                @click="$router.go(-1)"
+                @click="$router.push({ name: 'sale-items' })"
                 class="btn-circle w-[40px] h-[40px] cursor-pointer relative -left-3"
               >
                 <img :src="arrowleft" class="m-auto w-[30px]" />
