@@ -10,6 +10,7 @@ import {
   deleteSaleItemById,
 } from "@/services/SaleItemService";
 import Breadcrumbs from "./Breadcrumbs.vue";
+import { useNotiStore } from "@/stores/์NotiStore";
 
 const route = useRoute();
 const router = useRouter();
@@ -73,6 +74,15 @@ const successOk = () => {
   deleteSuccess.value = false;
   router.push({ name: "sale-items" });
 };
+
+const notiStore = useNotiStore()
+const showUpdatedModal = ref(false);
+onMounted(() => {
+  if (notiStore.updateSuccess) {
+    showUpdatedModal.value = true
+    notiStore.updateSuccess = false
+  }
+})
 </script>
 
 <template>
@@ -282,6 +292,26 @@ const successOk = () => {
       </p>
       <div class="itbms-button modal-action justify-center">
         <button @click="successOk" class="btn btn-primary bg-purple-700">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+  <div v-if="showUpdatedModal" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3
+        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
+      >
+        Successfully!
+      </h3>
+      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        The sale item has been updated.
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button
+          @click="showUpdatedModal = false"
+          class="btn btn-primary bg-purple-700"
+        >
           OK
         </button>
       </div>

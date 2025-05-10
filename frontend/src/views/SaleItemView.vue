@@ -5,6 +5,7 @@ import SaleItemList from "@/components/SaleItemList.vue";
 import SaleItemModel from "@/components/SaleItemModel.vue";
 import { getAllSaleItems } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useNotiStore } from "@/stores/์NotiStore";
 import { computed, onMounted, ref } from "vue";
 
 const { getSaleItems } = useSaleItemStore();
@@ -24,6 +25,15 @@ onMounted(async () => {
     }
   }
 });
+
+const notiStore = useNotiStore()
+const showCreatedModal = ref(false)
+onMounted(() => {
+  if (notiStore.createSuccess) {
+    showCreatedModal.value = true
+    notiStore.createSuccess = false
+  }
+})
 </script>
 
 <template>
@@ -62,6 +72,23 @@ onMounted(async () => {
       </div>
     </div>
     <SaleItemList class="mt-10" :sale-items="saleItems" :has-error="hasError" />
+  </div>
+  <div v-if="showCreatedModal" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3
+        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
+      >
+        Successfully!
+      </h3>
+      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        The sale item has been successfully added
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button @click="showCreatedModal = false" class="btn btn-primary bg-purple-700">
+          OK
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 

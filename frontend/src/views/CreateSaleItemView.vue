@@ -4,10 +4,11 @@ import FormSaleItem from "@/components/FormSaleItem.vue";
 import router from "@/router";
 import { createSaleItem, getAllSaleItems } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useNotiStore } from "@/stores/์NotiStore";
 import { onMounted, ref } from "vue";
 
 const isSaving = ref(false);
-const showModal = ref(false);
+// const showModal = ref(false);
 const saleItemStore = useSaleItemStore();
 const handleCreateSaleItem = async (formData) => {
   try {
@@ -17,7 +18,7 @@ const handleCreateSaleItem = async (formData) => {
       const response = await createSaleItem(formData);
       if (response && !response.error) {
         saleItemStore.createSaleItem(response);
-        showModal.value = true;
+        createSuccess()
       } else {
         throw new Error("Failed to add sale item");
       }
@@ -28,11 +29,11 @@ const handleCreateSaleItem = async (formData) => {
   }
 };
 
-const createSuccess = () => {
-  showModal.value = false;
-  isSaving.value = false;
-  router.push({ name: "sale-items" });
-};
+// const createSuccess = () => {
+//   showModal.value = false;
+//   isSaving.value = false;
+//   router.push({ name: "sale-items" });
+// };
 
 onMounted(async () => {
   if (saleItemStore.getSaleItems() === null) {
@@ -46,6 +47,12 @@ onMounted(async () => {
     }
   }
 });
+
+const notiStore = useNotiStore()
+const createSuccess = () => {
+  notiStore.createSuccess = true
+  router.push({ name: "sale-items" })
+}
 </script>
 
 <template>
@@ -57,7 +64,7 @@ onMounted(async () => {
       :disableSaveBtn="isSaving"
     />
   </div>
-  <div v-if="showModal" class="modal modal-open">
+  <!-- <div v-if="showModal" class="modal modal-open">
     <div class="modal-box text-center">
       <h3
         class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
@@ -73,7 +80,7 @@ onMounted(async () => {
         </button>
       </div>
     </div>
-  </div>
+  </div> -->
 </template>
 
 <style scoped></style>
