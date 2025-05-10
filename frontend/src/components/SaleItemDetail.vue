@@ -32,13 +32,7 @@ const fetchSaleItemById = async () => {
     if (!saleItemId) {
       throw new Error("Invalid ID");
     }
-    const saleItemFromStore = saleItemStore.getSaleItemById(saleItemId);
-    console.log(saleItemFromStore);
     
-    if (saleItemFromStore) {
-      selectSaleItem.value = saleItemFromStore;
-      return;
-    }
     const response = await getSaleItemById(saleItemId);
     if (response && !response.error) {
       selectSaleItem.value = response;
@@ -242,14 +236,14 @@ const successOk = () => {
                     <form method="dialog">
                       <button
                         @click="showDeleteModal = false"
-                        class="btn btn-error itbms-button-cancel"
+                        class="btn btn-error itbms-cancel-button"
                       >
                         Cancel
                       </button>
                     </form>
                     <button
                       @click="handleDelete"
-                      class="btn btn-success itms-button-confirm"
+                      class="btn btn-success itbms-confirm-button"
                     >
                       Confirm
                     </button>
