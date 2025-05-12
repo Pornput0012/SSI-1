@@ -1,11 +1,13 @@
 package ssi.backend.dtos;
 
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import ssi.backend.entities.Brand;
 
 import java.math.BigDecimal;
@@ -13,6 +15,8 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 public class ProductItemRequestDTO {
+
+    private Integer id;
 
     @NotNull(message = "Model is required")
     @NotEmpty
@@ -37,7 +41,7 @@ public class ProductItemRequestDTO {
 
     private String color;
 
-    @NotNull(message = "Quantity is required")
+//    @Min(0)
     private Integer quantity;
 
     public void setModel(String model) {
@@ -49,10 +53,10 @@ public class ProductItemRequestDTO {
     }
 
     public void setColor(String color) {
-        this.color = color.trim();
+        this.color = (color == null || color.trim() == "") ? null : color.trim();
     }
 
     public void setQuantity(Integer quantity) {
-        this.quantity = (quantity == null || quantity < 1) ? 1 : quantity;
+        this.quantity = (quantity == null || quantity < 0) ? 1 : quantity;
     }
 }

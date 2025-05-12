@@ -288,7 +288,7 @@ onMounted(() => {
   <div v-if="deleteSuccess" class="modal modal-open">
     <div class="modal-box text-center">
       <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The sale item has been deleted
+        The sale item has been deleted.
       </p>
       <div class="itbms-button modal-action justify-center">
         <button @click="successOk" class="btn btn-primary bg-purple-700">
