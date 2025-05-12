@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @Getter
 @Setter
 public class ProductDetailDTO {
@@ -28,4 +30,8 @@ public class ProductDetailDTO {
     private Integer storageGb;
 
     private String color;
+    
+    private Instant createdOn;
+
+    private Instant updatedOn;
 }
