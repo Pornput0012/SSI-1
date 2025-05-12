@@ -49,7 +49,7 @@ onMounted(async () => {
   }
 });
 
-const requireField = ["brand", "model", "price", "description", "quantity"];
+const requireField = ["brand", "model", "price", "description"];
 const fieldCheckOldData = [
   "model",
   "price",
@@ -220,6 +220,7 @@ watchEffect(() => {
             id="quantity"
             class="itbms-quantity input"
             min="1"
+            value="1"
             v-model="formData.quantity"
           />
           <div
