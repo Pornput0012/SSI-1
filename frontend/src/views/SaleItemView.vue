@@ -14,15 +14,13 @@ const saleItems = computed(() => getSaleItems());
 const hasError = ref("");
 
 onMounted(async () => {
-  if (saleItems.value === null) {
-    try {
-      const response = await getAllSaleItems();
-      if (response.error) {
-        throw new Error(response.error);
-      }
-    } catch (e) {
-      hasError.value = e.message;
+  try {
+    const response = await getAllSaleItems();
+    if (response.error) {
+      throw new Error(response.error);
     }
+  } catch (e) {
+    hasError.value = e.message;
   }
 });
 
