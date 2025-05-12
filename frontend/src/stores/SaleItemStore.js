@@ -31,7 +31,7 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
 
   function deleteSaleItemById(saleItemId) {
     const saleItemIndex = saleItems.value.findIndex(
-      (ele) => ele.id === saleItemId
+      (ele) => ele.id == saleItemId
     );
 
     if (saleItemId && saleItemIndex !== -1) {
