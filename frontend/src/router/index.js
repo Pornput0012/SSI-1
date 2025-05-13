@@ -2,6 +2,7 @@ import SaleItemDetail from "@/components/SaleItemDetail.vue";
 import CreateSaleItemView from "@/views/CreateSaleItemView.vue";
 import EditSaleitemView from "@/views/EditSaleitemView.vue";
 import LandingView from "@/views/LandingView.vue";
+import SaleItemListView from "@/views/SaleItemListView.vue";
 import SaleItemView from "@/views/SaleItemView.vue";
 import { createRouter, createWebHistory } from "vue-router";
 
@@ -33,6 +34,11 @@ const router = createRouter({
       component: EditSaleitemView,
       name: "edit-sale-item",
     },
+    {
+      path: "/sale-items/list",
+      component: SaleItemListView,
+      name: "sale-items-list"
+    }
   ],
 });
 
