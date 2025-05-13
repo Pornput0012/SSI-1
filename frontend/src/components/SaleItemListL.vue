@@ -34,10 +34,10 @@ const props = defineProps({
     </div>
 
     <!-- show sale item list -->
-    <div v-else-if="saleItems && saleItems.length > 0">
-      <table class="table w-full border-2 border-black">
-        <thead class="bg-gray-400 text-black text-xl text-center">
-          <tr>
+    <div v-else-if="saleItems && saleItems.length > 0" class="overflow-x-auto">
+      <table class="table-auto w-full border border-gray-300 text-sm md:text-base">
+        <thead class="bg-gray-100">
+          <tr class="text-center">
             <th>Id</th>
             <th>Brand</th>
             <th>Model</th>

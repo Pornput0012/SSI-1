@@ -25,16 +25,16 @@ const props = defineProps({
 </script>
 
 <template>
-  <tr class="itbms-row border-2 text-center text-gray-600 text-sm md:text-base">
-    <td class="itbms-id">{{ id || '-' }}</td>
-    <td class="itbms-brand">{{ brand || '-' }}</td>
-    <td class="itbms-model">{{ model || '-' }}</td>
-    <td class="itbms-ramGb">{{ ramGb || '-' }}</td>
-    <td class="itbms-storageGb">{{ storageGb || '-' }}</td>
-    <td class="itbms-color">{{ color || '-' }}</td>
-    <td class="itbms-screenSizeInch">{{ screenSizeInch || '-' }}</td>
-    <td class="itbms-price">{{ price.toLocaleString() || '-' }}</td>
-    <td class="itbms-quantity">{{ quantity || '-' }}</td>
+  <tr class="itbms-row text-center text-sm border-b hover:bg-gray-100">
+    <td class="itbms-id px-2 py-1">{{ id || '-' }}</td>
+    <td class="itbms-brand px-2 py-1">{{ brand || '-' }}</td>
+    <td class="itbms-model px-2 py-1">{{ model || '-' }}</td>
+    <td class="itbms-ramGb px-2 py-1">{{ ramGb || '-' }}</td>
+    <td class="itbms-storageGb px-2 py-1">{{ storageGb || '-' }}</td>
+    <td class="itbms-color px-2 py-1">{{ color || '-' }}</td>
+    <td class="itbms-screenSizeInch px-2 py-1">{{ screenSizeInch || '-' }}</td>
+    <td class="itbms-price px-2 py-1">{{ price.toLocaleString() || '-' }}</td>
+    <td class="itbms-quantity px-2 py-1">{{ quantity || '-' }}</td>
     <td class="p-3">
       <div class="flex gap-2 justify-center">
         <button class="itbms-edit-button btn btn-sm btn-outline btn-info">E</button>
