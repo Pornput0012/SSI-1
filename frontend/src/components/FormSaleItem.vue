@@ -57,7 +57,6 @@ const fieldCheckOldData = [
   "ramGb",
   "screenSizeInch",
   "storageGb",
-  "color",
   "quantity",
 ];
 
@@ -85,6 +84,8 @@ watchEffect(() => {
     }
   }
 });
+const normalize = (val) =>
+  val === null || val === undefined ? "" : val.trim?.() ?? val;
 
 watchEffect(() => {
   for (const field of requireField) {
@@ -105,6 +106,10 @@ watchEffect(() => {
         hasChanges = true;
         break;
       }
+    }
+
+    if (formData.value.color !== normalize(props.saleItemDetail.color)) {
+      hasChanges = true;
     }
   }
 
