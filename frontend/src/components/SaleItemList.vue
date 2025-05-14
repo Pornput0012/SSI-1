@@ -119,7 +119,7 @@ const successOk = () => {
                 </td>
               </RouterLink>
               <td class="itbms-brand p-3 text-sm whitespace-nowrap">
-                {{ itemInList.brand || '-' }}
+                {{ itemInList.brandName || '-' }}
               </td>
               <td class="itbms-model p-3 text-sm text-left whitespace-nowrap">
                 {{ itemInList.model || '-' }}

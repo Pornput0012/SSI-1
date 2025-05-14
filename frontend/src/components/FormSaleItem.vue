@@ -239,7 +239,7 @@ watchEffect(() => {
             >
               Save
             </button>
-            <router-link
+            <!-- <router-link
               :to="
                 saleItemDetail
                   ? {
@@ -251,7 +251,10 @@ watchEffect(() => {
               class="itbms-cancel-button btn"
             >
               Cancle
-            </router-link>
+            </router-link> -->
+            <button @click="$router.back()" class="itbms-cancel-button btn">
+              Cancle
+            </button>
           </div>
         </div>
       </div>

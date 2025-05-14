@@ -24,7 +24,9 @@ const menu = [
   <div class="w-full h-full flex-col hidden md:block">
     <div class="navbar bg-base-100 shadow-sm px-6 py-4 flex-col gap-4">
       <div class="w-full flex justify-between items-center text-lg">
-        <RouterLink :to="{ name: 'home' }" class="font-bold transition-all duration-200 hover:tracking-wider hover:text-purple-800"
+        <RouterLink
+          :to="{ name: 'home' }"
+          class="font-bold transition-all duration-200 hover:tracking-wider hover:text-purple-800"
           >ITB MShop</RouterLink
         >
         <div>
@@ -37,7 +39,8 @@ const menu = [
     <div
       class="bg-base-100 border-t-1 border-base-300 shadow-sm px-6 py-2 flex gap-10"
     >
-      <RouterLink active-class='border-b-1'
+      <RouterLink
+        active-class="border-b-1"
         v-for="(m, i) in menu"
         :to="{ name: m.to }"
         class="font-light hover:text-purple-700 transition-colors"
@@ -121,17 +124,20 @@ const menu = [
         X
       </button>
       <div class="flex flex-col">
-        <RouterLink active-class='border-b-1'
-          to="/"
+        <RouterLink
+          active-class="border-b-1"
+          :to="{ name: 'home' }"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Home</RouterLink
         >
-        <RouterLink active-class='border-b-1'
+        <RouterLink
+          active-class="border-b-1"
           :to="{ name: 'sale-items' }"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Products</RouterLink
         >
-        <RouterLink active-class='border-b-1'
+        <RouterLink
+          active-class="border-b-1"
           to="l"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Log in</RouterLink
