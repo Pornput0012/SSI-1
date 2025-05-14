@@ -9,7 +9,7 @@ create table if not exists brands(
   brand_id integer AUTO_INCREMENT PRIMARY KEY,
   name varchar(30) not null,
   websiteUrl varchar(40),
-  isActive boolean not null default false,
+  isActive boolean default false,
   countryOfOrigin varchar(80),
   createdOn datetime not null default current_timestamp,
   updatedOn datetime not null default current_timestamp on update current_timestamp
