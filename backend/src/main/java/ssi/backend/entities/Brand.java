@@ -31,9 +31,8 @@ public class Brand {
     @Column(name = "websiteUrl", length = 40)
     private String websiteUrl;
 
-    @NotNull
     @ColumnDefault("0")
-    @Column(name = "isActive", nullable = false)
+    @Column(name = "isActive")
     private Boolean isActive = false;
 
     @Size(max = 80)
