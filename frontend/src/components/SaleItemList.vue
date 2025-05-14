@@ -1,8 +1,8 @@
 <script setup>
 import { deleteSaleItemById } from '@/services/SaleItemService'
 import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   saleItems: {
@@ -12,23 +12,13 @@ const props = defineProps({
   hasError: String,
 })
 
-const localSaleItems = ref([])
-watch(
-  () => props.saleItems,
-  (val) => {
-    if (Array.isArray(val)) {
-      localSaleItems.value = [...val]
-    }
-  },
-  { immediate: true }
-)
-
 const router = useRouter()
 const showDeleteModal = ref(false)
 const deleteSuccess = ref(false)
 const deleteTargetId = ref(null)
 const errorMessage = ref('')
 const isNotFound = ref(false)
+const saleItemStore = useSaleItemStore()
 
 const confirmDelete = (id) => {
   deleteTargetId.value = id
@@ -41,10 +31,7 @@ const handleDelete = async () => {
       const response = await deleteSaleItemById(deleteTargetId.value)
       showDeleteModal.value = false
       if (response.success) {
-        const idx = localSaleItems.value.findIndex(
-          (i) => i.id === deleteTargetId.value
-        )
-        if (idx !== -1) localSaleItems.value.splice(idx, 1)
+        saleItemStore.deleteSaleItemById(deleteTargetId.value)
         deleteSuccess.value = true
       } else {
         throw new Error('The requested sale item does not exist.')
