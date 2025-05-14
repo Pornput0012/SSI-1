@@ -40,6 +40,10 @@ public class BrandService {
         if (duplicateName) {
             throw new BadRequestException("Duplicate Name : " + brand.getName());
         }
+
+        if (brand.getIsActive() == null) {
+            creatingBrand.setIsActive(false);
+        }
         return modelMapper.map(brandRepository.save(creatingBrand), BrandResponseDTO.class);
     }
 
@@ -54,10 +58,14 @@ public class BrandService {
             throw new BadRequestException("Duplicate Name : " + brand.getName());
         }
 
+        if (brand.getIsActive() == null) {
+            existingBrand.setIsActive(false);
+        } else {
+            existingBrand.setIsActive(brand.getIsActive());
+        }
         existingBrand.setName(brand.getName());
         existingBrand.setWebsiteUrl(brand.getWebsiteUrl());
         existingBrand.setCountryOfOrigin(brand.getCountryOfOrigin());
-        existingBrand.setIsActive(brand.getIsActive());
 
         return modelMapper.map(brandRepository.save(existingBrand), BrandResponseDTO.class);
     }
