@@ -1,5 +1,5 @@
 <script setup>
-import SaleItemListL from '@/components/SaleItemListL.vue'
+import SaleItemListL from '@/components/SaleItemList.vue'
 import { getAllSaleItems } from '@/services/SaleItemService'
 import { useSaleItemStore } from '@/stores/SaleItemStore'
 import { computed, onMounted, ref } from 'vue'
@@ -22,9 +22,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="w-full h-full">
-    <SaleItemListL :sale-items="saleItems" :has-error="hasError" />
-  </div>
+    <SaleItemList :sale-items="saleItems" :has-error="hasError" />
 </template>
 
 <style scoped></style>
