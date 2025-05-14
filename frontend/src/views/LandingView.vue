@@ -1,29 +1,29 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted } from 'vue'
 
 // สร้างตัวแปรเพื่อควบคุม hero slider
-const currentSlide = ref(0);
-const totalSlides = 3;
+const currentSlide = ref(0)
+const totalSlides = 3
 
 // รูปภาพสำหรับ hero slider
 const heroImages = [
-  "https://picsum.photos/1280/720?random=1",
-  "https://picsum.photos/1280/720?random=2",
-  "https://picsum.photos/1280/720?random=3",
-];
+  'https://picsum.photos/1280/720?random=1',
+  'https://picsum.photos/1280/720?random=2',
+  'https://picsum.photos/1280/720?random=3',
+]
 
 // ฟังก์ชันสำหรับเลื่อน slide
 const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % totalSlides;
-};
+  currentSlide.value = (currentSlide.value + 1) % totalSlides
+}
 
 const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + totalSlides) % totalSlides;
-};
+  currentSlide.value = (currentSlide.value - 1 + totalSlides) % totalSlides
+}
 
 onMounted(() => {
-  setInterval(nextSlide, 5000);
-});
+  setInterval(nextSlide, 5000)
+})
 </script>
 
 <template>
@@ -56,27 +56,34 @@ onMounted(() => {
                 <p class="text-xl md:text-2xl text-white mb-8 max-w-md">
                   แหล่งรวมสินค้าคุณภาพเพื่อคุณ
                 </p>
-
-                <router-link
-                  :to="{ name: 'sale-items' }"
-                  class="btn btn-lg px-10 text-lg"
-                >
-                  SHOP NOW
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6 ml-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                <div class="flex flex-wrap gap-4 justify-center">
+                  <router-link
+                    :to="{ name: 'sale-items' }"
+                    class="btn btn-lg px-10 text-lg"
                   >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M14 5l7 7m0 0l-7 7m7-7H3"
-                    />
-                  </svg>
-                </router-link>
+                    SHOP NOW
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-6 w-6 ml-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M14 5l7 7m0 0l-7 7m7-7H3"
+                      />
+                    </svg>
+                  </router-link>
+                  <router-link
+                    :to="{ name: 'sale-items-list' }"
+                    class="btn btn-lg px-10 text-lg"
+                  >
+                    ADMIN
+                  </router-link>
+                </div>
               </div>
             </div>
           </div>
