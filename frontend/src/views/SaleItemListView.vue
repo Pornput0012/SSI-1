@@ -3,6 +3,7 @@ import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import SaleItemList from '@/components/SaleItemList.vue'
 import { getAllSaleItems } from '@/services/SaleItemService'
 import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { useNotiStore } from '@/stores/์NotiStore'
 import { computed, onMounted, ref } from 'vue'
 
 const { getSaleItems } = useSaleItemStore()
@@ -34,7 +35,7 @@ onMounted(async () => {
       </router-link>
       <div class="flex gap-4 items-center">
         <router-link
-          :to="{ name: 'create-sale-item' }"
+          :to="{ name: 'sale-items' }"
           class="itbms-manage-brand btn btn-primary"
         >
           Manage Brand

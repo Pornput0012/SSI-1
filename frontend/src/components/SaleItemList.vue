@@ -1,4 +1,9 @@
 <script setup>
+import { deleteSaleItemById } from '@/services/SaleItemService'
+import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
 const props = defineProps({
   saleItems: {
     type: [Array, null],
@@ -6,6 +11,55 @@ const props = defineProps({
   },
   hasError: String,
 })
+
+const localSaleItems = ref([])
+watch(
+  () => props.saleItems,
+  (val) => {
+    if (Array.isArray(val)) {
+      localSaleItems.value = [...val]
+    }
+  },
+  { immediate: true }
+)
+
+const router = useRouter()
+const showDeleteModal = ref(false)
+const deleteSuccess = ref(false)
+const deleteTargetId = ref(null)
+const errorMessage = ref('')
+const isNotFound = ref(false)
+
+const confirmDelete = (id) => {
+  deleteTargetId.value = id
+  showDeleteModal.value = true
+}
+
+const handleDelete = async () => {
+  try {
+    if (deleteTargetId.value) {
+      const response = await deleteSaleItemById(deleteTargetId.value)
+      showDeleteModal.value = false
+      if (response.success) {
+        const idx = localSaleItems.value.findIndex(
+          (i) => i.id === deleteTargetId.value
+        )
+        if (idx !== -1) localSaleItems.value.splice(idx, 1)
+        deleteSuccess.value = true
+      } else {
+        throw new Error('The requested sale item does not exist.')
+      }
+    }
+  } catch (error) {
+    errorMessage.value = error.message
+    isNotFound.value = true
+  }
+}
+
+const successOk = () => {
+  deleteSuccess.value = false
+  router.push({ name: 'sale-items-list' })
+}
 </script>
 
 <template>
@@ -65,11 +119,18 @@ const props = defineProps({
               :key="itemInList.id"
               class="itbms-row bg-white text-center text-gray-700"
             >
-              <td
-                class="itbms-id p-3 font-bold text-blue-500 hover:underline cursor-pointer whitespace-nowrap"
+              <RouterLink
+                :to="{
+                  name: 'sale-item-detail',
+                  params: { id: itemInList.id },
+                }"
               >
-                {{ itemInList.id || '-' }}
-              </td>
+                <td
+                  class="itbms-id p-3 font-bold text-blue-500 hover:underline cursor-pointer whitespace-nowrap"
+                >
+                  {{ itemInList.id || '-' }}
+                </td>
+              </RouterLink>
               <td class="itbms-brand p-3 text-sm whitespace-nowrap">
                 {{ itemInList.brand || '-' }}
               </td>
@@ -96,13 +157,18 @@ const props = defineProps({
               </td>
               <td class="p-3 whitespace-nowrap">
                 <div class="flex gap-2 justify-center">
-                    <button
-                      class="itbms-edit-button btn btn-sm btn-outline btn-info"
-                    >
-                      E
-                    </button>
+                  <router-link
+                    :to="{
+                      name: 'edit-sale-item',
+                      params: { id: itemInList.id },
+                    }"
+                    class="itbms-edit-button btn btn-sm btn-outline btn-info"
+                  >
+                    E
+                  </router-link>
                   <button
                     class="itbms-delete-button btn btn-sm btn-outline btn-error"
+                    @click="confirmDelete(itemInList.id)"
                   >
                     D
                   </button>
@@ -120,6 +186,43 @@ const props = defineProps({
       class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
     >
       <p class="text-purple-700 font-medium">no sale item</p>
+    </div>
+  </div>
+
+  <dialog class="modal" :open="showDeleteModal" v-if="showDeleteModal">
+    <div class="modal-box">
+      <h3 class="text-lg font-bold">Delete Confirmation</h3>
+
+      <p class="itbms-message py-4">Do you want to delete this sale item?</p>
+      <div class="modal-action">
+        <form method="dialog">
+          <button
+            @click="showDeleteModal = false"
+            class="btn btn-error itbms-cancel-button"
+          >
+            Cancel
+          </button>
+        </form>
+        <button
+          @click="handleDelete"
+          class="btn btn-success itbms-confirm-button"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <div v-if="deleteSuccess" class="modal modal-open">
+    <div class="modal-box text-center">
+      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        The sale item has been deleted.
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button @click="successOk" class="btn btn-primary bg-purple-700">
+          OK
+        </button>
+      </div>
     </div>
   </div>
 </template>
