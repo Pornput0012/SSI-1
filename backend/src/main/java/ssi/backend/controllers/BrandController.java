@@ -40,7 +40,6 @@ public class BrandController {
         return ResponseEntity.noContent().build();
     }
 
-
     @PostMapping("")
     public ResponseEntity<BrandResponseDTO> createProduct(@Valid @RequestBody BrandRequestDTO brand) {
         return ResponseEntity.status(HttpStatus.CREATED).body(brandService.createBrand(brand));
