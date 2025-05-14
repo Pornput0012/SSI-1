@@ -1,7 +1,7 @@
 import SaleItemDetail from "@/components/SaleItemDetail.vue";
 import CreateSaleItemView from "@/views/CreateSaleItemView.vue";
 import EditSaleitemView from "@/views/EditSaleitemView.vue";
-import homeView from "@/views/homeView.vue";
+import homeView from "@/views/LandingView.vue";
 import SaleItemListView from "@/views/SaleItemListView.vue";
 import SaleItemView from "@/views/SaleItemView.vue";
 import { createRouter, createWebHistory } from "vue-router";
