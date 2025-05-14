@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import NavBar from "./components/NavBar.vue";
 import { useSaleItemStore } from "./stores/SaleItemStore";
 import { getAllSaleItems } from "./services/SaleItemService";
+import { getBrandById } from "./services/BrandService";
 
 const { getSaleItems } = useSaleItemStore();
 
@@ -19,6 +20,15 @@ onMounted(async () => {
     } catch (e) {
       hasError.value = e.message;
     }
+  }
+});
+
+onMounted(async () => {
+  try {
+    const res = await getBrandById(999);
+    console.log(res);
+  } catch (error) {
+    console.log(error.message);
   }
 });
 </script>
