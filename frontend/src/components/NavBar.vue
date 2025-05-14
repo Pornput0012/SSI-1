@@ -10,7 +10,7 @@ function setOpenHamburger() {
 
 const menu = [
   {
-    to: "landing",
+    to: "home",
     text: "Home",
   },
   {
@@ -24,7 +24,7 @@ const menu = [
   <div class="w-full h-full flex-col hidden md:block">
     <div class="navbar bg-base-100 shadow-sm px-6 py-4 flex-col gap-4">
       <div class="w-full flex justify-between items-center text-lg">
-        <RouterLink :to="{ name: 'landing' }" class="font-bold transition-all duration-200 hover:tracking-wider hover:text-purple-800"
+        <RouterLink :to="{ name: 'home' }" class="font-bold transition-all duration-200 hover:tracking-wider hover:text-purple-800"
           >ITB MShop</RouterLink
         >
         <div>
@@ -74,7 +74,7 @@ const menu = [
       </div>
     </div>
     <div>
-      <RouterLink :to="{ name: 'landing' }" class="btn btn-ghost text-xl"
+      <RouterLink :to="{ name: 'home' }" class="btn btn-ghost text-xl"
         >ITB MShop</RouterLink
       >
     </div>
