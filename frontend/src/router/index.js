@@ -1,4 +1,6 @@
 import SaleItemDetail from "@/components/SaleItemDetail.vue";
+import BrandListView from "@/views/BrandListView.vue";
+import CreateBrandView from "@/views/CreateBrandView.vue";
 import CreateSaleItemView from "@/views/CreateSaleItemView.vue";
 import EditSaleitemView from "@/views/EditSaleitemView.vue";
 import homeView from "@/views/LandingView.vue";
@@ -42,6 +44,16 @@ const router = createRouter({
     {
       path: "/ssi1",
       redirect: { name: "home" },
+    },
+    {
+      path: "/brands",
+      component: BrandListView,
+      name: "brands"
+    },
+    {
+      path: "/brands/add",
+      component: CreateBrandView,
+      name: "create-brand",
     },
   ],
 });

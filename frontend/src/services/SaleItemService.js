@@ -51,7 +51,7 @@ const deleteSaleItemById = async (id) => {
 
     if (response.status !== 204) {
       throw new Error(
-        `Failed to delete Sale Item  with ID ${id}. Server responded with status ${response.status}`
+        `Failed to delete Sale Item with ID ${id}. Server responded with status ${response.status}`
       );
     }
     return { success: true };
