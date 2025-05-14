@@ -35,7 +35,7 @@ onMounted(async () => {
       </router-link>
       <div class="flex gap-4 items-center">
         <router-link
-          :to="{ name: 'sale-items' }"
+          :to="{ name: 'brands' }"
           class="itbms-manage-brand btn btn-primary"
         >
           Manage Brand
