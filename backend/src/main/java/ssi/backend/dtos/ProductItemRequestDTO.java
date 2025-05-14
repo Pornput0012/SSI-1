@@ -41,7 +41,6 @@ public class ProductItemRequestDTO {
 
     private String color;
 
-//    @Min(0)
     private Integer quantity;
 
     public void setModel(String model) {
