@@ -152,7 +152,7 @@ watchEffect(() => {
             v-model="formData.brand"
           >
             <option :value="{ id: 0, name: '' }" disabled>Select Brand</option>
-            <option v-for="(brand, i) in brands.filter(b => b.isActive === true)" :value="brand" :key="i">
+            <option v-for="(brand, i) in brands?.filter(b => b.isActive === true)" :value="brand" :key="i">
               {{ brand.name }}
             </option>
           </select>

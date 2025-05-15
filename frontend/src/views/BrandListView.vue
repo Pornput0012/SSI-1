@@ -1,115 +1,113 @@
 <script setup>
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import { deleteBrandById, getAllBrands } from "@/services/BrandService";
-import { useBrandStore } from "@/stores/BrandStore";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useNotiStore } from "@/stores/์NotiStore";
-import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import { deleteBrandById, getAllBrands } from '@/services/BrandService'
+import { useBrandStore } from '@/stores/BrandStore'
+import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { useNotiStore } from '@/stores/์NotiStore'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const brandStore = useBrandStore();
-const saleItemStore = useSaleItemStore();
-const hasError = ref("");
-const router = useRouter();
-const showDeleteModal = ref(false);
-const showWarningModal = ref(false);
-const deleteSuccess = ref(false);
-const deleteTargetId = ref(null);
-const deleteTargetName = ref(null);
-const errorMessage = ref("");
-const isNotFound = ref(false);
+const brandStore = useBrandStore()
+const saleItemStore = useSaleItemStore()
+const hasError = ref('')
+const router = useRouter()
+const showDeleteModal = ref(false)
+const showWarningModal = ref(false)
+const deleteSuccess = ref(false)
+const deleteTargetId = ref(null)
+const deleteTargetName = ref(null)
+const errorMessage = ref('')
+const isNotFound = ref(false)
 
 onMounted(async () => {
   try {
-    const response = await getAllBrands();
+    const response = await getAllBrands()
     if (response.error) {
-      throw new Error(response.error);
+      throw new Error(response.error)
     }
   } catch (e) {
-    hasError.value = e.message;
+    hasError.value = e.message
   }
-});
+})
 
 const confirmDelete = (brand) => {
-  deleteTargetId.value = brand.id;
-  deleteTargetName.value = brand.name;
+  deleteTargetId.value = brand.id
+  deleteTargetName.value = brand.name
 
   const hasSaleItem = saleItemStore
     .getSaleItems()
-    ?.some((item) => item.brandName === brand.name);
+    ?.some((item) => item.brandName === brand.name)
 
   if (hasSaleItem) {
-    showWarningModal.value = true;
+    showWarningModal.value = true
   } else {
-    showDeleteModal.value = true;
+    showDeleteModal.value = true
   }
-};
+}
 
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-      const response = await deleteBrandById(deleteTargetId.value);
-      showDeleteModal.value = false;
+      const response = await deleteBrandById(deleteTargetId.value)
+      showDeleteModal.value = false
       if (response.success) {
-        console.log(deleteTargetId.value);
+        console.log(deleteTargetId.value)
 
-        brandStore.deleteBrandById(deleteTargetId.value);
+        brandStore.deleteBrandById(deleteTargetId.value)
 
-        console.log(brandStore.brands);
+        console.log(brandStore.brands)
 
-        deleteSuccess.value = true;
+        deleteSuccess.value = true
       } else {
-        throw new Error("The requested brand does not exist.");
+        throw new Error('The requested brand does not exist.')
       }
     }
   } catch (error) {
-    errorMessage.value = error.message;
-    isNotFound.value = true;
+    errorMessage.value = error.message
+    isNotFound.value = true
   }
-};
+}
 
 const successOk = () => {
-  deleteSuccess.value = false;
-  router.push({ name: "brands" });
-};
+  deleteSuccess.value = false
+  router.push({ name: 'brands' })
+}
 
 const warningCancel = () => {
-  showWarningModal.value = false;
-};
+  showWarningModal.value = false
+}
 
-const notiStore = useNotiStore();
-const showCreatedModal = ref(false);
+const notiStore = useNotiStore()
+const showCreatedModal = ref(false)
 onMounted(() => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true;
-    notiStore.createSuccess = false;
+    showCreatedModal.value = true
+    notiStore.createSuccess = false
   }
-});
+})
 
-const showUpdatedModal = ref(false);
+const showUpdatedModal = ref(false)
 onMounted(() => {
   if (notiStore.updateSuccess) {
-    showUpdatedModal.value = true;
-    notiStore.updateSuccess = false;
+    showUpdatedModal.value = true
+    notiStore.updateSuccess = false
   }
-});
+})
 </script>
 
 <template>
   <Breadcrumbs
-    :crumbs="[{ label: 'Add Brand', class: 'itbms-add-button' }]"
-    :home="{label:'Sale Item List',name:'sale-items-list', class:'itbms-item-list'}"
+    :crumbs="[{ label: 'Add Brand', class: 'itbms-add-button', name: 'create-brand' }]"
+    :home="{
+      label: 'Sale Item List',
+      name: 'sale-items-list',
+      class: 'itbms-item-list',
+    }"
   />
   <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
     <div class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Brands</h1>
       <div class="flex gap-4 items-center">
-        <router-link
-          :to="{ name: 'create-brand' }"
-          class="itbms-sale-item-add btn btn-primary"
-        >
-          Add Brand
-        </router-link>
         <label class="w-fit h-8 input input-xs hidden sm:flex">
           <input type="search" class="grow" placeholder="Search..." />
           <button class="cursor-pointer">
@@ -150,14 +148,14 @@ onMounted(() => {
         <table class="w-full animate-pulse">
           <thead class="bg-gray-100 border-b-2 border-gray-200">
             <tr class="text-sm font-semibold text-center">
-              <th v-for="i in 7" :key="i" class="p-3 tracking-wide">
+              <th v-for="i in 2" :key="i" class="p-3 tracking-wide">
                 <div class="h-4 bg-gray-300 rounded"></div>
               </th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="n in 5" :key="n" class="text-center">
-              <td v-for="i in 7" :key="i" class="p-3">
+              <td v-for="i in 2" :key="i" class="p-3">
                 <div class="h-4 bg-gray-200 rounded w-full"></div>
               </td>
             </tr>
@@ -174,8 +172,8 @@ onMounted(() => {
           <table class="w-full">
             <thead class="bg-gray-100 border-b-2 border-gray-200">
               <tr class="text-sm font-semibold text-center">
-                <th class="p-3 tracking-wide">id</th>
-                <th class="p-3 tracking-wide">Name</th>
+                <th class="p-3 tracking-wide">Id</th>
+                <th class="p-3 tracking-wide text-left">Name</th>
                 <th class="p-3 tracking-wide">Action</th>
               </tr>
             </thead>
@@ -185,11 +183,13 @@ onMounted(() => {
                 :key="brand.id"
                 class="itbms-row bg-white text-center text-gray-700"
               >
-                <td class="itbms-name p-4 text-sm whitespace-nowrap">
-                  {{ brand.id || "-" }}
+                <td
+                  class="itbms-id p-4 text-sm whitespace-nowrap font-bold text-blue-500"
+                >
+                  {{ brand.id || '-' }}
                 </td>
-                <td class="itbms-name p-4 text-sm whitespace-nowrap">
-                  {{ brand.name || "-" }}
+                <td class="itbms-name p-4 text-sm whitespace-nowrap text-left">
+                  {{ brand.name || '-' }}
                 </td>
 
                 <td class="p-4 whitespace-nowrap">
@@ -233,7 +233,9 @@ onMounted(() => {
       <div class="modal-box">
         <h3 class="text-lg font-bold">Delete Confirmation</h3>
 
-        <p class="itbms-message py-4">Do you want to delete this brand?</p>
+        <p class="itbms-message py-4">
+          Do you want to delete <b>{{ deleteTargetName }}</b> brand?
+        </p>
         <div class="modal-action">
           <form method="dialog">
             <button

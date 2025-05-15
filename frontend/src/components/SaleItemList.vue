@@ -65,14 +65,14 @@ const successOk = () => {
       <table class="w-full animate-pulse">
         <thead class="bg-gray-100 border-b-2 border-gray-200">
           <tr class="text-sm font-semibold text-center">
-            <th v-for="i in 10" :key="i" class="p-3 tracking-wide">
+            <th v-for="i in 8" :key="i" class="p-3 tracking-wide">
               <div class="h-4 bg-gray-300 rounded"></div>
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="n in 5" :key="n" class="text-center">
-            <td v-for="i in 10" :key="i" class="p-3">
+            <td v-for="i in 8" :key="i" class="p-3">
               <div class="h-4 bg-gray-200 rounded w-full"></div>
             </td>
           </tr>
