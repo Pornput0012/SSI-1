@@ -2,16 +2,19 @@
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import { deleteBrandById, getAllBrands } from '@/services/BrandService'
 import { useBrandStore } from '@/stores/BrandStore'
+import { useSaleItemStore } from '@/stores/SaleItemStore'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const brandStore = useBrandStore()
+const saleItemStore = useSaleItemStore()
 const hasError = ref('')
-
 const router = useRouter()
 const showDeleteModal = ref(false)
+const showWarningModal = ref(false)
 const deleteSuccess = ref(false)
 const deleteTargetId = ref(null)
+const deleteTargetName = ref(null)
 const errorMessage = ref('')
 const isNotFound = ref(false)
 
@@ -26,9 +29,19 @@ onMounted(async () => {
   }
 })
 
-const confirmDelete = (id) => {
-  deleteTargetId.value = id
-  showDeleteModal.value = true
+const confirmDelete = (brand) => {
+  deleteTargetId.value = brand.id
+  deleteTargetName.value = brand.name
+
+  const hasSaleItem = saleItemStore
+    .getSaleItems()
+    ?.some((item) => item.brandName === brand.name)
+
+  if (hasSaleItem) {
+    showWarningModal.value = true
+  } else {
+    showDeleteModal.value = true
+  }
 }
 
 const handleDelete = async () => {
@@ -57,6 +70,10 @@ const handleDelete = async () => {
 const successOk = () => {
   deleteSuccess.value = false
   router.push({ name: 'brands' })
+}
+
+const warningCancel = () => {
+  showWarningModal.value = false
 }
 </script>
 
@@ -157,19 +174,19 @@ const successOk = () => {
                 <td
                   class="itbms-websiteUrl p-3 text-sm text-left whitespace-nowrap"
                 >
-                  {{ brand.websiteUrl || '-' }}
+                  ??
                 </td>
                 <td class="itbms-isActive p-3 text-sm whitespace-nowrap">
-                  {{ brand.isActive || '-' }}
+                  true
                 </td>
                 <td class="itbms-countryOfOrigin p-3 text-sm whitespace-nowrap">
-                  {{ brand.countryOfOrigin || '-' }}
+                  You Ready?? Mission of Universe
                 </td>
                 <td class="itbms-createdOn p-3 text-sm whitespace-nowrap">
-                  {{ brand.createdOn || '-' }}
+                  15 May 2025
                 </td>
                 <td class="itbms-updatedOn p-3 text-sm whitespace-nowrap">
-                  {{ brand.updatedOn || '-' }}
+                  15 May 2025
                 </td>
                 <td class="p-3 whitespace-nowrap">
                   <div class="flex gap-2 justify-center">
@@ -180,7 +197,7 @@ const successOk = () => {
                     </button>
                     <button
                       class="itbms-delete-button btn btn-sm btn-outline btn-error"
-                      @click="confirmDelete(brand.id)"
+                      @click="confirmDelete(brand)"
                     >
                       Delete
                     </button>
@@ -221,6 +238,27 @@ const successOk = () => {
           >
             Confirm
           </button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="modal" :open="showWarningModal" v-if="showWarningModal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold">Cannot Delete</h3>
+
+        <p class="itbms-message py-3">
+          Delete <b>{{ deleteTargetName }}</b> is not allowed. There are sale
+          items with this brand.
+        </p>
+        <div class="modal-action">
+          <form method="dialog">
+            <button
+              @click="warningCancel"
+              class="btn btn-error itbms-cancel-button"
+            >
+              Cancel
+            </button>
+          </form>
         </div>
       </div>
     </dialog>
