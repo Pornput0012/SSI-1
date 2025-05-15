@@ -1,8 +1,8 @@
 <script setup>
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
-import SaleItemList from "@/components/SaleItemList.vue";
-import SaleItemModel from "@/components/SaleItemModel.vue";
+import SaleItemGallery from "@/components/SaleItemGallery.vue";
+import SaleItemGalleryModel from "@/components/SaleItemGalleryModel.vue";
 import { getAllSaleItems } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/์NotiStore";
@@ -69,7 +69,7 @@ onMounted(() => {
         </label>
       </div>
     </div>
-    <SaleItemList class="mt-10" :sale-items="saleItems" :has-error="hasError" />
+    <SaleItemGallery class="mt-10" :sale-items="saleItems" :has-error="hasError" />
   </div>
   <div v-if="showCreatedModal" class="modal modal-open">
     <div class="modal-box text-center">

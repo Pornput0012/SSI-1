@@ -34,6 +34,9 @@ const errorTitle = ref("");
 const errorMessage = ref("");
 const showModal = ref(false);
 
+
+
+
 onMounted(async () => {
   if (brands.value === null) {
     try {
@@ -99,6 +102,7 @@ watchEffect(() => {
   if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
     hasChanges = true;
   }
+ 
 
   if (!hasChanges) {
     for (const field of fieldCheckOldData) {
@@ -239,7 +243,7 @@ watchEffect(() => {
             >
               Save
             </button>
-            <router-link
+            <!-- <router-link
               :to="
                 saleItemDetail
                   ? {
@@ -251,7 +255,10 @@ watchEffect(() => {
               class="itbms-cancel-button btn"
             >
               Cancle
-            </router-link>
+            </router-link> -->
+            <button @click="$router.back()" class="itbms-cancel-button btn">
+              Cancle
+            </button>
           </div>
         </div>
       </div>

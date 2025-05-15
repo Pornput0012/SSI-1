@@ -14,10 +14,37 @@ export const useBrandStore = defineStore("Brand", () => {
     return brands.value;
   }
 
+  function deleteBrandById(id) {
+    if (!Array.isArray(brands.value)) {
+      return;
+    }
+
+    const brandIndex = brands.value.findIndex((ele) => ele.id == id);
+
+    if (id && brandIndex !== -1) {
+      brands.value.splice(brandIndex, 1);
+    }
+  }
+
+  function createBrand(brand) {
+    brands.value.push(brand);
+  }
+
+  function updateBrandById(brandId, brand) {
+    const brandIndex = brands.value.findIndex((ele) => ele.id === brandId);
+
+    if (brandIndex !== -1 && brand) {
+      brands.value.splice(brandIndex, 1, brand);
+    }
+  }
+
   return {
     brands,
     setBrand,
     getBrands,
+    deleteBrandById,
+    createBrand,
+    updateBrandById,
   };
 });
 

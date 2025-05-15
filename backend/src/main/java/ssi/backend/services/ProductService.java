@@ -34,9 +34,9 @@ public class ProductService {
                 ProductItemDTO.class, modelMapper);
     }
 
-    public List<Product> getAll2Products() {
-        return productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id")));
-    }
+//    public List<Product> getAll2Products() {
+//        return productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id")));
+//    }
 
     public ProductDetailDTO getProductById(Integer id) {
         Product product = productRepository.findById(id)

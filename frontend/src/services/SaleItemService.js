@@ -39,7 +39,6 @@ const getSaleItemById = async (id) => {
   }
 };
 
-
 // DELETE sale-item by ID
 const deleteSaleItemById = async (id) => {
   try {
@@ -51,7 +50,7 @@ const deleteSaleItemById = async (id) => {
 
     if (response.status !== 204) {
       throw new Error(
-        `Failed to delete Sale Item  with ID ${id}. Server responded with status ${response.status}`
+        `Failed to delete Sale Item with ID ${id}. Server responded with status ${response.status}`
       );
     }
     return { success: true };
@@ -64,16 +63,11 @@ const deleteSaleItemById = async (id) => {
 
 const createSaleItem = async (saleItem) => {
   try {
-    //เช็ค required fieldในหน้า form แล้ว
-    console.log(saleItem);
-    
     const response = await fetch(`${SALE_ITEM_API_URL}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(saleItem),
     });
-
-    
 
     if (response.status !== 201) {
       throw new Error(
@@ -83,11 +77,9 @@ const createSaleItem = async (saleItem) => {
 
     const data = await response.json();
     console.log(data);
-    
-    return data;
 
+    return data;
   } catch (error) {
-    console.log(error)
     return {
       error: `Error creating sale item: ${error.message}`,
     };
@@ -96,7 +88,7 @@ const createSaleItem = async (saleItem) => {
 
 const updateSaleItemById = async (id, saleItem) => {
   try {
-    if (!id) throw new Error(`Sale Item is required for updating.`);
+    if (!id) throw new Error(`Sale Item ID is required for updating.`);
 
     //เช็ค required fieldในหน้า form แล้ว
     const response = await fetch(`${SALE_ITEM_API_URL}/${id}`, {
@@ -113,7 +105,6 @@ const updateSaleItemById = async (id, saleItem) => {
 
     const data = await response.json();
     return data;
-
   } catch (error) {
     return {
       error: `Error creating sale item: ${error.message}`,
@@ -121,4 +112,10 @@ const updateSaleItemById = async (id, saleItem) => {
   }
 };
 
-export { getAllSaleItems, getSaleItemById, deleteSaleItemById ,updateSaleItemById,createSaleItem};
+export {
+  getAllSaleItems,
+  getSaleItemById,
+  deleteSaleItemById,
+  updateSaleItemById,
+  createSaleItem,
+};

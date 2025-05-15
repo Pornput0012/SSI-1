@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @Getter
 @Setter
 public class BrandDTO {
@@ -14,4 +16,8 @@ public class BrandDTO {
     @NotNull
     @NotEmpty
     private String name;
+
+    private String websiteUrl;
+    private String countryOfOrigin;
+    private Boolean isActive;
 }

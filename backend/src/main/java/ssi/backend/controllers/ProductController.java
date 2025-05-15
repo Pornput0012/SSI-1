@@ -25,10 +25,10 @@ public class ProductController {
     public ResponseEntity<List<ProductItemDTO>> getAllProducts() {
         return ResponseEntity.ok(productService.getAllProducts());
     }
-    @GetMapping("/hi")
-    public ResponseEntity<List<Product>> getAll2Products() {
-        return ResponseEntity.ok(productService.getAll2Products());
-    }
+//    @GetMapping("/hi")
+//    public ResponseEntity<List<Product>> getAll2Products() {
+//        return ResponseEntity.ok(productService.getAll2Products());
+//    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDetailDTO> getProductById(@PathVariable Integer id) {
