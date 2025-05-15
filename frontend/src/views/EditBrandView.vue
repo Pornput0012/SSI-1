@@ -73,7 +73,7 @@ const editBrand = async (formData) => {
 const notiStore = useNotiStore();
 const updateSuccess = () => {
   notiStore.updateSuccess = true;
-  router.push({ name: "sale-items" });
+  router.push({ name: "brands" });
 };
 </script>
 

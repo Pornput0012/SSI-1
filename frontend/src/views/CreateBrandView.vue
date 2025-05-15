@@ -42,7 +42,7 @@ const createSuccess = () => {
     console.log("Noti Store push");
     
   notiStore.createSuccess = true;
-  router.push({ name: "sale-items" });
+  router.push({ name: "brands" });
 };
 </script>
 
