@@ -14,10 +14,23 @@ export const useBrandStore = defineStore("Brand", () => {
     return brands.value;
   }
 
+  function deleteBrandById(id) {
+    if (!Array.isArray(brands.value)) {
+      return;
+    }
+
+    const brandIndex = brands.value.findIndex((ele) => ele.id == id);
+
+    if (id && brandIndex !== -1) {
+      brands.value.splice(brandIndex, 1);
+    }
+  }
+
   return {
     brands,
     setBrand,
     getBrands,
+    deleteBrandById,
   };
 });
 

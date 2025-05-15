@@ -1,58 +1,63 @@
 <script setup>
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import { deleteBrandById, getAllBrands } from '@/services/BrandService'
-import { useBrandStore } from '@/stores/BrandStore'
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { deleteBrandById, getAllBrands } from "@/services/BrandService";
+import { useBrandStore } from "@/stores/BrandStore";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const brandStore = useBrandStore()
-const hasError = ref('')
+const brandStore = useBrandStore();
+const hasError = ref("");
 
-const router = useRouter()
-const showDeleteModal = ref(false)
-const deleteSuccess = ref(false)
-const deleteTargetId = ref(null)
-const errorMessage = ref('')
-const isNotFound = ref(false)
+const router = useRouter();
+const showDeleteModal = ref(false);
+const deleteSuccess = ref(false);
+const deleteTargetId = ref(null);
+const errorMessage = ref("");
+const isNotFound = ref(false);
 
 onMounted(async () => {
   try {
-    const response = await getAllBrands()
+    const response = await getAllBrands();
     if (response.error) {
-      throw new Error(response.error)
+      throw new Error(response.error);
     }
   } catch (e) {
-    hasError.value = e.message
+    hasError.value = e.message;
   }
-})
+});
 
 const confirmDelete = (id) => {
-  deleteTargetId.value = id
-  showDeleteModal.value = true
-}
+  deleteTargetId.value = id;
+  showDeleteModal.value = true;
+};
 
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-      const response = await deleteBrandById(deleteTargetId.value)
-      showDeleteModal.value = false
+      const response = await deleteBrandById(deleteTargetId.value);
+      showDeleteModal.value = false;
       if (response.success) {
-        brandStore.deleteBrandById(deleteTargetId.value)
-        deleteSuccess.value = true
+        console.log(deleteTargetId.value);
+
+        brandStore.deleteBrandById(deleteTargetId.value);
+
+        console.log(brandStore.brands);
+
+        deleteSuccess.value = true;
       } else {
-        throw new Error('The requested brand does not exist.')
+        throw new Error("The requested brand does not exist.");
       }
     }
   } catch (error) {
-    errorMessage.value = error.message
-    isNotFound.value = true
+    errorMessage.value = error.message;
+    isNotFound.value = true;
   }
-}
+};
 
 const successOk = () => {
-  deleteSuccess.value = false
-  router.push({ name: 'brands' })
-}
+  deleteSuccess.value = false;
+  router.push({ name: "brands" });
+};
 </script>
 
 <template>
@@ -148,21 +153,21 @@ const successOk = () => {
                 <td
                   class="itbms-id p-3 font-bold text-blue-500 hover:underline cursor-pointer whitespace-nowrap"
                 >
-                  {{ brand.id || '-' }}
+                  {{ brand.id || "-" }}
                 </td>
                 <td class="itbms-brandName p-3 text-sm whitespace-nowrap">
-                  {{ brand.name || '-' }}
+                  {{ brand.name || "-" }}
                 </td>
                 <td
                   class="itbms-websiteUrl p-3 text-sm text-left whitespace-nowrap"
                 >
-                  {{ brand.websiteUrl || '-' }}
+                  {{ brand.websiteUrl || "-" }}
                 </td>
                 <td class="itbms-countryOfOrigin p-3 text-sm whitespace-nowrap">
-                  {{ brand.countryOfOrigin || '-' }}
+                  {{ brand.countryOfOrigin || "-" }}
                 </td>
                 <td class="itbms-isActive p-3 text-sm whitespace-nowrap">
-                  {{ brand.isActive || '-' }}
+                  {{ brand.isActive || "-" }}
                 </td>
                 <td class="p-3 whitespace-nowrap">
                   <div class="flex gap-2 justify-center">

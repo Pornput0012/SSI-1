@@ -83,7 +83,7 @@ const updateBrand = async (id, brand) => {
   }
 };
 
-const deleteBrand = async (id) => {
+const deleteBrandById = async (id) => {
   try {
     if (!id) throw new Error(`Brand ID is required for deletion.`);
 
@@ -99,4 +99,4 @@ const deleteBrand = async (id) => {
     return { error };
   }
 };
-export { getAllBrands, getBrandById, createBrand, updateBrand };
+export { getAllBrands, getBrandById, createBrand, updateBrand, deleteBrandById };

@@ -22,15 +22,6 @@ onMounted(async () => {
     }
   }
 });
-
-onMounted(async () => {
-  try {
-    const res = await getBrandById(999);
-    console.log(res);
-  } catch (error) {
-    console.log(error.message);
-  }
-});
 </script>
 
 <template>
