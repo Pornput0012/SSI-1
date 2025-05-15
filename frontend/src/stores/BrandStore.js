@@ -26,11 +26,25 @@ export const useBrandStore = defineStore("Brand", () => {
     }
   }
 
+  function createBrand(brand) {
+    brands.value.push(brand);
+  }
+
+  function updateBrandById(brandId, brand) {
+    const brandIndex = brands.value.findIndex((ele) => ele.id === brandId);
+
+    if (brandIndex !== -1 && brand) {
+      brands.value.splice(brandIndex, 1, brand);
+    }
+  }
+
   return {
     brands,
     setBrand,
     getBrands,
     deleteBrandById,
+    createBrand,
+    updateBrandById,
   };
 });
 

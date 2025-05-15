@@ -2,6 +2,7 @@ import SaleItemDetail from "@/components/SaleItemDetail.vue";
 import BrandListView from "@/views/BrandListView.vue";
 import CreateBrandView from "@/views/CreateBrandView.vue";
 import CreateSaleItemView from "@/views/CreateSaleItemView.vue";
+import EditBrandView from "@/views/EditBrandView.vue";
 import EditSaleitemView from "@/views/EditSaleitemView.vue";
 import homeView from "@/views/LandingView.vue";
 import SaleItemListView from "@/views/SaleItemListView.vue";
@@ -54,6 +55,12 @@ const router = createRouter({
       path: "/brands/add",
       component: CreateBrandView,
       name: "create-brand",
+    },
+
+    {
+      path: "/brands/:id/edit",
+      component: EditBrandView,
+      name: "edit-brand",
     },
   ],
 });
