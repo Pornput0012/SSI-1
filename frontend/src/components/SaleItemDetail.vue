@@ -33,7 +33,7 @@ const fetchSaleItemById = async () => {
     if (!saleItemId) {
       throw new Error("Invalid ID");
     }
-    
+
     const response = await getSaleItemById(saleItemId);
     if (response && !response.error) {
       selectSaleItem.value = response;
@@ -75,18 +75,20 @@ const successOk = () => {
   router.push({ name: "sale-items" });
 };
 
-const notiStore = useNotiStore()
+const notiStore = useNotiStore();
 const showUpdatedModal = ref(false);
 onMounted(() => {
   if (notiStore.updateSuccess) {
-    showUpdatedModal.value = true
-    notiStore.updateSuccess = false
+    showUpdatedModal.value = true;
+    notiStore.updateSuccess = false;
   }
-})
+});
 </script>
 
 <template>
-  <Breadcrumbs :crumbs="[{ label: selectSaleItem?.model, to: '' }]" />
+  <Breadcrumbs
+    :crumbs="[{ label: selectSaleItem?.model, class: 'itbms-back-button' }]"
+  />
   <div
     class="itbms-row w-full md:max-w-7xl h-full mx-auto px-6 pb-10 mt-4 md:mt-6"
   >
@@ -165,9 +167,7 @@ onMounted(() => {
                 <span class="itbms-ramGb"
                   >{{ selectSaleItem.ramGb || "-" }}
                 </span>
-                <span class="itbms-ramGb-unit" 
-                  >GB</span
-                >
+                <span class="itbms-ramGb-unit">GB</span>
               </span>
             </div>
             <div class="itbms-screenSizeInch-unit">
@@ -182,10 +182,7 @@ onMounted(() => {
                 <span class="itbms-screenSizeInch">{{
                   selectSaleItem.screenSizeInch || "-"
                 }}</span>
-                <span
-                  class="itbms-screenSizeInch-unit"
-                  >Inches</span
-                >
+                <span class="itbms-screenSizeInch-unit">Inches</span>
               </span>
             </div>
             <div class="itbms-storageGb-unit">
@@ -199,10 +196,7 @@ onMounted(() => {
                 <span class="itbms-storageGb">
                   {{ selectSaleItem.storageGb || "-" }}
                 </span>
-                <span
-                  class="itbms-storageGb-unit"
-                  >GB</span
-                >
+                <span class="itbms-storageGb-unit">GB</span>
               </span>
             </div>
             <div class="itbms-color">

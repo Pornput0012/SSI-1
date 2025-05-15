@@ -14,7 +14,7 @@ const normalizeOptional = (str) =>
 const handleCreateBrand = async (formData) => {
   try {
     isSaving.value = true;
-    
+
     const sentData = {
       name: formData?.name,
       websiteUrl: normalizeOptional(formData?.websiteUrl),
@@ -37,18 +37,28 @@ const handleCreateBrand = async (formData) => {
 };
 
 const notiStore = useNotiStore();
-const router = useRouter()
+const router = useRouter();
 const createSuccess = () => {
-    console.log("Noti Store push");
-    
+  console.log("Noti Store push");
+
   notiStore.createSuccess = true;
   router.push({ name: "brands" });
 };
 </script>
 
 <template>
-  <Breadcrumbs :crumbs="[{ label: 'New Brand', to: '' }]" />
-  <FormBrand 
+  <Breadcrumbs
+    :crumbs="[
+      { label: 'Brand List', name: 'brands', class: 'itbms-manage-brand' },
+      { label: 'New Brand' },
+    ]"
+    :home="{
+      label: 'Sale Item List',
+      name: 'sale-items-list',
+      class: 'itbms-item-list',
+    }"
+  />
+  <FormBrand
     @on-submit="handleCreateBrand"
     :disableSaveBtn="isSaving"
   ></FormBrand>

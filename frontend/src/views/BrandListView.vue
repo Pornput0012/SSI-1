@@ -1,102 +1,105 @@
 <script setup>
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import { deleteBrandById, getAllBrands } from '@/services/BrandService'
-import { useBrandStore } from '@/stores/BrandStore'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { useNotiStore } from '@/stores/์NotiStore'
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { deleteBrandById, getAllBrands } from "@/services/BrandService";
+import { useBrandStore } from "@/stores/BrandStore";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useNotiStore } from "@/stores/์NotiStore";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const brandStore = useBrandStore()
-const saleItemStore = useSaleItemStore()
-const hasError = ref('')
-const router = useRouter()
-const showDeleteModal = ref(false)
-const showWarningModal = ref(false)
-const deleteSuccess = ref(false)
-const deleteTargetId = ref(null)
-const deleteTargetName = ref(null)
-const errorMessage = ref('')
-const isNotFound = ref(false)
+const brandStore = useBrandStore();
+const saleItemStore = useSaleItemStore();
+const hasError = ref("");
+const router = useRouter();
+const showDeleteModal = ref(false);
+const showWarningModal = ref(false);
+const deleteSuccess = ref(false);
+const deleteTargetId = ref(null);
+const deleteTargetName = ref(null);
+const errorMessage = ref("");
+const isNotFound = ref(false);
 
 onMounted(async () => {
   try {
-    const response = await getAllBrands()
+    const response = await getAllBrands();
     if (response.error) {
-      throw new Error(response.error)
+      throw new Error(response.error);
     }
   } catch (e) {
-    hasError.value = e.message
+    hasError.value = e.message;
   }
-})
+});
 
 const confirmDelete = (brand) => {
-  deleteTargetId.value = brand.id
-  deleteTargetName.value = brand.name
+  deleteTargetId.value = brand.id;
+  deleteTargetName.value = brand.name;
 
   const hasSaleItem = saleItemStore
     .getSaleItems()
-    ?.some((item) => item.brandName === brand.name)
+    ?.some((item) => item.brandName === brand.name);
 
   if (hasSaleItem) {
-    showWarningModal.value = true
+    showWarningModal.value = true;
   } else {
-    showDeleteModal.value = true
+    showDeleteModal.value = true;
   }
-}
+};
 
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-      const response = await deleteBrandById(deleteTargetId.value)
-      showDeleteModal.value = false
+      const response = await deleteBrandById(deleteTargetId.value);
+      showDeleteModal.value = false;
       if (response.success) {
-        console.log(deleteTargetId.value)
+        console.log(deleteTargetId.value);
 
-        brandStore.deleteBrandById(deleteTargetId.value)
+        brandStore.deleteBrandById(deleteTargetId.value);
 
-        console.log(brandStore.brands)
+        console.log(brandStore.brands);
 
-        deleteSuccess.value = true
+        deleteSuccess.value = true;
       } else {
-        throw new Error('The requested brand does not exist.')
+        throw new Error("The requested brand does not exist.");
       }
     }
   } catch (error) {
-    errorMessage.value = error.message
-    isNotFound.value = true
+    errorMessage.value = error.message;
+    isNotFound.value = true;
   }
-}
+};
 
 const successOk = () => {
-  deleteSuccess.value = false
-  router.push({ name: 'brands' })
-}
+  deleteSuccess.value = false;
+  router.push({ name: "brands" });
+};
 
 const warningCancel = () => {
-  showWarningModal.value = false
-}
+  showWarningModal.value = false;
+};
 
-const notiStore = useNotiStore()
-const showCreatedModal = ref(false)
+const notiStore = useNotiStore();
+const showCreatedModal = ref(false);
 onMounted(() => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true
-    notiStore.createSuccess = false
+    showCreatedModal.value = true;
+    notiStore.createSuccess = false;
   }
-})
+});
 
-const showUpdatedModal = ref(false)
+const showUpdatedModal = ref(false);
 onMounted(() => {
   if (notiStore.updateSuccess) {
-    showUpdatedModal.value = true
-    notiStore.updateSuccess = false
+    showUpdatedModal.value = true;
+    notiStore.updateSuccess = false;
   }
-})
+});
 </script>
 
 <template>
-  <Breadcrumbs :crumbs="[{ label: 'Brand', to: '/brands' }]" />
+  <Breadcrumbs
+    :crumbs="[{ label: 'Add Brand', class: 'itbms-add-button' }]"
+    :home="{label:'Sale Item List',name:'sale-items-list', class:'itbms-item-list'}"
+  />
   <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
     <div class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Brands</h1>
@@ -171,12 +174,8 @@ onMounted(() => {
           <table class="w-full">
             <thead class="bg-gray-100 border-b-2 border-gray-200">
               <tr class="text-sm font-semibold text-center">
+                <th class="p-3 tracking-wide">id</th>
                 <th class="p-3 tracking-wide">Name</th>
-                <th class="p-3 tracking-wide">WebsiteUrl</th>
-                <th class="p-3 tracking-wide">isActive</th>
-                <th class="p-3 tracking-wide">CountryOfOrigin</th>
-                <th class="p-3 tracking-wide">CreatedOn</th>
-                <th class="p-3 tracking-wide">UpdatedOn</th>
                 <th class="p-3 tracking-wide">Action</th>
               </tr>
             </thead>
@@ -187,50 +186,12 @@ onMounted(() => {
                 class="itbms-row bg-white text-center text-gray-700"
               >
                 <td class="itbms-name p-4 text-sm whitespace-nowrap">
-                  {{ brand.name || '-' }}
+                  {{ brand.id || "-" }}
                 </td>
-                <td
-                  class="itbms-websiteUrl p-4 text-sm text-left whitespace-nowrap"
-                >
-                  <span
-                    v-if="brand.websiteUrl"
-                    class="text-blue-500 hover:underline cursor-pointer"
-                  >
-                    {{ brand.websiteUrl }}
-                  </span>
-                  <span v-else> - </span>
+                <td class="itbms-name p-4 text-sm whitespace-nowrap">
+                  {{ brand.name || "-" }}
                 </td>
-                <td
-                  class="itbms-isActive p-4 whitespace-nowrap text-xs font-medium"
-                >
-                  <span
-                    v-if="brand.isActive === true"
-                    class="p-2 tracking-wider text-green-800 bg-green-200 rounded-lg bg-opacity-50"
-                  >
-                    AVAILABLE
-                  </span>
-                  <span
-                    v-else-if="brand.isActive === false"
-                    class="p-2 tracking-wider text-red-800 bg-red-200 rounded-lg bg-opacity-50"
-                  >
-                    NOT AVAILABLE
-                  </span>
-                  <span
-                    v-else
-                    class="p-2 tracking-wider text-gray-800 bg-gray-200 rounded-lg bg-opacity-50"
-                  >
-                    -
-                  </span>
-                </td>
-                <td class="itbms-countryOfOrigin p-4 text-sm whitespace-nowrap">
-                  {{ brand.countryOfOrigin || '-' }}
-                </td>
-                <td class="itbms-createdOn p-4 text-sm whitespace-nowrap">
-                  15 May 2025
-                </td>
-                <td class="itbms-updatedOn p-4 text-sm whitespace-nowrap">
-                  15 May 2025
-                </td>
+
                 <td class="p-4 whitespace-nowrap">
                   <div class="flex gap-2 justify-center">
                     <router-link

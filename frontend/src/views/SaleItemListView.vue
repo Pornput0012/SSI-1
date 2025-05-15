@@ -24,7 +24,6 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Breadcrumbs :crumbs="[{ label: 'Product List', to: '/sale-items/list' }]" />
   <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
     <div class="w-full mt-8 flex justify-between items-center">
       <router-link

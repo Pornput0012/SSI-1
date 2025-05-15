@@ -2,7 +2,6 @@
 import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watchEffect } from "vue";
-import Breadcrumbs from "./Breadcrumbs.vue";
 import router from "@/router";
 
 const emit = defineEmits(["onSubmit"]);

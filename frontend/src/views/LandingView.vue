@@ -79,9 +79,9 @@ onMounted(() => {
                   </router-link>
                   <router-link
                     :to="{ name: 'sale-items-list' }"
-                    class="btn btn-lg px-10 text-lg"
+                    class="itbms-seller btn btn-lg px-10 text-lg"
                   >
-                    ADMIN
+                    SELLER
                   </router-link>
                 </div>
               </div>

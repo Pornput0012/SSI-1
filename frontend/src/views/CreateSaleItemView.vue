@@ -36,7 +36,7 @@ const createSuccess = () => {
 </script>
 
 <template>
-  <Breadcrumbs :crumbs="[{ label: 'New Sale Item', to: '' }]" />
+  <Breadcrumbs :crumbs="[{ label: 'New Sale Item', class: 'itbms-back-button' }]" />
 
   <div>
     <FormSaleItem
