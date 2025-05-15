@@ -44,6 +44,7 @@ const createBrand = async (brand) => {
     if (!brand.name) throw new Error("Brand name is required.");
     const response = await fetch(`${BRAND_API_URL}`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(brand),
     });
 
@@ -68,6 +69,7 @@ const updateBrand = async (id, brand) => {
 
     const response = await fetch(`${BRAND_API_URL}/${id}`, {
       method: "PUT",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(brand),
     });
 

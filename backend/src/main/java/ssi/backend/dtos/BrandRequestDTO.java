@@ -16,16 +16,22 @@ public class BrandRequestDTO {
     private String name;
 
     @Size(max = 40)
-    @NotEmpty
     private String websiteUrl;
 
     @Size(max = 80)
-    @NotEmpty
     private String countryOfOrigin;
 
     private Boolean isActive;
 
     public void setActive(Boolean active) {
         this.isActive = (active == null) ? false : active;
+    }
+
+    public void setWebsiteUrl(String websiteUrl) {
+        this.websiteUrl = (websiteUrl == "") ? null : websiteUrl;
+    }
+
+    public void setCountryOfOrigin(String countryOfOrigin) {
+        this.countryOfOrigin = (countryOfOrigin == "") ? null : countryOfOrigin;
     }
 }
