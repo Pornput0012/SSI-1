@@ -24,8 +24,12 @@ public class BrandService {
     @Autowired
     private ListMapper listMapper;
 
-    public List<BrandDTO> getAllBrands() {
+    public List<BrandDTO> getAllBrandsDto() {
         return listMapper.mapList(brandRepository.findAll(Sort.by(Sort.Order.asc("name"))), BrandDTO.class, modelMapper);
+    }
+
+    public List<Brand> getAllBrands() {
+        return brandRepository.findAll(Sort.by(Sort.Order.asc("name")));
     }
 
     public BrandResponseDTO getBrandById(Integer id) {

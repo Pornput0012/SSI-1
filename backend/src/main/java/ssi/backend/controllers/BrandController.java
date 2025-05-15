@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ssi.backend.dtos.*;
+import ssi.backend.entities.Brand;
 import ssi.backend.services.BrandService;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public class BrandController {
     private BrandService brandService;
 
     @GetMapping("")
-    public ResponseEntity<List<BrandDTO>> getAllBrands() {
+    public ResponseEntity<List<Brand>> getAllBrands() {
         return ResponseEntity.ok(brandService.getAllBrands());
     }
 
