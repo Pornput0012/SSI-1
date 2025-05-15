@@ -18,7 +18,7 @@ const menu = [
     text: "Products",
   },
   {
-    to: "brands",
+    to: "sale-items-list",
     text: "Seller",
   },
 ];

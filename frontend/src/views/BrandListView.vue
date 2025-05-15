@@ -3,6 +3,7 @@ import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import { deleteBrandById, getAllBrands } from '@/services/BrandService'
 import { useBrandStore } from '@/stores/BrandStore'
 import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { useNotiStore } from '@/stores/์NotiStore'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -75,6 +76,23 @@ const successOk = () => {
 const warningCancel = () => {
   showWarningModal.value = false
 }
+
+const notiStore = useNotiStore()
+const showCreatedModal = ref(false)
+onMounted(() => {
+  if (notiStore.createSuccess) {
+    showCreatedModal.value = true
+    notiStore.createSuccess = false
+  }
+})
+
+const showUpdatedModal = ref(false)
+onMounted(() => {
+  if (notiStore.updateSuccess) {
+    showUpdatedModal.value = true
+    notiStore.updateSuccess = false
+  }
+})
 </script>
 
 <template>
@@ -172,9 +190,15 @@ const warningCancel = () => {
                   {{ brand.name || '-' }}
                 </td>
                 <td
-                  class="itbms-websiteUrl p-4 text-blue-500 hover:underline cursor-pointer text-sm text-left whitespace-nowrap"
+                  class="itbms-websiteUrl p-4 text-sm text-left whitespace-nowrap"
                 >
-                  {{ brand.websiteUrl || '-' }}
+                  <span
+                    v-if="brand.websiteUrl"
+                    class="text-blue-500 hover:underline cursor-pointer"
+                  >
+                    {{ brand.websiteUrl }}
+                  </span>
+                  <span v-else> - </span>
                 </td>
                 <td
                   class="itbms-isActive p-4 whitespace-nowrap text-xs font-medium"
@@ -209,11 +233,18 @@ const warningCancel = () => {
                 </td>
                 <td class="p-4 whitespace-nowrap">
                   <div class="flex gap-2 justify-center">
-                    <button
-                      class="itbms-edit-button btn btn-sm btn-outline btn-info"
+                    <router-link
+                      :to="{
+                        name: 'edit-brand',
+                        params: { id: brand.id },
+                      }"
                     >
-                      Edit
-                    </button>
+                      <button
+                        class="itbms-edit-button btn btn-sm btn-outline btn-info"
+                      >
+                        Edit
+                      </button>
+                    </router-link>
                     <button
                       class="itbms-delete-button btn btn-sm btn-outline btn-error"
                       @click="confirmDelete(brand)"
@@ -292,6 +323,48 @@ const warningCancel = () => {
             OK
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showCreatedModal" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3
+        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
+      >
+        Successfully!
+      </h3>
+      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        The brand has been successfully added.
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button
+          @click="showCreatedModal = false"
+          class="btn btn-primary bg-purple-700"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showUpdatedModal" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3
+        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
+      >
+        Successfully!
+      </h3>
+      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        The brand has been updated.
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button
+          @click="showUpdatedModal = false"
+          class="btn btn-primary bg-purple-700"
+        >
+          OK
+        </button>
       </div>
     </div>
   </div>
