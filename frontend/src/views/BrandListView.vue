@@ -1,63 +1,63 @@
 <script setup>
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import { deleteBrandById, getAllBrands } from "@/services/BrandService";
-import { useBrandStore } from "@/stores/BrandStore";
-import { computed, onMounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import { deleteBrandById, getAllBrands } from '@/services/BrandService'
+import { useBrandStore } from '@/stores/BrandStore'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const brandStore = useBrandStore();
-const hasError = ref("");
+const brandStore = useBrandStore()
+const hasError = ref('')
 
-const router = useRouter();
-const showDeleteModal = ref(false);
-const deleteSuccess = ref(false);
-const deleteTargetId = ref(null);
-const errorMessage = ref("");
-const isNotFound = ref(false);
+const router = useRouter()
+const showDeleteModal = ref(false)
+const deleteSuccess = ref(false)
+const deleteTargetId = ref(null)
+const errorMessage = ref('')
+const isNotFound = ref(false)
 
 onMounted(async () => {
   try {
-    const response = await getAllBrands();
+    const response = await getAllBrands()
     if (response.error) {
-      throw new Error(response.error);
+      throw new Error(response.error)
     }
   } catch (e) {
-    hasError.value = e.message;
+    hasError.value = e.message
   }
-});
+})
 
 const confirmDelete = (id) => {
-  deleteTargetId.value = id;
-  showDeleteModal.value = true;
-};
+  deleteTargetId.value = id
+  showDeleteModal.value = true
+}
 
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-      const response = await deleteBrandById(deleteTargetId.value);
-      showDeleteModal.value = false;
+      const response = await deleteBrandById(deleteTargetId.value)
+      showDeleteModal.value = false
       if (response.success) {
-        console.log(deleteTargetId.value);
+        console.log(deleteTargetId.value)
 
-        brandStore.deleteBrandById(deleteTargetId.value);
+        brandStore.deleteBrandById(deleteTargetId.value)
 
-        console.log(brandStore.brands);
+        console.log(brandStore.brands)
 
-        deleteSuccess.value = true;
+        deleteSuccess.value = true
       } else {
-        throw new Error("The requested brand does not exist.");
+        throw new Error('The requested brand does not exist.')
       }
     }
   } catch (error) {
-    errorMessage.value = error.message;
-    isNotFound.value = true;
+    errorMessage.value = error.message
+    isNotFound.value = true
   }
-};
+}
 
 const successOk = () => {
-  deleteSuccess.value = false;
-  router.push({ name: "brands" });
-};
+  deleteSuccess.value = false
+  router.push({ name: 'brands' })
+}
 </script>
 
 <template>
@@ -112,14 +112,14 @@ const successOk = () => {
         <table class="w-full animate-pulse">
           <thead class="bg-gray-100 border-b-2 border-gray-200">
             <tr class="text-sm font-semibold text-center">
-              <th v-for="i in 6" :key="i" class="p-3 tracking-wide">
+              <th v-for="i in 5" :key="i" class="p-3 tracking-wide">
                 <div class="h-4 bg-gray-300 rounded"></div>
               </th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="n in 5" :key="n" class="text-center">
-              <td v-for="i in 6" :key="i" class="p-3">
+              <td v-for="i in 5" :key="i" class="p-3">
                 <div class="h-4 bg-gray-200 rounded w-full"></div>
               </td>
             </tr>
@@ -136,11 +136,12 @@ const successOk = () => {
           <table class="w-full">
             <thead class="bg-gray-100 border-b-2 border-gray-200">
               <tr class="text-sm font-semibold text-center">
-                <th class="p-3 tracking-wide">Id</th>
-                <th class="p-3 tracking-wide">Brand</th>
+                <th class="p-3 tracking-wide">Name</th>
                 <th class="p-3 tracking-wide">WebsiteUrl</th>
-                <th class="p-3 tracking-wide">CountryOfOrigin</th>
                 <th class="p-3 tracking-wide">isActive</th>
+                <th class="p-3 tracking-wide">CountryOfOrigin</th>
+                <th class="p-3 tracking-wide">CreatedOn</th>
+                <th class="p-3 tracking-wide">UpdatedOn</th>
                 <th class="p-3 tracking-wide">Action</th>
               </tr>
             </thead>
@@ -150,24 +151,25 @@ const successOk = () => {
                 :key="brand.id"
                 class="itbms-row bg-white text-center text-gray-700"
               >
-                <td
-                  class="itbms-id p-3 font-bold text-blue-500 hover:underline cursor-pointer whitespace-nowrap"
-                >
-                  {{ brand.id || "-" }}
-                </td>
-                <td class="itbms-brandName p-3 text-sm whitespace-nowrap">
-                  {{ brand.name || "-" }}
+                <td class="itbms-name p-3 text-sm whitespace-nowrap">
+                  {{ brand.name || '-' }}
                 </td>
                 <td
                   class="itbms-websiteUrl p-3 text-sm text-left whitespace-nowrap"
                 >
-                  {{ brand.websiteUrl || "-" }}
-                </td>
-                <td class="itbms-countryOfOrigin p-3 text-sm whitespace-nowrap">
-                  {{ brand.countryOfOrigin || "-" }}
+                  {{ brand.websiteUrl || '-' }}
                 </td>
                 <td class="itbms-isActive p-3 text-sm whitespace-nowrap">
-                  {{ brand.isActive || "-" }}
+                  {{ brand.isActive || '-' }}
+                </td>
+                <td class="itbms-countryOfOrigin p-3 text-sm whitespace-nowrap">
+                  {{ brand.countryOfOrigin || '-' }}
+                </td>
+                <td class="itbms-createdOn p-3 text-sm whitespace-nowrap">
+                  {{ brand.createdOn || '-' }}
+                </td>
+                <td class="itbms-updatedOn p-3 text-sm whitespace-nowrap">
+                  {{ brand.updatedOn || '-' }}
                 </td>
                 <td class="p-3 whitespace-nowrap">
                   <div class="flex gap-2 justify-center">
