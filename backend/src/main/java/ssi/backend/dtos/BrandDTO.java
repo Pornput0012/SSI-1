@@ -16,4 +16,8 @@ public class BrandDTO {
     @NotNull
     @NotEmpty
     private String name;
+
+    private String websiteUrl;
+    private String countryOfOrigin;
+    private Boolean isActive;
 }

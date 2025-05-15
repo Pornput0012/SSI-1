@@ -129,14 +129,14 @@ const warningCancel = () => {
         <table class="w-full animate-pulse">
           <thead class="bg-gray-100 border-b-2 border-gray-200">
             <tr class="text-sm font-semibold text-center">
-              <th v-for="i in 5" :key="i" class="p-3 tracking-wide">
+              <th v-for="i in 7" :key="i" class="p-3 tracking-wide">
                 <div class="h-4 bg-gray-300 rounded"></div>
               </th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="n in 5" :key="n" class="text-center">
-              <td v-for="i in 5" :key="i" class="p-3">
+              <td v-for="i in 7" :key="i" class="p-3">
                 <div class="h-4 bg-gray-200 rounded w-full"></div>
               </td>
             </tr>
@@ -168,27 +168,46 @@ const warningCancel = () => {
                 :key="brand.id"
                 class="itbms-row bg-white text-center text-gray-700"
               >
-                <td class="itbms-name p-3 text-sm whitespace-nowrap">
+                <td class="itbms-name p-4 text-sm whitespace-nowrap">
                   {{ brand.name || '-' }}
                 </td>
                 <td
-                  class="itbms-websiteUrl p-3 text-sm text-left whitespace-nowrap"
+                  class="itbms-websiteUrl p-4 text-blue-500 hover:underline cursor-pointer text-sm text-left whitespace-nowrap"
                 >
-                  ??
+                  {{ brand.websiteUrl || '-' }}
                 </td>
-                <td class="itbms-isActive p-3 text-sm whitespace-nowrap">
-                  true
+                <td
+                  class="itbms-isActive p-4 whitespace-nowrap text-xs font-medium"
+                >
+                  <span
+                    v-if="brand.isActive === true"
+                    class="p-2 tracking-wider text-green-800 bg-green-200 rounded-lg bg-opacity-50"
+                  >
+                    AVAILABLE
+                  </span>
+                  <span
+                    v-else-if="brand.isActive === false"
+                    class="p-2 tracking-wider text-red-800 bg-red-200 rounded-lg bg-opacity-50"
+                  >
+                    NOT AVAILABLE
+                  </span>
+                  <span
+                    v-else
+                    class="p-2 tracking-wider text-gray-800 bg-gray-200 rounded-lg bg-opacity-50"
+                  >
+                    -
+                  </span>
                 </td>
-                <td class="itbms-countryOfOrigin p-3 text-sm whitespace-nowrap">
-                  You Ready?? Mission of Universe
+                <td class="itbms-countryOfOrigin p-4 text-sm whitespace-nowrap">
+                  {{ brand.countryOfOrigin || '-' }}
                 </td>
-                <td class="itbms-createdOn p-3 text-sm whitespace-nowrap">
+                <td class="itbms-createdOn p-4 text-sm whitespace-nowrap">
                   15 May 2025
                 </td>
-                <td class="itbms-updatedOn p-3 text-sm whitespace-nowrap">
+                <td class="itbms-updatedOn p-4 text-sm whitespace-nowrap">
                   15 May 2025
                 </td>
-                <td class="p-3 whitespace-nowrap">
+                <td class="p-4 whitespace-nowrap">
                   <div class="flex gap-2 justify-center">
                     <button
                       class="itbms-edit-button btn btn-sm btn-outline btn-info"
