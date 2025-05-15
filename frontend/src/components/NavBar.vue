@@ -15,7 +15,7 @@ const menu = [
   },
   {
     to: "sale-items",
-    text: "Products",
+    text: "Sale Items",
   },
 ];
 </script>
