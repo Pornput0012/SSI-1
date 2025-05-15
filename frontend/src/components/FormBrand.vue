@@ -31,25 +31,20 @@ const requireField = ["name"];
 const fieldCheckOldData = ["name", "isActive"];
 const emptyCheck = ["websiteUrl", "countryOfOrigin"];
 const handleSubmit = () => {
-  for (const field of requireField) {
-    if (!formData.value[field]) {
-      errorTitle.value = "Missing Required Field";
-      errorMessage.value = `Please fill out the required field: ${field}`;
-      showModal.value = true;
-      console.log(formData.value[field]);
-
-      return;
-    }
+  if (!formData.value?.name) {
+    errorTitle.value = "Missing Required Field";
+    errorMessage.value = `Please fill out the required field : name`;
+    showModal.value = true;
+    return;
   }
+
   emit("onSubmit", formData.value);
 };
 
 watchEffect(() => {
-  for (const field of requireField) {
-    if (!formData.value[field]) {
-      isCanNotSave.value = true;
-      return;
-    }
+  if (!formData.value?.name) {
+    isCanNotSave.value = true;
+    return;
   }
 
   let hasChanges = false;
