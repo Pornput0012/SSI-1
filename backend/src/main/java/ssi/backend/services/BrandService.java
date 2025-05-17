@@ -24,21 +24,21 @@ public class BrandService {
     @Autowired
     private ListMapper listMapper;
 
-    public List<BrandDTO> getAllBrandsDto() {
+    public List<BrandDTO> getAllBrands() {
         return listMapper.mapList(brandRepository.findAll(Sort.by(Sort.Order.asc("name"))), BrandDTO.class, modelMapper);
     }
 
-    public List<Brand> getAllBrands() {
-        return brandRepository.findAll(Sort.by(Sort.Order.asc("name")));
-    }
+//    public List<Brand> getAllBrands() {
+//        return brandRepository.findAll(Sort.by(Sort.Order.asc("name")));
+//    }
 
-    public BrandResponseDTO getBrandById(Integer id) {
+    public BrandDtoNoSaleItem getBrandById(Integer id) {
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("Brand not found for this id :: " + id));
-        return modelMapper.map(brand, BrandResponseDTO.class);
+        return modelMapper.map(brand, BrandDtoNoSaleItem.class);
     }
 
-    public BrandResponseDTO createBrand(BrandRequestDTO brand) {
+    public BrandDtoNoSaleItem createBrand(BrandRequestDTO brand) {
         Brand creatingBrand = modelMapper.map(brand,Brand.class);
         Boolean duplicateName = getAllBrands().stream().anyMatch(b -> b.getName().equals(brand.getName()));
         if (duplicateName) {
@@ -48,11 +48,13 @@ public class BrandService {
         if (brand.getIsActive() == null) {
             creatingBrand.setIsActive(false);
         }
-        return modelMapper.map(brandRepository.save(creatingBrand), BrandResponseDTO.class);
+
+        creatingBrand.setId(null);
+        return modelMapper.map(brandRepository.save(creatingBrand), BrandDtoNoSaleItem.class);
     }
 
 
-    public BrandResponseDTO updateBrand(Integer id, BrandRequestDTO brand) {
+    public BrandDtoNoSaleItem updateBrand(Integer id, BrandRequestDTO brand) {
         Brand existingBrand = brandRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException(
                         "Brand id " + id + " does not exist"));
@@ -71,7 +73,7 @@ public class BrandService {
         existingBrand.setWebsiteUrl(brand.getWebsiteUrl());
         existingBrand.setCountryOfOrigin(brand.getCountryOfOrigin());
 
-        return modelMapper.map(brandRepository.save(existingBrand), BrandResponseDTO.class);
+        return modelMapper.map(brandRepository.save(existingBrand), BrandDtoNoSaleItem.class);
     }
 
 
