@@ -80,7 +80,7 @@ const updateSuccess = () => {
 <template>
   <Breadcrumbs
     :crumbs="[
-      { label: selectSaleItem?.model, name: 'sale-item-detail', params: saleItemId },
+      { label: selectSaleItem?.model, name: 'sale-item-detail', params: saleItemId, class: 'itbms-back-button' },
     ]"
   />
   <div>
