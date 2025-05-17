@@ -4,6 +4,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import ssi.backend.dtos.*;
 import ssi.backend.entities.Brand;
 import ssi.backend.entities.Product;
@@ -23,6 +25,8 @@ public class BrandService {
     private ModelMapper modelMapper;
     @Autowired
     private ListMapper listMapper;
+    @Autowired
+    private Validator validator;
 
     public List<BrandDTO> getAllBrands() {
         return listMapper.mapList(brandRepository.findAll(Sort.by(Sort.Order.asc("name"))), BrandDTO.class, modelMapper);
@@ -39,7 +43,7 @@ public class BrandService {
     }
 
     public BrandDtoNoSaleItem createBrand(BrandRequestDTO brand) {
-        Brand creatingBrand = modelMapper.map(brand,Brand.class);
+        Brand creatingBrand = modelMapper.map(brand, Brand.class);
         Boolean duplicateName = getAllBrands().stream().anyMatch(b -> b.getName().equals(brand.getName()));
         if (duplicateName) {
             throw new BadRequestException("Duplicate Name : " + brand.getName());
@@ -62,6 +66,11 @@ public class BrandService {
         Boolean duplicateName = getAllBrands().stream().anyMatch(b -> (b.getId() != id && b.getName().equals(brand.getName())));
         if (duplicateName) {
             throw new BadRequestException("Duplicate Name : " + brand.getName());
+        }
+
+        Errors errors = validator.validateObject(brand);
+        if (errors.hasErrors()) {
+            throw new RuntimeException(errors.toString());
         }
 
         if (brand.getIsActive() == null) {
