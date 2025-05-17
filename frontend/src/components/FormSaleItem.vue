@@ -2,7 +2,6 @@
 import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watchEffect } from "vue";
-import Breadcrumbs from "./Breadcrumbs.vue";
 import router from "@/router";
 
 const emit = defineEmits(["onSubmit"]);
@@ -153,7 +152,7 @@ watchEffect(() => {
             v-model="formData.brand"
           >
             <option :value="{ id: 0, name: '' }" disabled>Select Brand</option>
-            <option v-for="(brand, i) in brands" :value="brand" :key="i">
+            <option v-for="(brand, i) in brands?.filter(b => b.isActive === true)" :value="brand" :key="i">
               {{ brand.name }}
             </option>
           </select>

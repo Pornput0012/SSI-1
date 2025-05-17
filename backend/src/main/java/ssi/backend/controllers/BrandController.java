@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ssi.backend.dtos.*;
+import ssi.backend.entities.Brand;
 import ssi.backend.services.BrandService;
 
 import java.util.List;
@@ -25,12 +26,12 @@ public class BrandController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<BrandResponseDTO> getBrandById(@PathVariable Integer id) {
+    public ResponseEntity<BrandDtoNoSaleItem> getBrandById(@PathVariable Integer id) {
         return ResponseEntity.ok(brandService.getBrandById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BrandResponseDTO> updateBrand(@PathVariable Integer id, @Valid @RequestBody BrandRequestDTO brand) {
+    public ResponseEntity<BrandDtoNoSaleItem> updateBrand(@PathVariable Integer id, @RequestBody BrandRequestDTO brand) {
         return ResponseEntity.ok(brandService.updateBrand(id, brand));
     }
 
@@ -41,7 +42,7 @@ public class BrandController {
     }
 
     @PostMapping("")
-    public ResponseEntity<BrandResponseDTO> createProduct(@Valid @RequestBody BrandRequestDTO brand) {
+    public ResponseEntity<BrandDtoNoSaleItem> createProduct(@Valid @RequestBody BrandRequestDTO brand) {
         return ResponseEntity.status(HttpStatus.CREATED).body(brandService.createBrand(brand));
     }
 }

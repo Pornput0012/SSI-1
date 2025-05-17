@@ -65,14 +65,14 @@ const successOk = () => {
       <table class="w-full animate-pulse">
         <thead class="bg-gray-100 border-b-2 border-gray-200">
           <tr class="text-sm font-semibold text-center">
-            <th v-for="i in 10" :key="i" class="p-3 tracking-wide">
+            <th v-for="i in 8" :key="i" class="p-3 tracking-wide">
               <div class="h-4 bg-gray-300 rounded"></div>
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="n in 5" :key="n" class="text-center">
-            <td v-for="i in 10" :key="i" class="p-3">
+            <td v-for="i in 8" :key="i" class="p-3">
               <div class="h-4 bg-gray-200 rounded w-full"></div>
             </td>
           </tr>
@@ -95,9 +95,7 @@ const successOk = () => {
               <th class="p-3 tracking-wide">Ram</th>
               <th class="p-3 tracking-wide">Storage</th>
               <th class="p-3 tracking-wide">Color</th>
-              <th class="p-3 tracking-wide">Screen Size</th>
               <th class="p-3 tracking-wide">Price</th>
-              <th class="p-3 tracking-wide">Quantity</th>
               <th class="p-3 tracking-wide">Action</th>
             </tr>
           </thead>
@@ -134,14 +132,8 @@ const successOk = () => {
               <td class="itbms-color p-3 text-sm whitespace-nowrap">
                 {{ itemInList.color || '-' }}
               </td>
-              <td class="itbms-screenSizeInch p-3 text-sm whitespace-nowrap">
-                {{ itemInList.screenSizeInch || '-' }}
-              </td>
               <td class="itbms-price p-3 text-sm whitespace-nowrap">
                 {{ itemInList.price.toLocaleString() || '-' }}
-              </td>
-              <td class="itbms-quantity p-3 text-sm whitespace-nowrap">
-                {{ itemInList.quantity || '-' }}
               </td>
               <td class="p-3 whitespace-nowrap">
                 <div class="flex gap-2 justify-center">

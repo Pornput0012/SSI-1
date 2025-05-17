@@ -21,8 +21,4 @@ public class ProductItemDTO {
     private Integer storageGb;
 
     private String color;
-
-    private BigDecimal screenSizeInch;
-    private Integer quantity;
-
 }

@@ -1,66 +1,65 @@
 <script setup>
-import { getAllBrands } from "@/services/BrandService";
-import { useBrandStore } from "@/stores/BrandStore";
-import { computed, onMounted, ref, watchEffect } from "vue";
-import Breadcrumbs from "./Breadcrumbs.vue";
-import router from "@/router";
+import { getAllBrands } from '@/services/BrandService'
+import { useBrandStore } from '@/stores/BrandStore'
+import { computed, onMounted, ref, watchEffect } from 'vue'
+import router from '@/router'
 
-const emit = defineEmits(["onSubmit"]);
+const emit = defineEmits(['onSubmit'])
 
-const isCanNotSave = ref(true);
+const isCanNotSave = ref(true)
 
 const props = defineProps({
   brandDetail: {
     type: Object,
   },
   disableSaveBtn: Boolean,
-});
+})
 
 const formData = ref({
-  name: props.brandDetail?.name ?? "",
+  name: props.brandDetail?.name ?? '',
   websiteUrl: props.brandDetail?.websiteUrl || null, //ใช้ null เพราะเป็นทั้ง optionalและ not empty
   isActive: props.brandDetail?.isActive || false,
   countryOfOrigin: props.brandDetail?.countryOfOrigin || null,
-});
+})
 
-const errorTitle = ref("");
-const errorMessage = ref("");
-const showModal = ref(false);
+const errorTitle = ref('')
+const errorMessage = ref('')
+const showModal = ref(false)
 
-const requireField = ["name"];
-const fieldCheckOldData = ["name", "isActive"];
-const emptyCheck = ["websiteUrl", "countryOfOrigin"];
+const requireField = ['name']
+const fieldCheckOldData = ['name', 'isActive']
+const emptyCheck = ['websiteUrl', 'countryOfOrigin']
 const handleSubmit = () => {
   if (!formData.value?.name) {
-    errorTitle.value = "Missing Required Field";
-    errorMessage.value = `Please fill out the required field : name`;
-    showModal.value = true;
-    return;
+    errorTitle.value = 'Missing Required Field'
+    errorMessage.value = `Please fill out the required field : name`
+    showModal.value = true
+    return
   }
 
-  emit("onSubmit", formData.value);
-};
+  emit('onSubmit', formData.value)
+}
 
 watchEffect(() => {
   if (!formData.value?.name) {
-    isCanNotSave.value = true;
-    return;
+    isCanNotSave.value = true
+    return
   }
 
-  let hasChanges = false;
+  let hasChanges = false
 
   const normalizeOptional = (val) =>
-    typeof val === "string"
-      ? val.trim() === ""
+    typeof val === 'string'
+      ? val.trim() === ''
         ? null
         : val.trim()
-      : val ?? null;
+      : val ?? null
 
   if (!hasChanges) {
     for (const field of fieldCheckOldData) {
       if (formData.value[field] !== props.brandDetail?.[field]) {
-        hasChanges = true;
-        break;
+        hasChanges = true
+        break
       }
     }
 
@@ -69,14 +68,14 @@ watchEffect(() => {
         normalizeOptional(formData.value[field]) !==
         normalizeOptional(props.brandDetail?.[field])
       ) {
-        hasChanges = true;
-        break;
+        hasChanges = true
+        break
       }
     }
   }
 
-  isCanNotSave.value = !hasChanges;
-});
+  isCanNotSave.value = !hasChanges
+})
 </script>
 
 <template>
@@ -98,6 +97,17 @@ watchEffect(() => {
         v-model.trim="formData.websiteUrl"
       />
 
+      <div class="flex gap-2 sm:gap-24 col-span-1 sm:col-span-2 items-center">
+        <label class="text-sm md:text-base" for="isActive">Active</label>
+        <input
+          type="checkbox"
+          checked="checked"
+          class="itbms-isActive toggle border-gray-600 bg-gray-500 checked:border-green-500 checked:bg-green-400 checked:text-green-800"
+          id="isActive"
+          v-model.trim="formData.isActive"
+        />
+      </div>
+
       <label class="text-sm md:text-base" for="countryOfOrigin"
         >Country of origin</label
       >
@@ -107,16 +117,6 @@ watchEffect(() => {
         class="itbms-countryOfOrigin input w-full"
         v-model.trim="formData.countryOfOrigin"
       />
-
-      <div class="flex gap-2 col-span-1 sm:col-span-2 items-center">
-        <input
-          type="checkbox"
-          id="isActive"
-          class="itbms-isActive"
-          v-model.trim="formData.isActive"
-        />
-        <label class="text-sm md:text-base" for="isActive">Active</label>
-      </div>
 
       <div
         class="flex gap-4 col-span-1 sm:col-span-2 justify-center sm:justify-end mt-4"

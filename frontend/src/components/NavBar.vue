@@ -15,11 +15,7 @@ const menu = [
   },
   {
     to: "sale-items",
-    text: "Products",
-  },
-  {
-    to: "brands",
-    text: "Seller",
+    text: "Sale Items",
   },
 ];
 </script>

@@ -24,18 +24,18 @@ onMounted(async () => {
   }
 });
 
-const notiStore = useNotiStore()
-const showCreatedModal = ref(false)
+const notiStore = useNotiStore();
+const showCreatedModal = ref(false);
 onMounted(() => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true
-    notiStore.createSuccess = false
+    showCreatedModal.value = true;
+    notiStore.createSuccess = false;
   }
-})
+});
 </script>
 
 <template>
-  <Breadcrumbs :crumbs="[{ label: 'Product', to: '/sale-items' }]" />
+  <Breadcrumbs :crumbs="[{ label: 'Sale Items' }]" />
   <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
     <div class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Products</h1>
@@ -69,7 +69,11 @@ onMounted(() => {
         </label>
       </div>
     </div>
-    <SaleItemGallery class="mt-10" :sale-items="saleItems" :has-error="hasError" />
+    <SaleItemGallery
+      class="mt-10"
+      :sale-items="saleItems"
+      :has-error="hasError"
+    />
   </div>
   <div v-if="showCreatedModal" class="modal modal-open">
     <div class="modal-box text-center">
@@ -82,7 +86,10 @@ onMounted(() => {
         The sale item has been successfully added.
       </p>
       <div class="itbms-button modal-action justify-center">
-        <button @click="showCreatedModal = false" class="btn btn-primary bg-purple-700">
+        <button
+          @click="showCreatedModal = false"
+          class="btn btn-primary bg-purple-700"
+        >
           OK
         </button>
       </div>

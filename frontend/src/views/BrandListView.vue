@@ -3,6 +3,7 @@ import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import { deleteBrandById, getAllBrands } from '@/services/BrandService'
 import { useBrandStore } from '@/stores/BrandStore'
 import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { useNotiStore } from '@/stores/์NotiStore'
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -75,20 +76,38 @@ const successOk = () => {
 const warningCancel = () => {
   showWarningModal.value = false
 }
+
+const notiStore = useNotiStore()
+const showCreatedModal = ref(false)
+onMounted(() => {
+  if (notiStore.createSuccess) {
+    showCreatedModal.value = true
+    notiStore.createSuccess = false
+  }
+})
+
+const showUpdatedModal = ref(false)
+onMounted(() => {
+  if (notiStore.updateSuccess) {
+    showUpdatedModal.value = true
+    notiStore.updateSuccess = false
+  }
+})
 </script>
 
 <template>
-  <Breadcrumbs :crumbs="[{ label: 'Brand', to: '/brands' }]" />
+  <Breadcrumbs
+    :crumbs="[{ label: 'Add Brand', class: 'itbms-add-button', name: 'create-brand' }]"
+    :home="{
+      label: 'Sale Item List',
+      name: 'sale-items-list',
+      class: 'itbms-item-list',
+    }"
+  />
   <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
     <div class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Brands</h1>
       <div class="flex gap-4 items-center">
-        <router-link
-          :to="{ name: 'create-brand' }"
-          class="itbms-sale-item-add btn btn-primary"
-        >
-          Add Brand
-        </router-link>
         <label class="w-fit h-8 input input-xs hidden sm:flex">
           <input type="search" class="grow" placeholder="Search..." />
           <button class="cursor-pointer">
@@ -129,14 +148,14 @@ const warningCancel = () => {
         <table class="w-full animate-pulse">
           <thead class="bg-gray-100 border-b-2 border-gray-200">
             <tr class="text-sm font-semibold text-center">
-              <th v-for="i in 7" :key="i" class="p-3 tracking-wide">
+              <th v-for="i in 2" :key="i" class="p-3 tracking-wide">
                 <div class="h-4 bg-gray-300 rounded"></div>
               </th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="n in 5" :key="n" class="text-center">
-              <td v-for="i in 7" :key="i" class="p-3">
+              <td v-for="i in 2" :key="i" class="p-3">
                 <div class="h-4 bg-gray-200 rounded w-full"></div>
               </td>
             </tr>
@@ -153,12 +172,8 @@ const warningCancel = () => {
           <table class="w-full">
             <thead class="bg-gray-100 border-b-2 border-gray-200">
               <tr class="text-sm font-semibold text-center">
-                <th class="p-3 tracking-wide">Name</th>
-                <th class="p-3 tracking-wide">WebsiteUrl</th>
-                <th class="p-3 tracking-wide">isActive</th>
-                <th class="p-3 tracking-wide">CountryOfOrigin</th>
-                <th class="p-3 tracking-wide">CreatedOn</th>
-                <th class="p-3 tracking-wide">UpdatedOn</th>
+                <th class="p-3 tracking-wide">Id</th>
+                <th class="p-3 tracking-wide text-left">Name</th>
                 <th class="p-3 tracking-wide">Action</th>
               </tr>
             </thead>
@@ -168,52 +183,29 @@ const warningCancel = () => {
                 :key="brand.id"
                 class="itbms-row bg-white text-center text-gray-700"
               >
-                <td class="itbms-name p-4 text-sm whitespace-nowrap">
+                <td
+                  class="itbms-id p-4 text-sm whitespace-nowrap font-bold text-blue-500"
+                >
+                  {{ brand.id || '-' }}
+                </td>
+                <td class="itbms-name p-4 text-sm whitespace-nowrap text-left">
                   {{ brand.name || '-' }}
                 </td>
-                <td
-                  class="itbms-websiteUrl p-4 text-blue-500 hover:underline cursor-pointer text-sm text-left whitespace-nowrap"
-                >
-                  {{ brand.websiteUrl || '-' }}
-                </td>
-                <td
-                  class="itbms-isActive p-4 whitespace-nowrap text-xs font-medium"
-                >
-                  <span
-                    v-if="brand.isActive === true"
-                    class="p-2 tracking-wider text-green-800 bg-green-200 rounded-lg bg-opacity-50"
-                  >
-                    AVAILABLE
-                  </span>
-                  <span
-                    v-else-if="brand.isActive === false"
-                    class="p-2 tracking-wider text-red-800 bg-red-200 rounded-lg bg-opacity-50"
-                  >
-                    NOT AVAILABLE
-                  </span>
-                  <span
-                    v-else
-                    class="p-2 tracking-wider text-gray-800 bg-gray-200 rounded-lg bg-opacity-50"
-                  >
-                    -
-                  </span>
-                </td>
-                <td class="itbms-countryOfOrigin p-4 text-sm whitespace-nowrap">
-                  {{ brand.countryOfOrigin || '-' }}
-                </td>
-                <td class="itbms-createdOn p-4 text-sm whitespace-nowrap">
-                  15 May 2025
-                </td>
-                <td class="itbms-updatedOn p-4 text-sm whitespace-nowrap">
-                  15 May 2025
-                </td>
+
                 <td class="p-4 whitespace-nowrap">
                   <div class="flex gap-2 justify-center">
-                    <button
-                      class="itbms-edit-button btn btn-sm btn-outline btn-info"
+                    <router-link
+                      :to="{
+                        name: 'edit-brand',
+                        params: { id: brand.id },
+                      }"
                     >
-                      Edit
-                    </button>
+                      <button
+                        class="itbms-edit-button btn btn-sm btn-outline btn-info"
+                      >
+                        Edit
+                      </button>
+                    </router-link>
                     <button
                       class="itbms-delete-button btn btn-sm btn-outline btn-error"
                       @click="confirmDelete(brand)"
@@ -241,7 +233,9 @@ const warningCancel = () => {
       <div class="modal-box">
         <h3 class="text-lg font-bold">Delete Confirmation</h3>
 
-        <p class="itbms-message py-4">Do you want to delete this brand?</p>
+        <p class="itbms-message py-4">
+          Do you want to delete <b>{{ deleteTargetName }}</b> brand?
+        </p>
         <div class="modal-action">
           <form method="dialog">
             <button
@@ -292,6 +286,48 @@ const warningCancel = () => {
             OK
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showCreatedModal" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3
+        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
+      >
+        Successfully!
+      </h3>
+      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        The brand has been successfully added.
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button
+          @click="showCreatedModal = false"
+          class="btn btn-primary bg-purple-700"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="showUpdatedModal" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3
+        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
+      >
+        Successfully!
+      </h3>
+      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        The brand has been updated.
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button
+          @click="showUpdatedModal = false"
+          class="btn btn-primary bg-purple-700"
+        >
+          OK
+        </button>
       </div>
     </div>
   </div>

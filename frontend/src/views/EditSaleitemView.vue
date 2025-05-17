@@ -2,7 +2,10 @@
 import { useRouter, useRoute } from "vue-router";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { onMounted, ref } from "vue";
-import { getSaleItemById, updateSaleItemById } from "@/services/SaleItemService";
+import {
+  getSaleItemById,
+  updateSaleItemById,
+} from "@/services/SaleItemService";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
 import { useNotiStore } from "@/stores/์NotiStore";
@@ -24,7 +27,7 @@ const fetchSaleItemById = async () => {
     if (!saleItemId) {
       throw new Error("Invalid ID");
     }
-    
+
     const response = await getSaleItemById(saleItemId);
 
     if (response && !response.error) {
@@ -45,12 +48,15 @@ const editSaleItem = async (formData) => {
     isSaving.value = true;
     console.log(formData);
     if (formData) {
-      const response = await updateSaleItemById(selectSaleItem.value.id,formData);
-      console.log(response)
-      console.log(response.error)
+      const response = await updateSaleItemById(
+        selectSaleItem.value.id,
+        formData
+      );
+      console.log(response);
+      console.log(response.error);
       if (response && !response.error) {
-        saleItemStore.updateSaleItemById(selectSaleItem.value.id,response)
-        updateSuccess()
+        saleItemStore.updateSaleItemById(selectSaleItem.value.id, response);
+        updateSuccess();
       } else {
         throw new Error("Failed to update sale item");
       }
@@ -61,20 +67,20 @@ const editSaleItem = async (formData) => {
   }
 };
 
-const notiStore = useNotiStore()
+const notiStore = useNotiStore();
 const updateSuccess = () => {
-  notiStore.updateSuccess = true
+  notiStore.updateSuccess = true;
   router.push({
     name: "sale-item-detail",
-    params: { id: selectSaleItem.value.id }
-  })
-}
+    params: { id: selectSaleItem.value.id },
+  });
+};
 </script>
 
 <template>
   <Breadcrumbs
     :crumbs="[
-      { label: selectSaleItem?.model, to: `/sale-items/${saleItemId}` },
+      { label: selectSaleItem?.model, name: 'sale-item-detail', params: saleItemId, class: 'itbms-back-button' },
     ]"
   />
   <div>

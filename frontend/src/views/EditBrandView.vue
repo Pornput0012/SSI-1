@@ -73,13 +73,21 @@ const editBrand = async (formData) => {
 const notiStore = useNotiStore();
 const updateSuccess = () => {
   notiStore.updateSuccess = true;
-  router.push({ name: "sale-items" });
+  router.push({ name: "brands" });
 };
 </script>
 
 <template>
   <Breadcrumbs
-    :crumbs="[{ label: selectBrand?.name, to: `/brands/${brandId}` }]"
+    :crumbs="[
+      { label: 'Brand List', name: 'brands', class: 'itbms-manage-brand' },
+      { label: selectBrand?.name },
+    ]"
+    :home="{
+      label: 'Sale Item List',
+      name: 'sale-items-list',
+      class: 'itbms-item-list',
+    }"
   />
   <FormBrand
     v-if="selectBrand"

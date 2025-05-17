@@ -9,6 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class BrandRequestDTO {
+    private Integer id;
 
     @NotNull
     @NotEmpty
@@ -22,6 +23,11 @@ public class BrandRequestDTO {
     private String countryOfOrigin;
 
     private Boolean isActive;
+
+    public void setName(String name) {
+        //this.name = name.trim().length() <= 30 ? name.trim() : name.substring(0,30);
+        this.name = name.trim();
+    }
 
     public void setActive(Boolean active) {
         this.isActive = (active == null) ? false : active;
