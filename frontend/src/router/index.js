@@ -58,7 +58,7 @@ const router = createRouter({
     },
 
     {
-      path: "/brands/:id",
+      path: "/brands/:id/edit",
       component: EditBrandView,
       name: "edit-brand",
     },

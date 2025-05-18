@@ -94,7 +94,7 @@ const deleteBrandById = async (id) => {
     });
 
     if (!response.ok) {
-      throw new Error("An error has occurred, the status does not exist.");
+      throw new Error("An error has occurred, the brand does not exist.");
     }
     return { success: true };
   } catch (error) {
