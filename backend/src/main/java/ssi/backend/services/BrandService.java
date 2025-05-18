@@ -29,7 +29,7 @@ public class BrandService {
     private Validator validator;
 
     public List<BrandDTO> getAllBrands() {
-        return listMapper.mapList(brandRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("name"))),
+        return listMapper.mapList(brandRepository.findAll(Sort.by(Sort.Order.asc("createdOn"))),
                 BrandDTO.class, modelMapper);
     }
 

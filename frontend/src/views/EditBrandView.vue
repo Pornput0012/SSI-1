@@ -31,7 +31,7 @@ const fetchBrandById = async () => {
       selectBrand.value = response;
       console.log(selectBrand.value);
     } else {
-      throw new Error("The requested brand does not exist.");
+      throw new Error("The brand does not exist.");
     }
   } catch (error) {
     errorMessage.value = error.message;
@@ -108,7 +108,7 @@ const updateSuccess = () => {
       </p>
       <div class="itbms-button modal-action justify-center">
         <button
-          @click="router.push({ name: 'sale-items' })"
+          @click="router.push({ name: 'brands' })"
           class="btn btn-primary bg-purple-700"
         >
           OK
