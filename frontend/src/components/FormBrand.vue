@@ -18,7 +18,7 @@ const props = defineProps({
 const formData = ref({
   name: props.brandDetail?.name ?? '',
   websiteUrl: props.brandDetail?.websiteUrl || null, //ใช้ null เพราะเป็นทั้ง optionalและ not empty
-  isActive: props.brandDetail?.isActive || false,
+  isActive: props.brandDetail?.isActive || true,
   countryOfOrigin: props.brandDetail?.countryOfOrigin || null,
 })
 
