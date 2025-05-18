@@ -261,7 +261,7 @@ onMounted(() => {
 
         <p class="itbms-message py-3">
           Delete <b>{{ deleteTargetName }}</b> is not allowed. There are sale
-          items with this brand.
+          items with <b>{{ deleteTargetName }}</b> brand.
         </p>
         <div class="modal-action">
           <form method="dialog">

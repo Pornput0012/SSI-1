@@ -16,6 +16,7 @@ public class BrandDTO {
     @NotNull
     @NotEmpty
     private String name;
+
     private Boolean isActive;
 
 }
