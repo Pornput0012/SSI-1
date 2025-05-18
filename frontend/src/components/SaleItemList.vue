@@ -144,13 +144,13 @@ const successOk = () => {
                     }"
                     class="itbms-edit-button btn btn-sm btn-outline btn-info"
                   >
-                    E
+                    Edit
                   </router-link>
                   <button
                     class="itbms-delete-button btn btn-sm btn-outline btn-error"
                     @click="confirmDelete(itemInList.id)"
                   >
-                    D
+                    Delete
                   </button>
                 </div>
               </td>
