@@ -298,7 +298,7 @@ onMounted(() => {
         Successfully!
       </h3>
       <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The brand has been successfully added.
+        The brand has been added.
       </p>
       <div class="itbms-button modal-action justify-center">
         <button
