@@ -1,103 +1,105 @@
 <script setup>
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import { deleteBrandById, getAllBrands } from '@/services/BrandService'
-import { useBrandStore } from '@/stores/BrandStore'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { useNotiStore } from '@/stores/์NotiStore'
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { deleteBrandById, getAllBrands } from "@/services/BrandService";
+import { useBrandStore } from "@/stores/BrandStore";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useNotiStore } from "@/stores/์NotiStore";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const brandStore = useBrandStore()
-const saleItemStore = useSaleItemStore()
-const hasError = ref('')
-const router = useRouter()
-const showDeleteModal = ref(false)
-const showWarningModal = ref(false)
-const deleteSuccess = ref(false)
-const deleteTargetId = ref(null)
-const deleteTargetName = ref(null)
-const errorMessage = ref('')
-const isNotFound = ref(false)
+const brandStore = useBrandStore();
+const saleItemStore = useSaleItemStore();
+const hasError = ref("");
+const router = useRouter();
+const showDeleteModal = ref(false);
+const showWarningModal = ref(false);
+const deleteSuccess = ref(false);
+const deleteTargetId = ref(null);
+const deleteTargetName = ref(null);
+const errorMessage = ref("");
+const isNotFound = ref(false);
 
 onMounted(async () => {
   try {
-    const response = await getAllBrands()
+    const response = await getAllBrands();
     if (response.error) {
-      throw new Error(response.error)
+      throw new Error(response.error);
     }
   } catch (e) {
-    hasError.value = e.message
+    hasError.value = e.message;
   }
-})
+});
 
 const confirmDelete = (brand) => {
-  deleteTargetId.value = brand.id
-  deleteTargetName.value = brand.name
+  deleteTargetId.value = brand.id;
+  deleteTargetName.value = brand.name;
 
   const hasSaleItem = saleItemStore
     .getSaleItems()
-    ?.some((item) => item.brandName === brand.name)
+    ?.some((item) => item.brandName === brand.name);
 
   if (hasSaleItem) {
-    showWarningModal.value = true
+    showWarningModal.value = true;
   } else {
-    showDeleteModal.value = true
+    showDeleteModal.value = true;
   }
-}
+};
 
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-      const response = await deleteBrandById(deleteTargetId.value)
-      showDeleteModal.value = false
+      const response = await deleteBrandById(deleteTargetId.value);
+      showDeleteModal.value = false;
       if (response.success) {
-        console.log(deleteTargetId.value)
+        console.log(deleteTargetId.value);
 
-        brandStore.deleteBrandById(deleteTargetId.value)
+        brandStore.deleteBrandById(deleteTargetId.value);
 
-        console.log(brandStore.brands)
+        console.log(brandStore.brands);
 
-        deleteSuccess.value = true
+        deleteSuccess.value = true;
       } else {
-        throw new Error('The requested brand does not exist.')
+        throw new Error("An error has occurred, the brand does not exist.");
       }
     }
   } catch (error) {
-    errorMessage.value = error.message
-    isNotFound.value = true
+    errorMessage.value = error.message;
+    isNotFound.value = true;
   }
-}
+};
 
 const successOk = () => {
-  deleteSuccess.value = false
-  router.push({ name: 'brands' })
-}
+  deleteSuccess.value = false;
+  router.push({ name: "brands" });
+};
 
 const warningCancel = () => {
-  showWarningModal.value = false
-}
+  showWarningModal.value = false;
+};
 
-const notiStore = useNotiStore()
-const showCreatedModal = ref(false)
+const notiStore = useNotiStore();
+const showCreatedModal = ref(false);
 onMounted(() => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true
-    notiStore.createSuccess = false
+    showCreatedModal.value = true;
+    notiStore.createSuccess = false;
   }
-})
+});
 
-const showUpdatedModal = ref(false)
+const showUpdatedModal = ref(false);
 onMounted(() => {
   if (notiStore.updateSuccess) {
-    showUpdatedModal.value = true
-    notiStore.updateSuccess = false
+    showUpdatedModal.value = true;
+    notiStore.updateSuccess = false;
   }
-})
+});
 </script>
 
 <template>
   <Breadcrumbs
-    :crumbs="[{ label: 'Add Brand', class: 'itbms-add-button', name: 'create-brand' }]"
+    :crumbs="[
+      { label: 'Add Brand', class: 'itbms-add-button', name: 'create-brand' },
+    ]"
     :home="{
       label: 'Sale Item List',
       name: 'sale-items-list',
@@ -186,10 +188,10 @@ onMounted(() => {
                 <td
                   class="itbms-id p-4 text-sm whitespace-nowrap font-bold text-blue-500"
                 >
-                  {{ brand.id || '-' }}
+                  {{ brand.id || "-" }}
                 </td>
                 <td class="itbms-name p-4 text-sm whitespace-nowrap text-left">
-                  {{ brand.name || '-' }}
+                  {{ brand.name || "-" }}
                 </td>
 
                 <td class="p-4 whitespace-nowrap">
@@ -324,6 +326,27 @@ onMounted(() => {
       <div class="itbms-button modal-action justify-center">
         <button
           @click="showUpdatedModal = false"
+          class="btn btn-primary bg-purple-700"
+        >
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="errorMessage" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3
+        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-error"
+      >
+        Brand Not Found!
+      </h3>
+      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
+        {{ errorMessage }}
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button
+          @click="errorMessage = ''"
           class="btn btn-primary bg-purple-700"
         >
           OK
