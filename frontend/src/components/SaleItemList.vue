@@ -135,7 +135,7 @@ const successOk = () => {
               <td class="itbms-price p-3 text-sm whitespace-nowrap">
                 {{ itemInList.price.toLocaleString() || '-' }}
               </td>
-              <td class="p-3 whitespace-nowrap">
+              <td class="p-4 whitespace-nowrap">
                 <div class="flex gap-2 justify-center">
                   <router-link
                     :to="{
@@ -144,13 +144,13 @@ const successOk = () => {
                     }"
                     class="itbms-edit-button btn btn-sm btn-outline btn-info"
                   >
-                    E
+                    Edit
                   </router-link>
                   <button
                     class="itbms-delete-button btn btn-sm btn-outline btn-error"
                     @click="confirmDelete(itemInList.id)"
                   >
-                    D
+                    Delete
                   </button>
                 </div>
               </td>

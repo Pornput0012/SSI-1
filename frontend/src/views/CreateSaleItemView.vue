@@ -17,7 +17,7 @@ const handleCreateSaleItem = async (formData) => {
       const response = await createSaleItem(formData);
       if (response && !response.error) {
         saleItemStore.createSaleItem(response);
-        createSuccess()
+        createSuccess();
       } else {
         throw new Error("Failed to add sale item");
       }
@@ -28,15 +28,17 @@ const handleCreateSaleItem = async (formData) => {
   }
 };
 
-const notiStore = useNotiStore()
+const notiStore = useNotiStore();
 const createSuccess = () => {
-  notiStore.createSuccess = true
-  router.push({ name: "sale-items" })
-}
+  notiStore.createSuccess = true;
+  router.back();
+};
 </script>
 
 <template>
-  <Breadcrumbs :crumbs="[{ label: 'New Sale Item', class: 'itbms-back-button' }]" />
+  <Breadcrumbs
+    :crumbs="[{ label: 'New Sale Item', class: 'itbms-back-button' }]"
+  />
 
   <div>
     <FormSaleItem
@@ -44,7 +46,6 @@ const createSuccess = () => {
       :disableSaveBtn="isSaving"
     />
   </div>
- 
 </template>
 
 <style scoped></style>

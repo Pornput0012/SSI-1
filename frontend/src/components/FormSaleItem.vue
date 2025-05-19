@@ -2,8 +2,8 @@
 import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watchEffect } from "vue";
-import router from "@/router";
-
+import { useRouter } from "vue-router";
+const router = useRouter();
 const emit = defineEmits(["onSubmit"]);
 const { getBrands } = useBrandStore();
 const brands = computed(() => getBrands());
@@ -32,9 +32,6 @@ const formData = ref({
 const errorTitle = ref("");
 const errorMessage = ref("");
 const showModal = ref(false);
-
-
-
 
 onMounted(async () => {
   if (brands.value === null) {
@@ -101,7 +98,6 @@ watchEffect(() => {
   if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
     hasChanges = true;
   }
- 
 
   if (!hasChanges) {
     for (const field of fieldCheckOldData) {
@@ -152,7 +148,11 @@ watchEffect(() => {
             v-model="formData.brand"
           >
             <option :value="{ id: 0, name: '' }" disabled>Select Brand</option>
-            <option v-for="(brand, i) in brands?.filter(b => b.isActive === true)" :value="brand" :key="i">
+            <option
+              v-for="(brand, i) in brands?.filter((b) => b.isActive === true)"
+              :value="brand"
+              :key="i"
+            >
               {{ brand.name }}
             </option>
           </select>
