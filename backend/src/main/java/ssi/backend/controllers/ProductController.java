@@ -2,17 +2,12 @@ package ssi.backend.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ssi.backend.dtos.*;
-import ssi.backend.entities.Product;
 import ssi.backend.services.ProductService;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 @RestController
