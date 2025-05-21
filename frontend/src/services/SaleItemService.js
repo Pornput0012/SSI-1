@@ -1,11 +1,45 @@
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 
-const SALE_ITEM_API_URL = `${import.meta.env.VITE_BACKEND_URL}/sale-items`;
+const SALE_ITEM_API_URL_V1 = `${
+  import.meta.env.VITE_BACKEND_URL
+}/v1/sale-items`;
+const SALE_ITEM_API_URL_V2 = `${
+  import.meta.env.VITE_BACKEND_URL
+}/v2/sale-items`;
 
 // GET all sale-items
 const getAllSaleItems = async () => {
   try {
-    const response = await fetch(SALE_ITEM_API_URL);
+    const response = await fetch(SALE_ITEM_API_URL_V1);
+
+    if (!response.ok) {
+      throw new Error(`(${response.status}) Failed to fetch sale item list.`);
+    }
+
+    const data = await response.json();
+    const saleItemStore = useSaleItemStore();
+
+    saleItemStore.setSaleItems(data);
+    return data;
+  } catch (error) {
+    return { error };
+  }
+};
+
+// Get all sale-item v2 (pagination)
+const getAllSaleItems_v2 = async (
+  filterBrands,
+  page,
+  size,
+  sortField,
+  sortDirection
+) => {
+  try {
+    const response = await fetch(
+      `${SALE_ITEM_API_URL_V2}?filterBrands=${filterBrands.join(
+        ","
+      )}&page=${page}&size=${size}&sortField=${sortField}&sortDirection=${sortDirection}`
+    );
 
     if (!response.ok) {
       throw new Error(`(${response.status}) Failed to fetch sale item list.`);

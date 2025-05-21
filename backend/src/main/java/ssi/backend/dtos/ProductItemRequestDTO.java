@@ -1,14 +1,12 @@
 package ssi.backend.dtos;
 
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
-import ssi.backend.entities.Brand;
+
 
 import java.math.BigDecimal;
 

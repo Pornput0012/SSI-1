@@ -1,9 +1,6 @@
 package ssi.backend.utils;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import ssi.backend.dtos.ProductPageDTO;
-
 import java.util.List;
 import java.util.stream.Collectors;
 

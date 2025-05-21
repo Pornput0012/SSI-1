@@ -3,7 +3,6 @@ package ssi.backend.dtos;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
-import ssi.backend.entities.Product;
 
 import java.util.List;
 

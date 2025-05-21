@@ -2,22 +2,17 @@ package ssi.backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import ssi.backend.dtos.*;
 import ssi.backend.entities.Brand;
 import ssi.backend.entities.Product;
-import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.ProductRepository;
 import ssi.backend.utils.ListMapper;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
