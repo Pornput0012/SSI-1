@@ -33,10 +33,6 @@ public class BrandService {
                 BrandDTO.class, modelMapper);
     }
 
-//    public List<Brand> getAllBrands() {
-//        return brandRepository.findAll(Sort.by(Sort.Order.asc("name")));
-//    }
-
     public BrandDtoNoSaleItem getBrandById(Integer id) {
         Brand brand = brandRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("Brand not found for this id :: " + id));

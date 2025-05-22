@@ -2,20 +2,17 @@ package ssi.backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import ssi.backend.dtos.*;
 import ssi.backend.entities.Brand;
 import ssi.backend.entities.Product;
-import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.ProductRepository;
 import ssi.backend.utils.ListMapper;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -34,9 +31,27 @@ public class ProductService {
                 ProductItemDTO.class, modelMapper);
     }
 
-//    public List<Product> getAll2Products() {
-//        return productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id")));
-//    }
+    public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection, List<String> filterBrands) {
+        PageRequest pageable;
+        if (sortField == null) {
+            pageable = PageRequest.of(page, size);
+        } else {
+            Sort sort = "asc".equalsIgnoreCase(sortDirection) ?
+                    Sort.by(Sort.Order.asc(sortField)) :
+                    Sort.by(Sort.Order.desc(sortField));
+            pageable = PageRequest.of(page, size, sort);
+        }
+
+        ProductPageDTO productPage;
+        if (filterBrands == null || filterBrands.isEmpty()) {
+            productPage = modelMapper.map(productRepository.findAll(pageable), ProductPageDTO.class);
+        } else {
+            productPage = modelMapper.map(productRepository.findAllByBrandNameIn(filterBrands, pageable), ProductPageDTO.class);
+        }
+
+        productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+        return productPage;
+    }
 
     public ProductDetailDTO getProductById(Integer id) {
         Product product = productRepository.findById(id)
@@ -50,10 +65,6 @@ public class ProductService {
         Brand existingBrand = brandRepository.findById(productItemRequestDTO.getBrand().getId())
                 .orElseThrow(() -> new ItemNotFoundException(
                         "Brand id " + productItemRequestDTO.getBrand().getId() + " does not exist"));
-
-//        if (!existingBrand.getName().equals(productItemRequestDTO.getBrand().getName())) {
-//            throw new BadRequestException("Brand name does not match");
-//        }
 
         existingProduct.setModel(productItemRequestDTO.getModel());
         existingProduct.setDescription(productItemRequestDTO.getDescription());
@@ -79,19 +90,10 @@ public class ProductService {
         Brand existingBrand = brandRepository.findById(product.getBrand().getId())
                 .orElseThrow(
                         () -> new ItemNotFoundException("Brand id " + product.getBrand().getId() + " does not exist"));
-//        if (!existingBrand.getName().equals(product.getBrand().getName())) {
-//            throw new BadRequestException("Brand name does not match");
-//        }
+
         Product creatingProduct = modelMapper.map(product, Product.class);
         creatingProduct.setBrand(existingBrand);
         creatingProduct.setId(null);
-        // Product existingProduct = productRepository.findById(product.getId())
-        // .orElse(null);
-
-        // if (existingProduct != null) {
-        // throw new BadRequestException("SaleItem id " + product.getId() + " already
-        // exist");
-        // }
 
         return modelMapper.map(productRepository.save(creatingProduct), ProductItemResponseDTO.class);
     }

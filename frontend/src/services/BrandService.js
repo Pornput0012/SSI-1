@@ -1,11 +1,11 @@
 import { useBrandStore } from "@/stores/BrandStore";
 
-const BRAND_API_URL = `${import.meta.env.VITE_BACKEND_URL}/brands`;
+const BRAND_API_URL_V1 = `${import.meta.env.VITE_BACKEND_URL}/v1/brands`;
 
 // GET all brand
 const getAllBrands = async () => {
   try {
-    const response = await fetch(BRAND_API_URL);
+    const response = await fetch(BRAND_API_URL_V1);
 
     if (!response.ok) {
       throw new Error(`(${response.status}) Failed to fetch brand list.`);
@@ -25,7 +25,7 @@ const getAllBrands = async () => {
 // GET brand by id
 const getBrandById = async (id) => {
   try {
-    const response = await fetch(`${BRAND_API_URL}/${id}`);
+    const response = await fetch(`${BRAND_API_URL_V1}/${id}`);
     const data = await response.json();
 
     if (!data.id || !response.ok) {
@@ -42,7 +42,7 @@ const getBrandById = async (id) => {
 const createBrand = async (brand) => {
   try {
     if (!brand.name) throw new Error("Brand name is required.");
-    const response = await fetch(`${BRAND_API_URL}`, {
+    const response = await fetch(`${BRAND_API_URL_V1}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(brand),
@@ -67,7 +67,7 @@ const updateBrand = async (id, brand) => {
     else if (!brand.name)
       throw new Error("Brand Name is required for updating.");
 
-    const response = await fetch(`${BRAND_API_URL}/${id}`, {
+    const response = await fetch(`${BRAND_API_URL_V1}/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(brand),
@@ -89,7 +89,7 @@ const deleteBrandById = async (id) => {
   try {
     if (!id) throw new Error(`Brand ID is required for deletion.`);
 
-    const response = await fetch(`${BRAND_API_URL}/${id}`, {
+    const response = await fetch(`${BRAND_API_URL_V1}/${id}`, {
       method: "DELETE",
     });
 
