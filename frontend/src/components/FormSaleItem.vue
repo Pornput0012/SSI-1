@@ -69,14 +69,32 @@ const fieldCheckOldData = [
 ];
 
 const handleSubmit = () => {
+  const validateField = [...requireField, "quantity"];
+  for (const field of validateField) {
+    if (validate.value[field].msg) {
+      const invalidFields = [];
+      if (validate.value[field].msg) {
+        invalidFields.push(field);
+      }
+      errorTitle.value = "Invalid Input";
+      errorMessage.value = `Please check your input field : ${invalidFields.join(
+        ", "
+      )}`;
+      showModal.value = true;
+      return;
+    }
+  }
+
   for (const field of requireField) {
-    if (!formData.value[field]) {
+    if (!formData.value[field] || formData.value[field].id === 0) {
+      console.log(field + "2");
       errorTitle.value = "Missing Required Field";
       errorMessage.value = `Please fill out the required field: ${field}`;
       showModal.value = true;
       return;
     }
   }
+
   console.log(formData.value);
 
   emit("onSubmit", formData.value);
@@ -97,7 +115,7 @@ const normalize = (val) =>
 
 watchEffect(() => {
   for (const field of requireField) {
-    if (!formData.value[field]) {
+    if (!formData.value[field] || formData.value[field].id == 0) {
       isSave.value = true; // ยังกรอกไม่ครบ ไม่ควรบันทึก
       return;
     }
@@ -228,7 +246,9 @@ watch(
                 Select Brand
               </option>
               <option
-                v-for="(brand, i) in brands?.filter((b) => b.isActive === true)"
+                v-for="(brand, i) in brands
+                  ?.sort((a, b) => a.name.localeCompare(b.name))
+                  ?.filter((b) => b.isActive === true)"
                 :value="brand"
                 :key="i"
               >

@@ -8,6 +8,11 @@ const props = defineProps({
     type: [Array, null],
     required: true,
   },
+
+  pageInfo: {
+    type: Object,
+  },
+
   hasError: String,
 });
 </script>
@@ -52,6 +57,15 @@ const props = defineProps({
       </template>
     </ContainerList>
 
+    <div v-if="pageInfo && pageInfo.totalPages !== 1" class="join">
+      <button class="join-item btn" disabled="pageInfo.first">First</button>
+      <button class="join-item btn">Prev</button>
+
+      <!-- number -->
+
+      <button class="join-item btn">Next</button>
+      <button class="join-item btn" disabled="pageInfo.last">Last</button>
+    </div>
     <!-- no sale item -->
     <div
       v-if="saleItems && saleItems.length === 0"
