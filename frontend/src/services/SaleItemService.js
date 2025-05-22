@@ -59,7 +59,7 @@ const getAllSaleItems_v2 = async (
 const getSaleItemById = async (id) => {
   try {
     if (!id) throw new Error("Sale Item ID is required.");
-    const response = await fetch(`${SALE_ITEM_API_URL}/${id}`);
+    const response = await fetch(`${SALE_ITEM_API_URL_V1}/${id}`);
 
     const data = await response.json();
 
@@ -152,4 +152,5 @@ export {
   deleteSaleItemById,
   updateSaleItemById,
   createSaleItem,
+  getAllSaleItems_v2,
 };
