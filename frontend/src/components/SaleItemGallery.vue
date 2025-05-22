@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from "vue";
+import { computed, onMounted, ref, watchEffect } from "vue";
 import ContainerList from "./ContainerList.vue";
 import SaleItemGalleryModel from "./SaleItemGalleryModel.vue";
 
@@ -15,6 +15,65 @@ const props = defineProps({
 
   hasError: String,
 });
+
+const emit = defineEmits(["pageChanged"]);
+
+// ตั้งค่าหน้าปัจจุบัน และจำนวนหน้าที่จะแสดงใน pagination
+const currentPage = ref(1);
+const maxVisiblePages = 6; // แสดงปุ่มไม่เกิน 6 หน้าใน pagination
+
+function changPage(i) {
+  currentPage.value = i
+  emit("pageChanged",currentPage.value);
+}
+
+// คำนวณหน้าที่จะเริ่มต้นแสดงใน pagination
+const startPage = computed(() => {
+  const end = currentPage.value + maxVisiblePages - 1;
+
+  // ถ้าเลขหน้าสุดท้ายเกิน totalPages ให้ขยับ start กลับ
+  if (props.pageInfo && end > props.pageInfo.totalPages) {
+    return Math.max(1, props.pageInfo.totalPages - maxVisiblePages + 1);
+  }
+
+  return currentPage.value;
+});
+
+// คำนวณหน้าสุดท้ายที่จะแสดงใน pagination
+const endPage = computed(() => {
+  if (!props.pageInfo) return 1;
+
+  // เลือกค่าน้อยสุดระหว่าง end page ที่ควรจะแสดง กับ totalPages จริง
+  return Math.min(
+    startPage.value + maxVisiblePages - 1,
+    props.pageInfo.totalPages
+  );
+});
+
+// สร้าง array ของหมายเลขหน้า เช่น [1, 2, 3, 4, 5, 6]
+const pageNumbers = computed(() => {
+  const pages = [];
+  for (let i = startPage.value; i <= endPage.value; i++) {
+    pages.push(i);
+  }
+  return pages;
+});
+
+// เปลี่ยนไปหน้าถัดไป ถ้ายังไม่ถึงหน้าสุดท้าย
+function nextPage() {
+  if (currentPage.value < props.pageInfo.totalPages) {
+    currentPage.value++;
+    changPage(currentPage.value)
+  }
+}
+
+// เปลี่ยนไปหน้าก่อนหน้า ถ้ายังไม่ใช่หน้าแรก
+function prevPage() {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    changPage(currentPage.value)
+  }
+}
 </script>
 
 <template>
@@ -57,14 +116,49 @@ const props = defineProps({
       </template>
     </ContainerList>
 
-    <div v-if="pageInfo && pageInfo.totalPages !== 1" class="join">
-      <button class="join-item btn" disabled="pageInfo.first">First</button>
-      <button class="join-item btn">Prev</button>
+    <div
+      v-if="pageInfo && pageInfo.totalPages !== 1"
+      class="join mt-7 w-full px-auto"
+    >
+      <button
+        class="join-item btn"
+        @click="changPage(1)"
+        :disabled="currentPage === 1"
+      >
+        First
+      </button>
+      <button
+        class="join-item btn"
+        @click="prevPage"
+        :disabled="currentPage === 1"
+      >
+        Prev
+      </button>
 
-      <!-- number -->
+      <button
+        v-for="i in pageNumbers"
+        :key="i"
+        class="join-item btn"
+        :class="{ 'btn-active': currentPage === i }"
+        @click="changPage(i)"
+      >
+        {{ i }}
+      </button>
 
-      <button class="join-item btn">Next</button>
-      <button class="join-item btn" disabled="pageInfo.last">Last</button>
+      <button
+        class="join-item btn"
+        @click="nextPage"
+        :disabled="currentPage === pageInfo.totalPages"
+      >
+        Next
+      </button>
+      <button
+        class="join-item btn"
+        @click="changPage(pageInfo.totalPages)"
+        :disabled="currentPage === pageInfo.totalPages"
+      >
+        Last
+      </button>
     </div>
     <!-- no sale item -->
     <div

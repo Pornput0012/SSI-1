@@ -32,6 +32,11 @@ onMounted(() => {
     notiStore.createSuccess = false;
   }
 });
+
+function handlePageChange(page) {
+  console.log(page);
+  
+}
 </script>
 
 <template>
@@ -82,6 +87,7 @@ onMounted(() => {
         page: 1,
       }"
       :has-error="hasError"
+      @page-changed="handlePageChange"
     />
   </div>
   <div v-if="showCreatedModal" class="modal modal-open">
