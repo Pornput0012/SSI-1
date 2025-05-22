@@ -78,7 +78,7 @@ const deleteSaleItemById = async (id) => {
   try {
     if (!id) throw new Error(`Sale Item ID is required for deletion.`);
 
-    const response = await fetch(`${SALE_ITEM_API_URL}/${id}`, {
+    const response = await fetch(`${SALE_ITEM_API_URL_V1}/${id}`, {
       method: "DELETE",
     });
 
@@ -97,7 +97,7 @@ const deleteSaleItemById = async (id) => {
 
 const createSaleItem = async (saleItem) => {
   try {
-    const response = await fetch(`${SALE_ITEM_API_URL}`, {
+    const response = await fetch(`${SALE_ITEM_API_URL_V1}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(saleItem),
@@ -125,7 +125,7 @@ const updateSaleItemById = async (id, saleItem) => {
     if (!id) throw new Error(`Sale Item ID is required for updating.`);
 
     //เช็ค required fieldในหน้า form แล้ว
-    const response = await fetch(`${SALE_ITEM_API_URL}/${id}`, {
+    const response = await fetch(`${SALE_ITEM_API_URL_V1}/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(saleItem),

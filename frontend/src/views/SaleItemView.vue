@@ -188,6 +188,15 @@ onMounted(() => {
     <SaleItemGallery
       class="mt-10"
       :sale-items="saleItems"
+      :page-info="{
+        last: false,
+        first: true,
+        totalPages: 13,
+        totalElements: 63,
+        size: 5,
+        sort: 'color: ASC',
+        page: 1,
+      }"
       :has-error="hasError"
     />
   </div>
