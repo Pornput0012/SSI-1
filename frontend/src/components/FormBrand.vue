@@ -1,65 +1,106 @@
 <script setup>
-import { getAllBrands } from '@/services/BrandService'
-import { useBrandStore } from '@/stores/BrandStore'
-import { computed, onMounted, ref, watchEffect } from 'vue'
-import router from '@/router'
+import { getAllBrands } from "@/services/BrandService";
+import { useBrandStore } from "@/stores/BrandStore";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import router from "@/router";
 
-const emit = defineEmits(['onSubmit'])
+const emit = defineEmits(["onSubmit"]);
 
-const isCanNotSave = ref(true)
+const isCanNotSave = ref(true);
 
 const props = defineProps({
   brandDetail: {
     type: Object,
   },
   disableSaveBtn: Boolean,
-})
+});
 
 const formData = ref({
-  name: props.brandDetail?.name ?? '',
+  name: props.brandDetail?.name ?? "",
   websiteUrl: props.brandDetail?.websiteUrl || null, //ใช้ null เพราะเป็นทั้ง optionalและ not empty
   isActive: props.brandDetail?.isActive ?? true,
   countryOfOrigin: props.brandDetail?.countryOfOrigin || null,
-})
+});
 
-const errorTitle = ref('')
-const errorMessage = ref('')
-const showModal = ref(false)
+const errorTitle = ref("");
+const errorMessage = ref("");
+const showModal = ref(false);
 
-const requireField = ['name']
-const fieldCheckOldData = ['name', 'isActive']
-const emptyCheck = ['websiteUrl', 'countryOfOrigin']
+const requireField = ["name"];
+const fieldCheckOldData = ["name", "isActive"];
+const emptyCheck = ["websiteUrl", "countryOfOrigin"];
 const handleSubmit = () => {
   if (!formData.value?.name) {
-    errorTitle.value = 'Missing Required Field'
-    errorMessage.value = `Please fill out the required field : name`
-    showModal.value = true
-    return
+    errorTitle.value = "Missing Required Field";
+    errorMessage.value = `Please fill out the required field : name`;
+    showModal.value = true;
+    return;
   }
 
-  emit('onSubmit', formData.value)
-}
+  if (
+    validate.value.name.msg ||
+    validate.value.countryOfOrigin.msg ||
+    validate.value.websiteUrl.msg
+  ) {
+    const invalidFields = [];
+
+    if (validate.value.name.msg) {
+      invalidFields.push("Name");
+    }
+    if (validate.value.countryOfOrigin.msg) {
+      invalidFields.push("Country of Origin");
+    }
+    if (validate.value.websiteUrl.msg) {
+      invalidFields.push("Website URL");
+    }
+    errorTitle.value = "Invalid Input";
+    errorMessage.value = `Please check your input field : ${invalidFields.join(", ")}`;
+    showModal.value = true;
+  }
+
+  emit("onSubmit", formData.value);
+};
+
+const validate = ref({
+  name: { msg: "", maxLength: 30, nullable: false },
+  websiteUrl: { msg: "", maxLength: 40, nullable: true },
+  countryOfOrigin: { msg: "", maxLength: 80, nullable: true },
+});
 
 watchEffect(() => {
-  if (!formData.value?.name) {
-    isCanNotSave.value = true
-    return
+  const validateField = [...requireField, ...emptyCheck];
+  for (const field of validateField) {
+    if (
+      formData.value[field] &&
+      formData.value[field].length > validate.value[field].maxLength
+    ) {
+      validate.value[
+        field
+      ].msg = `${field} must be less than ${validate.value[field].maxLength} characters.`;
+    } else {
+      validate.value[field].msg = "";
+    }
   }
 
-  let hasChanges = false
+  if (!formData.value?.name) {
+    isCanNotSave.value = true;
+    return;
+  }
+
+  let hasChanges = false;
 
   const normalizeOptional = (val) =>
-    typeof val === 'string'
-      ? val.trim() === ''
+    typeof val === "string"
+      ? val.trim() === ""
         ? null
         : val.trim()
-      : val ?? null
+      : val ?? null;
 
   if (!hasChanges) {
     for (const field of fieldCheckOldData) {
       if (formData.value[field] !== props.brandDetail?.[field]) {
-        hasChanges = true
-        break
+        hasChanges = true;
+        break;
       }
     }
 
@@ -68,34 +109,68 @@ watchEffect(() => {
         normalizeOptional(formData.value[field]) !==
         normalizeOptional(props.brandDetail?.[field])
       ) {
-        hasChanges = true
-        break
+        hasChanges = true;
+        break;
       }
     }
   }
 
-  isCanNotSave.value = !hasChanges
-})
+  isCanNotSave.value = !hasChanges;
+});
+watch(
+  () => formData.value.name,
+  () => {
+    if (!formData.value.name && !validate.value.name.nullable) {
+      validate.value.name.msg = "Name is required";
+    }
+  }
+);
 </script>
 
 <template>
   <div class="mt-10 lg:mt-0 md:mx-16 mb-14">
     <div class="grid gap-y-4 gap-x-6 px-4 grid-cols-1 sm:grid-cols-[auto_1fr]">
-      <label class="text-sm md:text-base" for="name">Name</label>
-      <input
-        type="text"
-        id="name"
-        class="itbms-name input w-full"
-        v-model.trim="formData.name"
-      />
+      <label class="text-sm md:text-base" for="name"
+        >Name<span class="text-red-500"> *</span></label
+      >
+      <div class="flex-col">
+        <input
+          type="text"
+          id="name"
+          class="itbms-name input w-full"
+          :class="{
+            'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+              validate.name.msg !== '',
+          }"
+          v-model.trim="formData.name"
+        />
+        <div
+          class="text-red-500 mt-2 flex gap-2 text-sm"
+          v-if="validate.name.msg !== ''"
+        >
+          <span class="font-extralight">{{ validate.name.msg }}</span>
+        </div>
+      </div>
 
       <label class="text-sm md:text-base" for="websiteUrl">Website Url</label>
-      <input
-        type="text"
-        id="websiteUrl"
-        class="itbms-websiteUrl input w-full"
-        v-model.trim="formData.websiteUrl"
-      />
+      <div class="flex-col">
+        <input
+          type="text"
+          id="websiteUrl"
+          class="itbms-websiteUrl input w-full"
+          :class="{
+            'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+              validate.websiteUrl.msg !== '',
+          }"
+          v-model.trim="formData.websiteUrl"
+        />
+        <div
+          class="text-red-500 mt-2 flex gap-2 text-sm"
+          v-if="validate.websiteUrl.msg !== ''"
+        >
+          <span class="font-extralight">{{ validate.websiteUrl.msg }}</span>
+        </div>
+      </div>
 
       <div class="flex gap-2 sm:gap-24 col-span-1 sm:col-span-2 items-center">
         <label class="text-sm md:text-base" for="isActive">Active</label>
@@ -111,12 +186,27 @@ watchEffect(() => {
       <label class="text-sm md:text-base" for="countryOfOrigin"
         >Country of origin</label
       >
-      <input
-        type="text"
-        id="countryOfOrigin"
-        class="itbms-countryOfOrigin input w-full"
-        v-model.trim="formData.countryOfOrigin"
-      />
+
+      <div class="flex-col">
+        <input
+          type="text"
+          id="countryOfOrigin"
+          class="itbms-countryOfOrigin input w-full"
+          :class="{
+            'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+              validate.countryOfOrigin.msg !== '',
+          }"
+          v-model.trim="formData.countryOfOrigin"
+        />
+        <div
+          class="text-red-500 mt-2 flex gap-2 text-sm"
+          v-if="validate.countryOfOrigin.msg !== ''"
+        >
+          <span class="font-extralight">{{
+            validate.countryOfOrigin.msg
+          }}</span>
+        </div>
+      </div>
 
       <div
         class="flex gap-4 col-span-1 sm:col-span-2 justify-center sm:justify-end mt-4"
