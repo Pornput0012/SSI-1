@@ -14,37 +14,38 @@ const { getSaleItems } = useSaleItemStore()
 
 const saleItems = computed(() => getSaleItems())
 const hasError = ref('')
+const saleItemStore = useSaleItemStore()
 
-const allBrands = ref([
-  'Apple',
-  'Samsung',
-  'Xiaomi',
-  'Oppo',
-  'Vivo',
-  'Nothing',
-  'Asus',
-  'Lenovo',
-  'Honor',
-])
-
-const applyFilter = () => {
-  console.log('Apply filter with:', selectedBrands.value)
-}
-
+const brandStore = useBrandStore()
+const brandOptions = ref([])
 const brandSearchText = ref('')
 const selectedBrands = ref([])
 const showHints = ref(false)
+
+const applyFilter = async () => {
+  try {
+    const filterNames = selectedBrands.value.map((b) => b.name)
+    const response = await getAllSaleItems_v2(filterNames)
+     if (response && !response.error) {
+      saleItemStore.setSaleItemsPage(response)
+    } else {
+      throw new Error(response?.error)
+    }
+  } catch (error) {
+    hasError.value = error.message
+  }
+}
 
 // filter hint จากคำที่พิมพ์
 const hints = computed(() => {
   if (!brandSearchText.value) return []
   const lower = brandSearchText.value.toLowerCase()
-  return allBrands.value
+  return brandOptions.value
     .filter(
-      (b) =>
-        b.toLowerCase().includes(lower) && !selectedBrands.value.includes(b)
+      (brand) =>
+        brand.name.toLowerCase().includes(lower) &&
+        !selectedBrands.value.some((b) => b.name === brand.name)
     )
-    .slice(0, 5)
 })
 
 const onSearchInput = () => {
@@ -58,11 +59,15 @@ const selectHint = (brand) => {
 }
 
 const removeBrand = (brand) => {
-  selectedBrands.value = selectedBrands.value.filter((b) => b !== brand)
+  selectedBrands.value = selectedBrands.value.filter(
+    (b) => b.name !== brand.name
+  )
+  applyFilter()
 }
 
 const clearAllBrands = () => {
   selectedBrands.value = []
+  applyFilter()
 }
 
 onMounted(async () => {
@@ -73,6 +78,16 @@ onMounted(async () => {
     }
   } catch (e) {
     hasError.value = e.message
+  }
+
+  try {
+    const response = await getAllBrands()
+    if (response && !response.error) {
+      brandOptions.value = response
+      brandStore.setBrand(response)
+    }
+  } catch (error) {
+    hasError.value = error.message
   }
 })
 
@@ -146,24 +161,23 @@ onMounted(() => {
               @mousedown.prevent="selectHint(brand)"
               class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
             >
-              {{ brand }}
+              {{ brand.name }}
             </li>
           </ul>
         </div>
 
         <!-- Filter button -->
         <button
-          class="itbms-brand-filter-button btn btn-sm bg-green-500 text-white font-bold px-3 py-2"
+          class="itbms-brand-filter-button btn btn-sm bg-green-500 hover:bg-green-600 px-3 py-2"
           @click="applyFilter"
-          @keyup.enter="applyFilter"
         >
-          Filter
+          <img src="../assets/icons/filter.png" alt="filter" class="w-5 h-5">
         </button>
 
         <!-- Clear button -->
         <button
           v-if="selectedBrands.length"
-          class="itbms-brand-filter-clear btn btn-sm bg-red-500 text-white font-bold px-3 py-2"
+          class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-2"
           @click="clearAllBrands"
         >
           Clear
@@ -177,8 +191,11 @@ onMounted(() => {
           :key="index"
           class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
         >
-          <span class="itbms-filter-item">{{ brand }}</span>
-          <button class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer" @click="removeBrand(brand)">
+          <span class="itbms-filter-item">{{ brand.name }}</span>
+          <button
+            class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
+            @click="removeBrand(brand)"
+          >
             ×
           </button>
         </div>
