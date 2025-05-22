@@ -1,37 +1,89 @@
 <script setup>
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import FormSaleItem from "@/components/FormSaleItem.vue";
-import SaleItemGallery from "@/components/SaleItemGallery.vue";
-import SaleItemGalleryModel from "@/components/SaleItemGalleryModel.vue";
-import { getAllSaleItems } from "@/services/SaleItemService";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useNotiStore } from "@/stores/์NotiStore";
-import { computed, onMounted, ref } from "vue";
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import FormSaleItem from '@/components/FormSaleItem.vue'
+import SaleItemGallery from '@/components/SaleItemGallery.vue'
+import SaleItemGalleryModel from '@/components/SaleItemGalleryModel.vue'
+import { getAllBrands } from '@/services/BrandService'
+import { getAllSaleItems, getAllSaleItems_v2 } from '@/services/SaleItemService'
+import { useBrandStore } from '@/stores/BrandStore'
+import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { useNotiStore } from '@/stores/์NotiStore'
+import { computed, onMounted, ref } from 'vue'
 
-const { getSaleItems } = useSaleItemStore();
+const { getSaleItems } = useSaleItemStore()
 
-const saleItems = computed(() => getSaleItems());
-const hasError = ref("");
+const saleItems = computed(() => getSaleItems())
+const hasError = ref('')
+
+const allBrands = ref([
+  'Apple',
+  'Samsung',
+  'Xiaomi',
+  'Oppo',
+  'Vivo',
+  'Nothing',
+  'Asus',
+  'Lenovo',
+  'Honor',
+])
+
+const applyFilter = () => {
+  console.log('Apply filter with:', selectedBrands.value)
+}
+
+const brandSearchText = ref('')
+const selectedBrands = ref([])
+const showHints = ref(false)
+
+// filter hint จากคำที่พิมพ์
+const hints = computed(() => {
+  if (!brandSearchText.value) return []
+  const lower = brandSearchText.value.toLowerCase()
+  return allBrands.value
+    .filter(
+      (b) =>
+        b.toLowerCase().includes(lower) && !selectedBrands.value.includes(b)
+    )
+    .slice(0, 5)
+})
+
+const onSearchInput = () => {
+  showHints.value = !!brandSearchText.value
+}
+
+const selectHint = (brand) => {
+  selectedBrands.value.push(brand)
+  brandSearchText.value = ''
+  showHints.value = false
+}
+
+const removeBrand = (brand) => {
+  selectedBrands.value = selectedBrands.value.filter((b) => b !== brand)
+}
+
+const clearAllBrands = () => {
+  selectedBrands.value = []
+}
 
 onMounted(async () => {
   try {
-    const response = await getAllSaleItems();
+    const response = await getAllSaleItems()
     if (response.error) {
-      throw new Error(response.error);
+      throw new Error(response.error)
     }
   } catch (e) {
-    hasError.value = e.message;
+    hasError.value = e.message
   }
-});
+})
 
-const notiStore = useNotiStore();
-const showCreatedModal = ref(false);
+const notiStore = useNotiStore()
+const showCreatedModal = ref(false)
 onMounted(() => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true;
-    notiStore.createSuccess = false;
+    showCreatedModal.value = true
+    notiStore.createSuccess = false
   }
-});
+})
 </script>
 
 <template>
@@ -69,6 +121,70 @@ onMounted(() => {
         </label>
       </div>
     </div>
+
+    <!-- Filter Section -->
+    <div class="mt-6 w-full max-w-md">
+      <div class="flex gap-2">
+        <!-- Input + Hint -->
+        <div class="relative flex-1">
+          <input
+            type="text"
+            class="input input-sm w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Filter by brand(s)"
+            v-model="brandSearchText"
+            @input="onSearchInput"
+            @focus="showHints = true"
+          />
+
+          <!-- Hint dropdown -->
+          <ul
+            v-if="showHints && hints.length"
+            class="absolute bg-white border border-gray-300 rounded mt-1 w-full z-10 shadow max-h-40 overflow-y-auto"
+          >
+            <li
+              v-for="(brand, idx) in hints"
+              :key="idx"
+              @mousedown.prevent="selectHint(brand)"
+              class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+            >
+              {{ brand }}
+            </li>
+          </ul>
+        </div>
+
+        <!-- Filter button -->
+        <button
+          class="btn btn-sm bg-green-500 text-white font-bold px-3 py-2"
+          @click="applyFilter"
+        >
+          Filter
+        </button>
+
+        <!-- Clear button -->
+        <button
+          v-if="selectedBrands.length"
+          class="btn btn-sm bg-red-500 text-white font-bold px-3 py-2"
+          @click="clearAllBrands"
+        >
+          Clear
+        </button>
+      </div>
+
+      <!-- Selected brands -->
+      <div class="flex flex-wrap gap-2 mt-3">
+        <div
+          v-for="(brand, index) in selectedBrands"
+          :key="index"
+          class="bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+        >
+          <span>{{ brand }}</span>
+          <button class="text-red-500 font-bold" @click="removeBrand(brand)">
+            ×
+          </button>
+        </div>
+      </div>
+    </div>
+
     <SaleItemGallery
       class="mt-10"
       :sale-items="saleItems"
