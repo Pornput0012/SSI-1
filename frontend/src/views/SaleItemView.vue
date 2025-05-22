@@ -124,16 +124,15 @@ onMounted(() => {
 
     <!-- Filter Section -->
     <div class="mt-6 w-full max-w-md">
-      <div class="flex gap-2">
+      <div class="flex gap-3 items-center">
         <!-- Input + Hint -->
         <div class="relative flex-1">
           <input
             type="text"
-            class="input input-sm w-full border border-gray-300 rounded px-3 py-2"
+            class="itbms-brand-filter input input-sm w-full border border-gray-300 rounded px-3 py-2"
             placeholder="Filter by brand(s)"
             v-model="brandSearchText"
             @input="onSearchInput"
-            @focus="showHints = true"
           />
 
           <!-- Hint dropdown -->
@@ -154,8 +153,9 @@ onMounted(() => {
 
         <!-- Filter button -->
         <button
-          class="btn btn-sm bg-green-500 text-white font-bold px-3 py-2"
+          class="itbms-brand-filter-button btn btn-sm bg-green-500 text-white font-bold px-3 py-2"
           @click="applyFilter"
+          @keyup.enter="applyFilter"
         >
           Filter
         </button>
@@ -163,7 +163,7 @@ onMounted(() => {
         <!-- Clear button -->
         <button
           v-if="selectedBrands.length"
-          class="btn btn-sm bg-red-500 text-white font-bold px-3 py-2"
+          class="itbms-brand-filter-clear btn btn-sm bg-red-500 text-white font-bold px-3 py-2"
           @click="clearAllBrands"
         >
           Clear
@@ -175,10 +175,10 @@ onMounted(() => {
         <div
           v-for="(brand, index) in selectedBrands"
           :key="index"
-          class="bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+          class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
         >
-          <span>{{ brand }}</span>
-          <button class="text-red-500 font-bold" @click="removeBrand(brand)">
+          <span class="itbms-filter-item">{{ brand }}</span>
+          <button class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer" @click="removeBrand(brand)">
             ×
           </button>
         </div>
