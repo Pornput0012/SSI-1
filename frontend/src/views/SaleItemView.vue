@@ -14,6 +14,7 @@ const saleItems = computed(() => getSaleItems());
 const hasError = ref("");
 
 onMounted(async () => {
+  
   try {
     const response = await getAllSaleItems();
     if (response.error) {
@@ -34,6 +35,7 @@ onMounted(() => {
 });
 
 function handlePageChange(page) {
+  
   console.log(page);
   
 }
