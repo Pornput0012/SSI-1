@@ -1,36 +1,103 @@
 <script setup>
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import FormSaleItem from "@/components/FormSaleItem.vue";
-import SaleItemGallery from "@/components/SaleItemGallery.vue";
-import SaleItemGalleryModel from "@/components/SaleItemGalleryModel.vue";
-import { getAllSaleItems } from "@/services/SaleItemService";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useNotiStore } from "@/stores/์NotiStore";
-import { computed, onMounted, ref } from "vue";
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import FormSaleItem from '@/components/FormSaleItem.vue'
+import SaleItemGallery from '@/components/SaleItemGallery.vue'
+import SaleItemGalleryModel from '@/components/SaleItemGalleryModel.vue'
+import { getAllBrands } from '@/services/BrandService'
+import { getAllSaleItems, getAllSaleItems_v2 } from '@/services/SaleItemService'
+import { useBrandStore } from '@/stores/BrandStore'
+import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { useNotiStore } from '@/stores/์NotiStore'
+import { computed, onMounted, ref } from 'vue'
 
-const { getSaleItems } = useSaleItemStore();
+const { getSaleItems } = useSaleItemStore()
 
-const saleItems = computed(() => getSaleItems());
-const hasError = ref("");
+const saleItems = computed(() => getSaleItems())
+const hasError = ref('')
+const saleItemStore = useSaleItemStore()
+
+const brandStore = useBrandStore()
+const brandOptions = ref([])
+const brandSearchText = ref('')
+const selectedBrands = ref([])
+const showHints = ref(false)
+
+const applyFilter = async () => {
+  try {
+    const filterNames = selectedBrands.value.map((b) => b.name)
+    const response = await getAllSaleItems_v2(filterNames)
+     if (response && !response.error) {
+      saleItemStore.setSaleItemsPage(response)
+    } else {
+      throw new Error(response?.error)
+    }
+  } catch (error) {
+    hasError.value = error.message
+  }
+}
+
+// filter hint จากคำที่พิมพ์
+const hints = computed(() => {
+  if (!brandSearchText.value) return []
+  const lower = brandSearchText.value.toLowerCase()
+  return brandOptions.value
+    .filter(
+      (brand) =>
+        brand.name.toLowerCase().includes(lower) &&
+        !selectedBrands.value.some((b) => b.name === brand.name)
+    )
+})
+
+const onSearchInput = () => {
+  showHints.value = !!brandSearchText.value
+}
+
+const selectHint = (brand) => {
+  selectedBrands.value.push(brand)
+  brandSearchText.value = ''
+  showHints.value = false
+}
+
+const removeBrand = (brand) => {
+  selectedBrands.value = selectedBrands.value.filter(
+    (b) => b.name !== brand.name
+  )
+  applyFilter()
+}
+
+const clearAllBrands = () => {
+  selectedBrands.value = []
+  applyFilter()
+}
 
 onMounted(async () => {
   
   try {
-    const response = await getAllSaleItems();
+    const response = await getAllSaleItems()
     if (response.error) {
-      throw new Error(response.error);
+      throw new Error(response.error)
     }
   } catch (e) {
-    hasError.value = e.message;
+    hasError.value = e.message
   }
-});
 
-const notiStore = useNotiStore();
-const showCreatedModal = ref(false);
+  try {
+    const response = await getAllBrands()
+    if (response && !response.error) {
+      brandOptions.value = response
+      brandStore.setBrand(response)
+    }
+  } catch (error) {
+    hasError.value = error.message
+  }
+})
+
+const notiStore = useNotiStore()
+const showCreatedModal = ref(false)
 onMounted(() => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true;
-    notiStore.createSuccess = false;
+    showCreatedModal.value = true
+    notiStore.createSuccess = false
   }
 });
 
@@ -76,6 +143,72 @@ function handlePageChange(page) {
         </label>
       </div>
     </div>
+
+    <!-- Filter Section -->
+    <div class="mt-6 w-full max-w-md">
+      <div class="flex gap-3 items-center">
+        <!-- Input + Hint -->
+        <div class="relative flex-1">
+          <input
+            type="text"
+            class="itbms-brand-filter input input-sm w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="Filter by brand(s)"
+            v-model="brandSearchText"
+            @input="onSearchInput"
+          />
+
+          <!-- Hint dropdown -->
+          <ul
+            v-if="showHints && hints.length"
+            class="absolute bg-white border border-gray-300 rounded mt-1 w-full z-10 shadow max-h-40 overflow-y-auto"
+          >
+            <li
+              v-for="(brand, idx) in hints"
+              :key="idx"
+              @mousedown.prevent="selectHint(brand)"
+              class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+            >
+              {{ brand.name }}
+            </li>
+          </ul>
+        </div>
+
+        <!-- Filter button -->
+        <button
+          class="itbms-brand-filter-button btn btn-sm bg-green-500 hover:bg-green-600 px-3 py-2"
+          @click="applyFilter"
+        >
+          <img src="../assets/icons/filter.png" alt="filter" class="w-5 h-5">
+        </button>
+
+        <!-- Clear button -->
+        <button
+          v-if="selectedBrands.length"
+          class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-2"
+          @click="clearAllBrands"
+        >
+          Clear
+        </button>
+      </div>
+
+      <!-- Selected brands -->
+      <div class="flex flex-wrap gap-2 mt-3">
+        <div
+          v-for="(brand, index) in selectedBrands"
+          :key="index"
+          class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+        >
+          <span class="itbms-filter-item">{{ brand.name }}</span>
+          <button
+            class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
+            @click="removeBrand(brand)"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    </div>
+
     <SaleItemGallery
       class="mt-10"
       :sale-items="saleItems"

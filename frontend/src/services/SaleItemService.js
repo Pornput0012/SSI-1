@@ -152,4 +152,5 @@ export {
   deleteSaleItemById,
   updateSaleItemById,
   createSaleItem,
+  getAllSaleItems_v2,
 };

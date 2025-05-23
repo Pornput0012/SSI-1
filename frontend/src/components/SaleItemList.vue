@@ -1,5 +1,7 @@
 <script setup>
-import { deleteSaleItemById } from '@/services/SaleItemService'
+import {
+  deleteSaleItemById,
+} from '@/services/SaleItemService'
 import { useSaleItemStore } from '@/stores/SaleItemStore'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -12,6 +14,7 @@ const props = defineProps({
   hasError: String,
 })
 
+// ==== Delete Item ====
 const router = useRouter()
 const showDeleteModal = ref(false)
 const deleteSuccess = ref(false)
