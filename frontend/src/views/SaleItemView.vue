@@ -8,7 +8,7 @@ import { getAllSaleItems, getAllSaleItems_v2 } from '@/services/SaleItemService'
 import { useBrandStore } from '@/stores/BrandStore'
 import { useSaleItemStore } from '@/stores/SaleItemStore'
 import { useNotiStore } from '@/stores/์NotiStore'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 const { getSaleItems } = useSaleItemStore()
 
@@ -21,18 +21,21 @@ const brandStore = useBrandStore()
 const brandOptions = ref([])
 const selectedBrands = ref([])
 
-watch(
-  selectedBrands,
-  () => {
-    applyFilter()
-  },
-  { deep: true }
-)
+const sortField = ref('createdOn')
+const sortDirection = ref('asc')
+const currentPage = ref(0)
+const pageSize = ref(20)
 
 const applyFilter = async () => {
   try {
     const filterNames = selectedBrands.value.map((b) => b.name)
-    const response = await getAllSaleItems_v2(filterNames)
+    const response = await getAllSaleItems_v2(
+      filterNames,
+      currentPage.value,
+      pageSize.value,
+      sortField.value,
+      sortDirection.value
+    )
     if (response && !response.error) {
       saleItemStore.setSaleItemsPage(response)
     } else {
@@ -60,8 +63,28 @@ const clearAllBrands = () => {
   selectedBrands.value = []
 }
 
+// เมื่อ selectedBrands เปลี่ยน ให้ reset หน้า และเรียก applyFilter
+watch(
+  selectedBrands,
+  () => {
+    currentPage.value = 0
+    applyFilter()
+  },
+  { deep: true }
+)
+
+// เมื่อ sortField หรือ sortDirection เปลี่ยน
+watch([sortField, sortDirection], () => {
+  currentPage.value = 0
+  applyFilter()
+})
+
+// เมื่อ currentPage เปลี่ยน (จาก pagination)
+watch(currentPage, () => {
+  applyFilter()
+})
+
 onMounted(async () => {
-  
   try {
     const response = await getAllSaleItems()
     if (response.error) {
@@ -89,12 +112,10 @@ onMounted(() => {
     showCreatedModal.value = true
     notiStore.createSuccess = false
   }
-});
+})
 
 function handlePageChange(page) {
-  
-  console.log(page);
-  
+  console.log(page)
 }
 </script>
 
