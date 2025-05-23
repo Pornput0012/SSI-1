@@ -21,6 +21,14 @@ const brandStore = useBrandStore()
 const brandOptions = ref([])
 const selectedBrands = ref([])
 
+watch(
+  selectedBrands,
+  () => {
+    applyFilter()
+  },
+  { deep: true }
+)
+
 const applyFilter = async () => {
   try {
     const filterNames = selectedBrands.value.map((b) => b.name)
@@ -38,7 +46,6 @@ const applyFilter = async () => {
 const selectBrand = (brand) => {
   if (!selectedBrands.value.some((b) => b.name === brand.name)) {
     selectedBrands.value.push(brand)
-    applyFilter()
   }
   showFilterDropdown.value = false
 }
@@ -47,12 +54,10 @@ const removeBrand = (brand) => {
   selectedBrands.value = selectedBrands.value.filter(
     (b) => b.name !== brand.name
   )
-  applyFilter()
 }
 
 const clearAllBrands = () => {
   selectedBrands.value = []
-  applyFilter()
 }
 
 onMounted(async () => {
