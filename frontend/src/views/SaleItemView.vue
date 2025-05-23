@@ -16,17 +16,24 @@ const saleItems = computed(() => getSaleItems())
 const hasError = ref('')
 const saleItemStore = useSaleItemStore()
 
+const showFilterDropdown = ref(false)
 const brandStore = useBrandStore()
 const brandOptions = ref([])
-const brandSearchText = ref('')
 const selectedBrands = ref([])
-const showHints = ref(false)
+
+watch(
+  selectedBrands,
+  () => {
+    applyFilter()
+  },
+  { deep: true }
+)
 
 const applyFilter = async () => {
   try {
     const filterNames = selectedBrands.value.map((b) => b.name)
     const response = await getAllSaleItems_v2(filterNames)
-     if (response && !response.error) {
+    if (response && !response.error) {
       saleItemStore.setSaleItemsPage(response)
     } else {
       throw new Error(response?.error)
@@ -36,38 +43,21 @@ const applyFilter = async () => {
   }
 }
 
-// filter hint จากคำที่พิมพ์
-const hints = computed(() => {
-  if (!brandSearchText.value) return []
-  const lower = brandSearchText.value.toLowerCase()
-  return brandOptions.value
-    .filter(
-      (brand) =>
-        brand.name.toLowerCase().includes(lower) &&
-        !selectedBrands.value.some((b) => b.name === brand.name)
-    )
-})
-
-const onSearchInput = () => {
-  showHints.value = !!brandSearchText.value
-}
-
-const selectHint = (brand) => {
-  selectedBrands.value.push(brand)
-  brandSearchText.value = ''
-  showHints.value = false
+const selectBrand = (brand) => {
+  if (!selectedBrands.value.some((b) => b.name === brand.name)) {
+    selectedBrands.value.push(brand)
+  }
+  showFilterDropdown.value = false
 }
 
 const removeBrand = (brand) => {
   selectedBrands.value = selectedBrands.value.filter(
     (b) => b.name !== brand.name
   )
-  applyFilter()
 }
 
 const clearAllBrands = () => {
   selectedBrands.value = []
-  applyFilter()
 }
 
 onMounted(async () => {
@@ -84,7 +74,7 @@ onMounted(async () => {
   try {
     const response = await getAllBrands()
     if (response && !response.error) {
-      brandOptions.value = response
+      brandOptions.value = response.sort((a, b) => a.name.localeCompare(b.name))
       brandStore.setBrand(response)
     }
   } catch (error) {
@@ -147,25 +137,24 @@ function handlePageChange(page) {
     <!-- Filter Section -->
     <div class="mt-6 w-full max-w-md">
       <div class="flex gap-3 items-center">
-        <!-- Input + Hint -->
+        <!-- Filter input -->
         <div class="relative flex-1">
           <input
             type="text"
             class="itbms-brand-filter input input-sm w-full border border-gray-300 rounded px-3 py-2"
             placeholder="Filter by brand(s)"
-            v-model="brandSearchText"
-            @input="onSearchInput"
+            readonly
           />
 
-          <!-- Hint dropdown -->
+          <!-- Filter dropdown -->
           <ul
-            v-if="showHints && hints.length"
+            v-if="showFilterDropdown"
             class="absolute bg-white border border-gray-300 rounded mt-1 w-full z-10 shadow max-h-40 overflow-y-auto"
           >
             <li
-              v-for="(brand, idx) in hints"
+              v-for="(brand, idx) in brandOptions"
               :key="idx"
-              @mousedown.prevent="selectHint(brand)"
+              @mousedown.prevent="selectBrand(brand)"
               class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
             >
               {{ brand.name }}
@@ -176,9 +165,9 @@ function handlePageChange(page) {
         <!-- Filter button -->
         <button
           class="itbms-brand-filter-button btn btn-sm bg-green-500 hover:bg-green-600 px-3 py-2"
-          @click="applyFilter"
+          @click="showFilterDropdown = !showFilterDropdown"
         >
-          <img src="../assets/icons/filter.png" alt="filter" class="w-5 h-5">
+          <img src="../assets/icons/filter.png" alt="filter" class="w-5 h-5" />
         </button>
 
         <!-- Clear button -->
