@@ -115,11 +115,13 @@ const selectBrand = async (brand) => {
 
 const clearAllBrands = async () => {
   clearAllSelectedBrands();
+  resetCurrentPage();
   await applyFilter();
 };
 
 const removeBrandAndApply = async (brand) => {
   removeBrand(brand);
+  resetCurrentPage();
   await applyFilter();
 };
 
