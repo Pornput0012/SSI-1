@@ -18,7 +18,7 @@ services:
       timeout: 30s
       retries: 3
       start_period: 10s
-
+    restart: always
   backend:
     build: ./backend
     container_name: backend
@@ -32,4 +32,4 @@ services:
     depends_on:
       db_server:
         condition: service_healthy
-
+    restart: always
