@@ -31,58 +31,58 @@ const formData = ref({
 });
 
 const validate = ref({
-  brand: { msg: "Brand must be selected", invalid: false, notNull: true },
+  brand: { msg: "Brand must be selected", showError: false, notNull: true },
   model: {
     msg: "Model must be 1-60 characters long.",
     notNull: true,
     maxLength: 60,
-    wrong: false,
     invalid: false,
+    showError: false,
   },
   color: {
     msg: "Color must be 1-40 characters long or not specified.",
-    wrong: false,
-    maxLength: 40,
     invalid: false,
+    maxLength: 40,
+    showError: false,
   },
   price: {
     msg: "Price must be non-negative integer",
-    wrong: false,
+    invalid: false,
     notNull: true,
     nonNeg: true,
-    invalid: false,
+    showError: false,
   },
   description: {
     msg: "Description must be 1-65,535 characters long.",
-    wrong: false,
+    invalid: false,
     notNull: true,
     maxLength: 65535,
-    invalid: false,
+    showError: false,
   },
   quantity: {
     msg: "Quantity must be non-negative integer",
-    wrong: false,
+    invalid: false,
     notNull: true,
     nonNeg: true,
-    invalid: false,
+    showError: false,
   },
   ramGb: {
     msg: "RAM size must be positive integer or not specified",
-    wrong: false,
-    positive: true,
     invalid: false,
+    positive: true,
+    showError: false,
   },
   screenSizeInch: {
     msg: "Screen size must be positive number with at most 2 decimal points or not specified",
-    wrong: false,
-    positive: true,
     invalid: false,
+    positive: true,
+    showError: false,
   },
   storageGb: {
     msg: "Storage size must be positive integer or not specified",
-    wrong: false,
-    positive: true,
     invalid: false,
+    positive: true,
+    showError: false,
   },
 });
 
@@ -134,7 +134,9 @@ const handleSubmit = () => {
 };
 
 const allValid = computed(() => {
-  return validateField.every(field => validate.value[field]?.invalid === false &&validateField.every(field => validate.value[field]?.wrong === false ));
+  return validateField.every(
+    (field) => !validate.value[field]?.showError && !validate.value[field]?.invalid
+  );
 });
 
 //false xerror->blur
@@ -145,30 +147,30 @@ function maximumLength(field, blur) {
       formData.value[field].length > validate.value[field].maxLength) ||
     (validate.value[field].notNull && formData.value[field].length < 1)
   ) {
-    validate.value[field].wrong = true;
-   
+    validate.value[field].invalid = true;
+
     if (blur) {
       // เช็คตอน blur แล้วผิด → ให้แสดง error
-      validate.value[field].invalid = true;
+      validate.value[field].showError = true;
     }
   } else {
-    validate.value[field].wrong = false;
     validate.value[field].invalid = false;
+    validate.value[field].showError = false;
     // ถ้าข้อมูลถูก → ลบ error ทิ้งเสมอ ไม่ว่าจะ blur หรือไม่
   }
 }
 
 function brandSelected(blur) {
   if (!formData.value.brand || formData.value.brand.id === 0) {
-    validate.value.brand.wrong = true;
+    validate.value.brand.invalid = true;
     if (blur) {
       // เช็คตอน blur แล้วผิด → ให้แสดง error
-      validate.value.brand.invalid = true;
+      validate.value.brand.showError = true;
     }
     return;
   } else {
-    validate.value.brand.wrong = false;
     validate.value.brand.invalid = false;
+    validate.value.brand.showError = false;
   }
 }
 function nonNegative(field, blur) {
@@ -176,24 +178,24 @@ function nonNegative(field, blur) {
     (!formData.value[field] && formData.value[field] !== 0) ||
     (formData.value[field] && formData.value[field] < 0)
   ) {
-    validate.value[field].wrong = true;
-   
+    validate.value[field].invalid = true;
+
     if (blur) {
       // เช็คตอน blur แล้วผิด → ให้แสดง error
-      validate.value[field].invalid = true;
+      validate.value[field].showError = true;
     }
 
     return;
   } else {
-    validate.value[field].wrong = false;
     validate.value[field].invalid = false;
+    validate.value[field].showError = false;
   }
 }
 
 function isValidPositiveField(field, blur) {
   if (!formData.value[field] && formData.value[field] !== 0) {
+    validate.value[field].showError = false;
     validate.value[field].invalid = false;
-    validate.value[field].wrong = false;
     return;
   }
 
@@ -201,9 +203,9 @@ function isValidPositiveField(field, blur) {
 
   // กรณีค่าที่กรอกไม่ใช่ตัวเลข หรือ <= 0
   if (isNaN(parsed) || parsed <= 0) {
-    validate.value[field].wrong = true;
+    validate.value[field].invalid = true;
     if (blur) {
-      validate.value[field].invalid = true;
+      validate.value[field].showError = true;
     }
     return;
   }
@@ -213,21 +215,21 @@ function isValidPositiveField(field, blur) {
     const hasTooManyDecimals = decimalPart && decimalPart.length > 2;
 
     if (hasTooManyDecimals) {
-     validate.value[field].wrong = true;
+      validate.value[field].invalid = true;
       if (blur) {
-        validate.value[field].invalid = true;
+        validate.value[field].showError = true;
       }
     } else {
+      validate.value[field].showError = false;
       validate.value[field].invalid = false;
-      validate.value[field].wrong = false;
     }
 
     return;
   }
 
   // ถ้าผ่านทุกเงื่อนไขแล้ว → ถือว่าถูกต้อง ลบ error ทิ้ง
+  validate.value[field].showError = false;
   validate.value[field].invalid = false;
-  validate.value[field].wrong = false;
 }
 
 watchEffect(() => {
@@ -243,76 +245,32 @@ watchEffect(() => {
 const normalize = (val) =>
   val === null || val === undefined ? "" : val.trim?.() ?? val;
 
+["quantity", "price"].forEach((field) => {
+  watch(() => formData.value[field], () => nonNegative(field, false));
+});
+
+["model", "description"].forEach((field) => {
+  watch(() => formData.value[field], () => maximumLength(field, false));
+});
+
+["ramGb", "screenSizeInch", "storageGb"].forEach((field) => {
+  watch(() => formData.value[field], () => isValidPositiveField(field, false));
+});
 
 
-watch(
-  () => formData.value.brand,
-  () => {
-    brandSelected(false);
-  }
-);
-watch(
-  () => formData.value.quantity,
-  () => {
-    nonNegative("quantity", false);
-  }
-);
+watch(() => formData.value.brand, () => brandSelected(false));
 
-watch(
-  () => formData.value.price,
-  () => {
-    nonNegative("price", false);
-  }
-);
+watch(() => formData.value.color, () => {
+  formData.value.color = normalize(formData.value.color);
+  maximumLength("color", false);
+});
 
-watch(
-  () => formData.value.model,
-  () => {
-    maximumLength("model", false);
-  }
-);
-
-watch(
-  () => formData.value.description,
-  () => {
-    maximumLength("description", false);
-  }
-);
-
-watch(
-  () => formData.value.color,
-  () => {
-    maximumLength("color", false);
-  }
-);
-
-watch(
-  () => formData.value.ramGb,
-  () => {
-    isValidPositiveField("ramGb", false);
-  }
-);
-
-watch(
-  () => formData.value.screenSizeInch,
-  () => {
-    isValidPositiveField("screenSizeInch", false);
-  }
-);
-
-watch(
-  () => formData.value.storageGb,
-  () => {
-    isValidPositiveField("storageGb", false);
-  }
-);
 
 watchEffect(() => {
   if (!allValid.value) {
-    isSave.value = true
-    return ;
+    isSave.value = true;
+    return;
   }
-  
 
   for (const field of requireField) {
     if (!formData.value[field] || formData.value[field].id == 0) {
@@ -322,7 +280,7 @@ watchEffect(() => {
   }
 
   console.log(isSave.value);
-  
+
   let hasChanges = false;
 
   if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
@@ -345,7 +303,6 @@ watchEffect(() => {
   isSave.value = !hasChanges;
   console.log(isSave.value);
 });
-
 </script>
 
 <template>
@@ -398,7 +355,7 @@ watchEffect(() => {
             </select>
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.brand.invalid"
+              v-if="validate.brand.showError"
             >
               <span class="font-extralight">{{ validate.brand.msg }}</span>
             </div>
@@ -416,13 +373,13 @@ watchEffect(() => {
               v-model.trim="formData.model"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.model.invalid,
+                  validate.model.showError,
               }"
               @blur="maximumLength('model', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.model.invalid"
+              v-if="validate.model.showError"
             >
               <span class="font-extralight">{{ validate.model.msg }}</span>
             </div>
@@ -439,13 +396,13 @@ watchEffect(() => {
               v-model="formData.price"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.price.invalid,
+                  validate.price.showError,
               }"
               @blur="nonNegative('price', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.price.invalid"
+              v-if="validate.price.showError"
             >
               <span class="font-extralight">{{ validate.price.msg }}</span>
             </div>
@@ -461,13 +418,13 @@ watchEffect(() => {
               v-model.trim="formData.description"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.description.invalid,
+                  validate.description.showError,
               }"
               @blur="maximumLength('description', true)"
             ></textarea>
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.description.invalid"
+              v-if="validate.description.showError"
             >
               <span class="font-extralight">{{
                 validate.description.msg
@@ -484,7 +441,7 @@ watchEffect(() => {
               class="itbms-ramGb input"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.ramGb.invalid,
+                  validate.ramGb.showError,
               }"
               min="1"
               v-model="formData.ramGb"
@@ -492,7 +449,7 @@ watchEffect(() => {
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.ramGb.invalid"
+              v-if="validate.ramGb.showError"
             >
               <span class="font-extralight">{{ validate.ramGb.msg }}</span>
             </div>
@@ -508,7 +465,7 @@ watchEffect(() => {
               class="itbms-screenSizeInch input"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.screenSizeInch.invalid,
+                  validate.screenSizeInch.showError,
               }"
               step="0.01"
               min="1"
@@ -517,7 +474,7 @@ watchEffect(() => {
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.screenSizeInch.invalid"
+              v-if="validate.screenSizeInch.showError"
             >
               <span class="font-extralight">{{
                 validate.screenSizeInch.msg
@@ -538,12 +495,12 @@ watchEffect(() => {
               @blur="isValidPositiveField('storageGb', true)"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.storageGb.invalid,
+                  validate.storageGb.showError,
               }"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.storageGb.invalid"
+              v-if="validate.storageGb.showError"
             >
               <span class="font-extralight">{{ validate.storageGb.msg }}</span>
             </div>
@@ -558,13 +515,13 @@ watchEffect(() => {
               v-model.trim="formData.color"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.color.invalid,
+                  validate.color.showError,
               }"
               @blur="maximumLength('color', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.color.invalid"
+              v-if="validate.color.showError"
             >
               <span class="font-extralight">{{ validate.color.msg }}</span>
             </div>
@@ -583,13 +540,13 @@ watchEffect(() => {
               v-model="formData.quantity"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.quantity.invalid,
+                  validate.quantity.showError,
               }"
               @blur="nonNegative('quantity', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.quantity.invalid"
+              v-if="validate.quantity.showError"
             >
               <span class="font-extralight">{{ validate.quantity.msg }}</span>
             </div>
