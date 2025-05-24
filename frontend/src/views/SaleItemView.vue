@@ -98,8 +98,6 @@ watch([sortField, sortDirection, pageSize], () => {
 
 onMounted(async () => {
   try {
-    console.log(pageSize.value);
-
     const response = await getAllSaleItems_v2({
       page: currentPage.value,
       size: pageSize.value,
@@ -134,8 +132,8 @@ onMounted(() => {
   }
 });
 
-function handlePageChange(page) {
-  setCurrentPage(page - 1);
+function handlePageChange(pageIndex) {
+  setCurrentPage(pageIndex);
   applyFilter();
 }
 </script>

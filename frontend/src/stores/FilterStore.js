@@ -7,10 +7,10 @@ export const useFilterStore = defineStore("Filter", () => {
 
   const pageInfo = JSON.parse(localStorage.getItem("pageInfo"));
 
-  const sortField = ref(pageInfo.sortField || "createdOn");
-  const sortDirection = ref(pageInfo.sortDirection || "ASC");
-  const currentPage = ref(pageInfo.page || 0);
-  const pageSize = ref(pageInfo.size || 10);
+  const sortField = ref(pageInfo?.sortField || "createdOn");
+  const sortDirection = ref(pageInfo?.sortDirection || "ASC");
+  const currentPage = ref(pageInfo?.page || 0);
+  const pageSize = ref(pageInfo?.size || 10);
 
   const getFilterList = () => {
     return selectedBrands.value.map((b) => b.name);
