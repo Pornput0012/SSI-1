@@ -19,6 +19,8 @@ const handleCreateSaleItem = async (formData) => {
         saleItemStore.createSaleItem(response);
         createSuccess();
       } else {
+        console.log(response.error);
+        
         throw new Error("Failed to add sale item");
       }
     }

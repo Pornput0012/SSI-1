@@ -1,11 +1,16 @@
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 
-const SALE_ITEM_API_URL = `${import.meta.env.VITE_BACKEND_URL}/sale-items`;
+const SALE_ITEM_API_URL_V1 = `${
+  import.meta.env.VITE_BACKEND_URL
+}/v1/sale-items`;
+const SALE_ITEM_API_URL_V2 = `${
+  import.meta.env.VITE_BACKEND_URL
+}/v2/sale-items`;
 
 // GET all sale-items
 const getAllSaleItems = async () => {
   try {
-    const response = await fetch(SALE_ITEM_API_URL);
+    const response = await fetch(SALE_ITEM_API_URL_V1);
 
     if (!response.ok) {
       throw new Error(`(${response.status}) Failed to fetch sale item list.`);
@@ -21,11 +26,51 @@ const getAllSaleItems = async () => {
   }
 };
 
+// Get all sale-item v2 (pagination)
+const getAllSaleItems_v2 = async (
+  pageInfo = {
+    page: 0,
+  }
+) => {
+  try {
+    const getRequestParameter = () => {
+      const requestParameter = [];
+      for (const key in pageInfo) {
+        if (Object.prototype.hasOwnProperty.call(pageInfo, key)) {
+          const element = pageInfo[key];
+          if (element || element === 0) {
+            requestParameter.push(
+              `${key}=${Array.isArray(element) ? element.join(",") : element}`
+            );
+          }
+        }
+      }
+      return requestParameter.join("&");
+    };
+    
+    const response = await fetch(
+      `${SALE_ITEM_API_URL_V2}?${getRequestParameter()}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`(${response.status}) Failed to fetch sale item list.`);
+    }
+
+    const data = await response.json();
+    const saleItemStore = useSaleItemStore();
+
+    saleItemStore.setSaleItemsPage(data);
+    return data;
+  } catch (error) {
+    return { error };
+  }
+};
+
 // GET sale-item by ID
 const getSaleItemById = async (id) => {
   try {
     if (!id) throw new Error("Sale Item ID is required.");
-    const response = await fetch(`${SALE_ITEM_API_URL}/${id}`);
+    const response = await fetch(`${SALE_ITEM_API_URL_V1}/${id}`);
 
     const data = await response.json();
 
@@ -44,7 +89,7 @@ const deleteSaleItemById = async (id) => {
   try {
     if (!id) throw new Error(`Sale Item ID is required for deletion.`);
 
-    const response = await fetch(`${SALE_ITEM_API_URL}/${id}`, {
+    const response = await fetch(`${SALE_ITEM_API_URL_V1}/${id}`, {
       method: "DELETE",
     });
 
@@ -63,7 +108,7 @@ const deleteSaleItemById = async (id) => {
 
 const createSaleItem = async (saleItem) => {
   try {
-    const response = await fetch(`${SALE_ITEM_API_URL}`, {
+    const response = await fetch(`${SALE_ITEM_API_URL_V1}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(saleItem),
@@ -91,7 +136,7 @@ const updateSaleItemById = async (id, saleItem) => {
     if (!id) throw new Error(`Sale Item ID is required for updating.`);
 
     //เช็ค required fieldในหน้า form แล้ว
-    const response = await fetch(`${SALE_ITEM_API_URL}/${id}`, {
+    const response = await fetch(`${SALE_ITEM_API_URL_V1}/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(saleItem),
@@ -118,4 +163,5 @@ export {
   deleteSaleItemById,
   updateSaleItemById,
   createSaleItem,
+  getAllSaleItems_v2,
 };

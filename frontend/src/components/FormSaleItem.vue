@@ -1,7 +1,7 @@
 <script setup>
 import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 const router = useRouter();
 const emit = defineEmits(["onSubmit"]);
@@ -29,6 +29,15 @@ const formData = ref({
   color: props.saleItemDetail?.color || "",
   quantity: props.saleItemDetail?.quantity || null,
 });
+
+const validate = ref({
+  brand: { msg: "", nullable: false },
+  model: { msg: "", maxLength: 60, nullable: false },
+  price: { msg: "", nullable: false },
+  description: { msg: "", nullable: false },
+  quantity: { msg: "", nullable: false },
+});
+
 const errorTitle = ref("");
 const errorMessage = ref("");
 const showModal = ref(false);
@@ -60,14 +69,32 @@ const fieldCheckOldData = [
 ];
 
 const handleSubmit = () => {
+  const validateField = [...requireField, "quantity"];
+  for (const field of validateField) {
+    if (validate.value[field].msg) {
+      const invalidFields = [];
+      if (validate.value[field].msg) {
+        invalidFields.push(field);
+      }
+      errorTitle.value = "Invalid Input";
+      errorMessage.value = `Please check your input field : ${invalidFields.join(
+        ", "
+      )}`;
+      showModal.value = true;
+      return;
+    }
+  }
+
   for (const field of requireField) {
-    if (!formData.value[field]) {
+    if (!formData.value[field] || formData.value[field].id === 0) {
+      console.log(field + "2");
       errorTitle.value = "Missing Required Field";
       errorMessage.value = `Please fill out the required field: ${field}`;
       showModal.value = true;
       return;
     }
   }
+
   console.log(formData.value);
 
   emit("onSubmit", formData.value);
@@ -88,7 +115,7 @@ const normalize = (val) =>
 
 watchEffect(() => {
   for (const field of requireField) {
-    if (!formData.value[field]) {
+    if (!formData.value[field] || formData.value[field].id == 0) {
       isSave.value = true; // ยังกรอกไม่ครบ ไม่ควรบันทึก
       return;
     }
@@ -114,6 +141,71 @@ watchEffect(() => {
 
   isSave.value = !hasChanges;
 });
+
+const notNull = [...requireField, "quantity"];
+
+watch(
+  () => formData.value.brand,
+  () => {
+    if (
+      (!formData.value.brand || formData.value.brand.id === 0) &&
+      !validate.value.brand.nullable
+    ) {
+      validate.value.brand.msg = "Brand is required";
+    } else {
+      validate.value.brand.msg = "";
+    }
+  }
+);
+
+watch(
+  () => formData.value.model,
+  () => {
+    if (!formData.value.model && !validate.value.model.nullable) {
+      validate.value.model.msg = "Model is required";
+    } else if (
+      formData.value.model &&
+      formData.value.model.length > validate.value.model.maxLength
+    ) {
+      validate.value.model.msg = `Model must be less than ${validate.value.model.maxLength} characters.`;
+    } else {
+      validate.value.model.msg = "";
+    }
+  }
+);
+
+watch(
+  () => formData.value.description,
+  () => {
+    if (!formData.value.description && !validate.value.description.nullable) {
+      validate.value.description.msg = "Description is required";
+    } else {
+      validate.value.description.msg = "";
+    }
+  }
+);
+
+watch(
+  () => formData.value.price,
+  () => {
+    if (!formData.value.price && !validate.value.price.nullable) {
+      validate.value.price.msg = "Price is required";
+    } else {
+      validate.value.price.msg = "";
+    }
+  }
+);
+
+watch(
+  () => formData.value.quantity,
+  () => {
+    if (!formData.value.quantity && !validate.value.quantity.nullable) {
+      validate.value.quantity.msg = "Quantity is required";
+    } else {
+      validate.value.quantity.msg = "";
+    }
+  }
+);
 </script>
 
 <template>
@@ -141,48 +233,106 @@ watchEffect(() => {
         <div
           class="grid grid-cols-[auto_1fr] md:grid-cols-[auto_260px] xl:grid-cols-[auto_320px] items-center gap-x- md:gap-x-6 gap-y-4 px-4"
         >
-          <label class="text-sm md:text-base" for="brand">Brand</label>
-          <select
-            id="brand"
-            class="itbms-brand select"
-            v-model="formData.brand"
+          <label class="text-sm md:text-base" for="brand"
+            >Brand<span class="text-red-500"> *</span></label
           >
-            <option :value="{ id: 0, name: '' }" disabled>Select Brand</option>
-            <option
-              v-for="(brand, i) in brands?.filter((b) => b.isActive === true)"
-              :value="brand"
-              :key="i"
+          <div class="flex-col">
+            <select
+              id="brand"
+              class="itbms-brand select"
+              v-model="formData.brand"
             >
-              {{ brand.name }}
-            </option>
-          </select>
+              <option :value="{ id: 0, name: '' }" disabled>
+                Select Brand
+              </option>
+              <option
+                v-for="(brand, i) in brands
+                  ?.sort((a, b) => a.name.localeCompare(b.name))
+                  ?.filter((b) => b.isActive === true)"
+                :value="brand"
+                :key="i"
+              >
+                {{ brand.name }}
+              </option>
+            </select>
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.brand.msg !== ''"
+            >
+              <span class="font-extralight">{{ validate.brand.msg }}</span>
+            </div>
+          </div>
 
-          <label class="text-sm md:text-base" for="model">Model</label>
-          <input
-            type="text"
-            id="model"
-            class="itbms-model input"
-            v-model.trim="formData.model"
-          />
+          <label class="text-sm md:text-base" for="model"
+            >Model<span class="text-red-500"> *</span></label
+          >
 
-          <label class="text-sm md:text-base" for="price">Price(Bath)</label>
-          <input
-            type="number"
-            id="price"
-            class="itbms-price input"
-            v-model="formData.price"
-          />
+          <div class="flex-col">
+            <input
+              type="text"
+              id="model"
+              class="itbms-model input"
+              v-model.trim="formData.model"
+              :class="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                  validate.model.msg !== '',
+              }"
+            />
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.model.msg !== ''"
+            >
+              <span class="font-extralight">{{ validate.model.msg }}</span>
+            </div>
+          </div>
+
+          <label class="text-sm md:text-base" for="price"
+            >Price(Bath)<span class="text-red-500"> *</span></label
+          >
+          <div class="flex-col">
+            <input
+              type="number"
+              id="price"
+              class="itbms-price input"
+              v-model="formData.price"
+              :class="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                  validate.price.msg !== '',
+              }"
+            />
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.price.msg !== ''"
+            >
+              <span class="font-extralight">{{ validate.price.msg }}</span>
+            </div>
+          </div>
 
           <label class="text-sm md:text-base" for="description"
-            >Description</label
+            >Description<span class="text-red-500"> *</span></label
           >
-          <textarea
-            id="description"
-            class="itbms-description textarea resize-y"
-            v-model.trim="formData.description"
-          ></textarea>
+          <div class="flex-col">
+            <textarea
+              id="description"
+              class="itbms-description textarea resize-y"
+              v-model.trim="formData.description"
+              :class="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                  validate.description.msg !== '',
+              }"
+            ></textarea>
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.description.msg !== ''"
+            >
+              <span class="font-extralight">{{
+                validate.description.msg
+              }}</span>
+            </div>
+          </div>
 
           <label class="text-sm md:text-base" for="ramGb">Ram (GB)</label>
+
           <input
             type="number"
             id="ramGb"
@@ -222,15 +372,30 @@ watchEffect(() => {
             v-model.trim="formData.color"
           />
 
-          <label class="text-sm md:text-base" for="quantity">Quantity</label>
-          <input
-            type="number"
-            id="quantity"
-            class="itbms-quantity input"
-            min="1"
-            value="1"
-            v-model="formData.quantity"
-          />
+          <label class="text-sm md:text-base" for="quantity"
+            >Quantity<span class="text-red-500"> *</span></label
+          >
+          <div class="flex-col">
+            <input
+              type="number"
+              id="quantity"
+              class="itbms-quantity input"
+              min="1"
+              value="1"
+              v-model="formData.quantity"
+              :class="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                  validate.quantity.msg !== '',
+              }"
+            />
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.quantity.msg !== ''"
+            >
+              <span class="font-extralight">{{ validate.quantity.msg }}</span>
+            </div>
+          </div>
+
           <div
             class="flex items- jus w-full gap-4 col-span-2 justify-center mt-4 lg:justify-end"
           >
@@ -242,19 +407,7 @@ watchEffect(() => {
             >
               Save
             </button>
-            <!-- <router-link
-              :to="
-                saleItemDetail
-                  ? {
-                      name: 'sale-item-detail',
-                      params: { id: saleItemDetail.id },
-                    }
-                  : { name: 'sale-items' }
-              "
-              class="itbms-cancel-button btn"
-            >
-              Cancle
-            </router-link> -->
+
             <button @click="$router.back()" class="itbms-cancel-button btn">
               Cancle
             </button>
