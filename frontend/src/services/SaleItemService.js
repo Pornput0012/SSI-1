@@ -28,17 +28,28 @@ const getAllSaleItems = async () => {
 
 // Get all sale-item v2 (pagination)
 const getAllSaleItems_v2 = async (
-  filterBrands,
-  page,
-  size,
-  sortField,
-  sortDirection
+  pageInfo = {
+    page: 0,
+  }
 ) => {
   try {
+    const getRequestParameter = () => {
+      const requestParameter = [];
+      for (const key in pageInfo) {
+        if (Object.prototype.hasOwnProperty.call(pageInfo, key)) {
+          const element = pageInfo[key];
+          if (element || element === 0) {
+            requestParameter.push(
+              `${key}=${Array.isArray(element) ? element.join(",") : element}`
+            );
+          }
+        }
+      }
+      return requestParameter.join("&");
+    };
+    
     const response = await fetch(
-      `${SALE_ITEM_API_URL_V2}?filterBrands=${filterBrands.join(
-        ","
-      )}&page=${page}&size=${size}&sortField=${sortField}&sortDirection=${sortDirection}`
+      `${SALE_ITEM_API_URL_V2}?${getRequestParameter()}`
     );
 
     if (!response.ok) {
@@ -48,7 +59,7 @@ const getAllSaleItems_v2 = async (
     const data = await response.json();
     const saleItemStore = useSaleItemStore();
 
-    saleItemStore.setSaleItems(data);
+    saleItemStore.setSaleItemsPage(data);
     return data;
   } catch (error) {
     return { error };

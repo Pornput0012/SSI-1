@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { computed, ref } from "vue";
 import ContainerList from "./ContainerList.vue";
 import SaleItemGalleryModel from "./SaleItemGalleryModel.vue";
 
@@ -19,12 +19,12 @@ const props = defineProps({
 const emit = defineEmits(["pageChanged"]);
 
 // ตั้งค่าหน้าปัจจุบัน และจำนวนหน้าที่จะแสดงใน pagination
-const currentPage = ref(1);
+const currentPage = ref(props.pageInfo.page);
 const maxVisiblePages = 6; // แสดงปุ่มไม่เกิน 6 หน้าใน pagination
 
 function changPage(i) {
-  currentPage.value = i
-  emit("pageChanged",currentPage.value);
+  currentPage.value = i;
+  emit("pageChanged", currentPage.value);
 }
 
 // คำนวณหน้าที่จะเริ่มต้นแสดงใน pagination
@@ -63,7 +63,7 @@ const pageNumbers = computed(() => {
 function nextPage() {
   if (currentPage.value < props.pageInfo.totalPages) {
     currentPage.value++;
-    changPage(currentPage.value)
+    changPage(currentPage.value);
   }
 }
 
@@ -71,7 +71,7 @@ function nextPage() {
 function prevPage() {
   if (currentPage.value > 1) {
     currentPage.value--;
-    changPage(currentPage.value)
+    changPage(currentPage.value);
   }
 }
 </script>
@@ -116,6 +116,14 @@ function prevPage() {
       </template>
     </ContainerList>
 
+    <!-- no sale item -->
+    <div
+      v-if="saleItems && saleItems.length === 0"
+      class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
+    >
+      <p class="text-purple-700 font-medium">no sale item</p>
+    </div>
+
     <div
       v-if="pageInfo && pageInfo.totalPages !== 1"
       class="join mt-7 w-full px-auto"
@@ -123,14 +131,14 @@ function prevPage() {
       <button
         class="join-item btn"
         @click="changPage(1)"
-        :disabled="currentPage === 1"
+        :disabled="currentPage === 0"
       >
         First
       </button>
       <button
         class="join-item btn"
         @click="prevPage"
-        :disabled="currentPage === 1"
+        :disabled="currentPage === 0"
       >
         Prev
       </button>
@@ -159,13 +167,6 @@ function prevPage() {
       >
         Last
       </button>
-    </div>
-    <!-- no sale item -->
-    <div
-      v-if="saleItems && saleItems.length === 0"
-      class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
-    >
-      <p class="text-purple-700 font-medium">no sale item</p>
     </div>
   </div>
 </template>
