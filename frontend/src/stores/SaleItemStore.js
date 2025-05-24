@@ -13,6 +13,14 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     saleItemsPage.value = itemArray;
   }
 
+  function pushPage(itemPage) {
+    const index = saleItemsPage.value.findIndex((item) => item.page == itemPage.page)
+    if(index === -1) {
+      saleItemsPage.push(itemPage)
+      return ;
+    }
+  }
+
   function getSaleItems() {
     return saleItems.value;
   }

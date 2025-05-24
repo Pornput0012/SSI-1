@@ -10,6 +10,7 @@ import {
 } from "@/services/SaleItemService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { useFilterStore } from "@/stores/FilterStore";
+
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/์NotiStore";
 import { computed, onMounted, ref, watch } from "vue";
@@ -34,6 +35,7 @@ const selectedBrands = computed(() => filterStore.selectedBrands);
 
 const filterBrands = computed(() => getFilterList());
 const saleItems = computed(() => getSaleItemsPage());
+
 
 const hasError = ref("");
 
@@ -96,8 +98,9 @@ watch([sortField, sortDirection, pageSize], () => {
   applyFilter();
 });
 
+const size = ref(10);
 onMounted(async () => {
-  try {
+   try {
     const response = await getAllSaleItems_v2({
       page: currentPage.value,
       size: pageSize.value,
@@ -136,6 +139,8 @@ function handlePageChange(pageIndex) {
   setCurrentPage(pageIndex);
   applyFilter();
 }
+
+watch();
 </script>
 
 <template>
@@ -299,21 +304,41 @@ function handlePageChange(pageIndex) {
         </div>
       </div>
 
-      <!-- Selected brands -->
-      <div class="flex flex-wrap gap-2 mt-3">
-        <div
-          v-for="(brand, index) in selectedBrands"
-          :key="index"
-          class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
-        >
-          <span class="itbms-filter-item">{{ brand.name }}</span>
+          <!-- Clear button -->
           <button
-            class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
-            @click="removeBrand(brand)"
+            v-if="selectedBrands.length"
+            class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-2"
+            @click="clearAllBrands"
           >
-            ×
+            Clear
           </button>
         </div>
+
+        <!-- Selected brands -->
+        <div class="flex flex-wrap gap-2 mt-3">
+          <div
+            v-for="(brand, index) in selectedBrands"
+            :key="index"
+            class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+          >
+            <span class="itbms-filter-item">{{ brand.name }}</span>
+            <button
+              class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
+              @click="removeBrand(brand)"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- pagination -->
+      <div class="flex gap-3 mb-3 text-sm items-center">
+        <p>Show</p>
+        <select v-model="size" class="itbms-page-size h-8 select">
+          <option class="" value="5">5</option>
+          <option class="" value="10">10</option>
+          <option class="" value="20">20</option>
+        </select>
       </div>
     </div>
 

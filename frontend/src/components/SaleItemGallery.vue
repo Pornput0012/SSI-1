@@ -18,10 +18,6 @@ const props = defineProps({
 
 const emit = defineEmits(["pageChanged"]);
 
-// watchEffect(() => {
-//   console.log(props.pageInfo);
-// });
-
 const currentPage = ref(props.pageInfo.page);
 const pageNumbers = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
 const startPageIndex = ref(0);
