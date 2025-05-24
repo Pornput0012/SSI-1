@@ -44,14 +44,14 @@ const calcPageNumber = (oldPage) => {
     ) {
       newPageNumber.push(i + 1);
     }
+
     pageNumbers.value = newPageNumber;
   }
   isActionPage.value = false;
 };
 
 onMounted(() => {
-  if (currentPage.value > 10) {
-    // มีเหตุผลอะไรถึงต้อง +1 ???
+  if (currentPage.value >= 10) {
     startPageIndex.value =
       Math.floor((currentPage.value + 1) / 10) > 1
         ? ((currentPage.value + 1) / 10) * 10 - 10
@@ -73,6 +73,7 @@ function changePage(pageIndex) {
           ? (currentPage.value / 10) * 10 - 10
           : currentPage.value % 10
         : 0;
+
     isActionPage.value = true;
     calcPageNumber();
   }
@@ -96,18 +97,26 @@ function prevPage() {
     if (currentPage.value < pageNumbers.value[0] - 1) {
       calcPageNumber(oldPageNumber);
     }
+
     changePage(currentPage.value);
   }
 }
 
 watch(
   () => props.pageInfo,
-  (newVal) => {
+  (newVal, oldVal) => {
     if (newVal) {
-      startPageIndex.value = 0;
-      currentPage.value = newVal.page;
-      isActionPage.value = true;
-      calcPageNumber();
+      if (
+        newVal.size != oldVal.size ||
+        newVal.totalPages != oldVal.totalPages ||
+        newVal.sort != oldVal.sort ||
+        newVal.totalElements != oldVal.totalElements
+      ) {
+        startPageIndex.value = 0;
+        currentPage.value = newVal.page;
+        isActionPage.value = true;
+        calcPageNumber();
+      }
     }
   },
   { deep: true }
