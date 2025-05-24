@@ -2,24 +2,28 @@ import { ref } from "vue";
 import { defineStore, acceptHMRUpdate } from "pinia";
 
 export const useFilterStore = defineStore("Filter", () => {
-  const getSelectedBrands = JSON.parse(localStorage.getItem("selectedBrands"));
-  const selectedBrands = ref(getSelectedBrands || []);
+  const selectedBrands = ref([]);
 
-  const pageInfo = JSON.parse(localStorage.getItem("pageInfo"));
-
-  const sortField = ref(pageInfo?.sortField || "createdOn");
-  const sortDirection = ref(pageInfo?.sortDirection || "ASC");
-  const currentPage = ref(pageInfo?.page || 0);
-  const pageSize = ref(pageInfo?.size || 10);
+  const sortField = ref("createdOn");
+  const sortDirection = ref("ASC");
+  const currentPage = ref(0);
+  const pageSize = ref(10);
 
   const getFilterList = () => {
     return selectedBrands.value.map((b) => b.name);
+  };
+
+  const resetCurrentPage = () => {
+    currentPage.value = 0;
   };
 
   const setSelectBrand = (brand) => {
     if (!selectedBrands.value.some((b) => b.name === brand.name)) {
       selectedBrands.value.push(brand);
     }
+  };
+  const setSelectedBrand = (brands) => {
+    selectedBrands.value = brands;
   };
 
   const setCurrentPage = (page) => {
@@ -45,19 +49,30 @@ export const useFilterStore = defineStore("Filter", () => {
     sortDirection.value = direction.toUpperCase();
   };
 
+  const setSortField = (field) => {
+    sortField.value = field;
+  };
+  const setSortDirection = (direction) => {
+    sortDirection.value = direction;
+  };
+
   return {
     selectedBrands,
-    setSelectBrand,
     sortField,
     sortDirection,
     currentPage,
     pageSize,
-    getFilterList,
-    setCurrentPage,
     clearAllSelectedBrands,
     removeBrand,
+    resetCurrentPage,
+    getFilterList,
+    setCurrentPage,
     setPageSize,
     setSortBrand,
+    setSelectedBrand,
+    setSelectBrand,
+    setSortField,
+    setSortDirection,
   };
 });
 

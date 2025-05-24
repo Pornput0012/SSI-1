@@ -1,8 +1,5 @@
 <script setup>
-import { getAllBrands } from "@/services/BrandService";
-import { useBrandStore } from "@/stores/BrandStore";
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
-import router from "@/router";
+import { ref, watchEffect } from "vue";
 
 const emit = defineEmits(["onSubmit"]);
 
@@ -37,27 +34,6 @@ const handleSubmit = () => {
     return;
   }
 
-  if (
-    validate.value.name.msg ||
-    validate.value.countryOfOrigin.msg ||
-    validate.value.websiteUrl.msg
-  ) {
-    const invalidFields = [];
-
-    if (validate.value.name.msg) {
-      invalidFields.push("Name");
-    }
-    if (validate.value.countryOfOrigin.msg) {
-      invalidFields.push("Country of Origin");
-    }
-    if (validate.value.websiteUrl.msg) {
-      invalidFields.push("Website URL");
-    }
-    errorTitle.value = "Invalid Input";
-    errorMessage.value = `Please check your input field : ${invalidFields.join(", ")}`;
-    showModal.value = true;
-  }
-
   emit("onSubmit", formData.value);
 };
 
@@ -67,22 +43,69 @@ const validate = ref({
   countryOfOrigin: { msg: "", maxLength: 80, nullable: true },
 });
 
+const validateField = [...requireField, ...emptyCheck];
+const pattern = /^https?:\/\/.+/;
+
+function isValidUrl() {
+  if (!pattern.test(formData.value.websiteUrl)) {
+    validate.value.websiteUrl.msg = `Brand URL must be a valid URL or not specified`;
+    return ;
+  }
+  else {
+    validate.value.websiteUrl.msg = "";
+  }
+
+}
+
+function maximumLength(field) {
+  const labels = ["name", "country of origin"];
+  const matchedLabel =
+    labels.find((label) => {
+      const normalizedLabel = label.toLowerCase().replace(/\s+/g, ""); //ลบช่องว่าง \s
+      return field.toLowerCase().includes(normalizedLabel);
+    }) || field;
+  if (
+    formData.value[field] &&
+    formData.value[field].length > validate.value[field].maxLength
+  ) {
+    validate.value[field].msg =
+      `Brand ${matchedLabel} must be 1-${validate.value[field].maxLength} characters long` +
+      (matchedLabel === "country of origin" ? " or not specified." : ".");
+  } else {
+    validate.value[field].msg = "";
+  }
+}
+
+
 watchEffect(() => {
-  const validateField = [...requireField, ...emptyCheck];
+
+  let isInvalid = false;
+
   for (const field of validateField) {
     if (
-      formData.value[field] &&
-      formData.value[field].length > validate.value[field].maxLength
+      (formData.value[field] &&
+      validate.value[field].maxLength &&
+      formData.value[field].length > validate.value[field].maxLength) 
     ) {
-      validate.value[
-        field
-      ].msg = `${field} must be less than ${validate.value[field].maxLength} characters.`;
-    } else {
-      validate.value[field].msg = "";
+      isInvalid = true;
+      
+    } 
+    else if(field !== "websiteUrl" || !formData.value.websiteUrl){
+      validate.value[field].msg = ""
     }
   }
 
-  if (!formData.value?.name) {
+  if(formData.value.websiteUrl && !pattern.test(formData.value.websiteUrl)) {
+      isInvalid = true
+   }
+
+  if (
+    !formData.value?.name ||
+    validate.value.name.msg ||
+    validate.value.countryOfOrigin.msg ||
+    validate.value.websiteUrl.msg ||
+    isInvalid
+  ) {
     isCanNotSave.value = true;
     return;
   }
@@ -90,11 +113,11 @@ watchEffect(() => {
   let hasChanges = false;
 
   const normalizeOptional = (val) =>
-    typeof val === "string"
-      ? val.trim() === ""
-        ? null
-        : val.trim()
-      : val ?? null;
+  typeof val === "string"
+  ? val.trim() === ""
+  ? null
+  : val.trim()
+  : val ?? null;
 
   if (!hasChanges) {
     for (const field of fieldCheckOldData) {
@@ -103,7 +126,7 @@ watchEffect(() => {
         break;
       }
     }
-
+    
     for (const field of emptyCheck) {
       if (
         normalizeOptional(formData.value[field]) !==
@@ -115,16 +138,19 @@ watchEffect(() => {
     }
   }
 
+  if (
+    validate.value.name.msg ||
+    validate.value.countryOfOrigin.msg ||
+    validate.value.websiteUrl.msg
+  ) {
+    isCanNotSave.value = true;
+    return;
+  }
+  
   isCanNotSave.value = !hasChanges;
 });
-watch(
-  () => formData.value.name,
-  () => {
-    if (!formData.value.name && !validate.value.name.nullable) {
-      validate.value.name.msg = "Name is required";
-    }
-  }
-);
+
+
 </script>
 
 <template>
@@ -135,14 +161,15 @@ watch(
       >
       <div class="flex-col">
         <input
-          type="text"
-          id="name"
-          class="itbms-name input w-full"
-          :class="{
+        type="text"
+        id="name"
+        class="itbms-name input w-full"
+        :class="{
             'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
               validate.name.msg !== '',
           }"
           v-model.trim="formData.name"
+          @blur="maximumLength('name')"
         />
         <div
           class="text-red-500 mt-2 flex gap-2 text-sm"
@@ -163,6 +190,7 @@ watch(
               validate.websiteUrl.msg !== '',
           }"
           v-model.trim="formData.websiteUrl"
+          @blur="isValidUrl"
         />
         <div
           class="text-red-500 mt-2 flex gap-2 text-sm"
@@ -197,6 +225,7 @@ watch(
               validate.countryOfOrigin.msg !== '',
           }"
           v-model.trim="formData.countryOfOrigin"
+          @blur="maximumLength('countryOfOrigin')"
         />
         <div
           class="text-red-500 mt-2 flex gap-2 text-sm"

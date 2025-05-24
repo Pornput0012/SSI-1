@@ -5,7 +5,7 @@ import router from "@/router";
 import { createSaleItem } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/์NotiStore";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 
 const isSaving = ref(false);
 const saleItemStore = useSaleItemStore();

@@ -1,3 +1,4 @@
+import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 
 const SALE_ITEM_API_URL_V1 = `${
@@ -47,7 +48,7 @@ const getAllSaleItems_v2 = async (
       }
       return requestParameter.join("&");
     };
-    
+
     const response = await fetch(
       `${SALE_ITEM_API_URL_V2}?${getRequestParameter()}`
     );
@@ -87,6 +88,8 @@ const getSaleItemById = async (id) => {
 // DELETE sale-item by ID
 const deleteSaleItemById = async (id) => {
   try {
+    const { resetCurrentPage } = useFilterStore();
+
     if (!id) throw new Error(`Sale Item ID is required for deletion.`);
 
     const response = await fetch(`${SALE_ITEM_API_URL_V1}/${id}`, {
@@ -98,6 +101,7 @@ const deleteSaleItemById = async (id) => {
         `Failed to delete Sale Item with ID ${id}. Server responded with status ${response.status}`
       );
     }
+    resetCurrentPage();
     return { success: true };
   } catch (error) {
     return {
@@ -108,6 +112,8 @@ const deleteSaleItemById = async (id) => {
 
 const createSaleItem = async (saleItem) => {
   try {
+    const { resetCurrentPage } = useFilterStore();
+
     const response = await fetch(`${SALE_ITEM_API_URL_V1}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -121,7 +127,7 @@ const createSaleItem = async (saleItem) => {
     }
 
     const data = await response.json();
-    console.log(data);
+    resetCurrentPage();
 
     return data;
   } catch (error) {
@@ -133,6 +139,8 @@ const createSaleItem = async (saleItem) => {
 
 const updateSaleItemById = async (id, saleItem) => {
   try {
+    const { resetCurrentPage } = useFilterStore();
+
     if (!id) throw new Error(`Sale Item ID is required for updating.`);
 
     //เช็ค required fieldในหน้า form แล้ว
@@ -149,6 +157,8 @@ const updateSaleItemById = async (id, saleItem) => {
     }
 
     const data = await response.json();
+    resetCurrentPage();
+
     return data;
   } catch (error) {
     return {
