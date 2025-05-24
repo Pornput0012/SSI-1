@@ -36,39 +36,52 @@ const validate = ref({
     msg: "Model must be 1-60 characters long.",
     notNull: true,
     maxLength: 60,
+    wrong: false,
     invalid: false,
   },
   color: {
     msg: "Color must be 1-40 characters long or not specified.",
+    wrong: false,
     maxLength: 40,
     invalid: false,
   },
   price: {
     msg: "Price must be non-negative integer",
+    wrong: false,
     notNull: true,
+    nonNeg: true,
     invalid: false,
   },
   description: {
     msg: "Description must be 1-65,535 characters long.",
+    wrong: false,
     notNull: true,
     maxLength: 65535,
     invalid: false,
   },
   quantity: {
     msg: "Quantity must be non-negative integer",
+    wrong: false,
     notNull: true,
+    nonNeg: true,
     invalid: false,
   },
   ramGb: {
     msg: "RAM size must be positive integer or not specified",
+    wrong: false,
+    positive: true,
     invalid: false,
   },
   screenSizeInch: {
     msg: "Screen size must be positive number with at most 2 decimal points or not specified",
+    wrong: false,
+    positive: true,
     invalid: false,
   },
   storageGb: {
     msg: "Storage size must be positive integer or not specified",
+    wrong: false,
+    positive: true,
     invalid: false,
   },
 });
@@ -103,23 +116,8 @@ const fieldCheckOldData = [
   "quantity",
 ];
 
+const validateField = [...fieldCheckOldData, "brand", "color"];
 const handleSubmit = () => {
-  const validateField = [...requireField, "quantity"];
-  for (const field of validateField) {
-    if (validate.value[field].msg) {
-      const invalidFields = [];
-      if (validate.value[field].msg) {
-        invalidFields.push(field);
-      }
-      errorTitle.value = "Invalid Input";
-      errorMessage.value = `Please check your input field : ${invalidFields.join(
-        ", "
-      )}`;
-      showModal.value = true;
-      return;
-    }
-  }
-
   for (const field of requireField) {
     if (!formData.value[field] || formData.value[field].id === 0) {
       console.log(field + "2");
@@ -135,19 +133,103 @@ const handleSubmit = () => {
   emit("onSubmit", formData.value);
 };
 
-function maximumLength(field) {
-  console.log(formData.value[field].length);
+const allValid = computed(() => {
+  return validateField.every(field => validate.value[field]?.invalid === false &&validateField.every(field => validate.value[field]?.wrong === false ));
+});
 
+//false xerror->blur
+//true xerror->blur
+function maximumLength(field, blur) {
   if (
     (formData.value[field] &&
       formData.value[field].length > validate.value[field].maxLength) ||
     (validate.value[field].notNull && formData.value[field].length < 1)
   ) {
-    validate.value[field].invalid = true;
+    validate.value[field].wrong = true;
+   
+    if (blur) {
+      // เช็คตอน blur แล้วผิด → ให้แสดง error
+      validate.value[field].invalid = true;
+    }
   } else {
+    validate.value[field].wrong = false;
+    validate.value[field].invalid = false;
+    // ถ้าข้อมูลถูก → ลบ error ทิ้งเสมอ ไม่ว่าจะ blur หรือไม่
+  }
+}
+
+function brandSelected(blur) {
+  if (!formData.value.brand || formData.value.brand.id === 0) {
+    validate.value.brand.wrong = true;
+    if (blur) {
+      // เช็คตอน blur แล้วผิด → ให้แสดง error
+      validate.value.brand.invalid = true;
+    }
+    return;
+  } else {
+    validate.value.brand.wrong = false;
+    validate.value.brand.invalid = false;
+  }
+}
+function nonNegative(field, blur) {
+  if (
+    (!formData.value[field] && formData.value[field] !== 0) ||
+    (formData.value[field] && formData.value[field] < 0)
+  ) {
+    validate.value[field].wrong = true;
+   
+    if (blur) {
+      // เช็คตอน blur แล้วผิด → ให้แสดง error
+      validate.value[field].invalid = true;
+    }
+
+    return;
+  } else {
+    validate.value[field].wrong = false;
     validate.value[field].invalid = false;
   }
 }
+
+function isValidPositiveField(field, blur) {
+  if (!formData.value[field] && formData.value[field] !== 0) {
+    validate.value[field].invalid = false;
+    validate.value[field].wrong = false;
+    return;
+  }
+
+  const parsed = parseFloat(formData.value[field]);
+
+  // กรณีค่าที่กรอกไม่ใช่ตัวเลข หรือ <= 0
+  if (isNaN(parsed) || parsed <= 0) {
+    validate.value[field].wrong = true;
+    if (blur) {
+      validate.value[field].invalid = true;
+    }
+    return;
+  }
+
+  if (field === "screenSizeInch") {
+    const decimalPart = formData.value[field].toString().split(".")[1];
+    const hasTooManyDecimals = decimalPart && decimalPart.length > 2;
+
+    if (hasTooManyDecimals) {
+     validate.value[field].wrong = true;
+      if (blur) {
+        validate.value[field].invalid = true;
+      }
+    } else {
+      validate.value[field].invalid = false;
+      validate.value[field].wrong = false;
+    }
+
+    return;
+  }
+
+  // ถ้าผ่านทุกเงื่อนไขแล้ว → ถือว่าถูกต้อง ลบ error ทิ้ง
+  validate.value[field].invalid = false;
+  validate.value[field].wrong = false;
+}
+
 watchEffect(() => {
   if (brands.value && brands.value.length > 0 && formData.value.brand.name) {
     const foundBrand = brands.value.find(
@@ -161,13 +243,86 @@ watchEffect(() => {
 const normalize = (val) =>
   val === null || val === undefined ? "" : val.trim?.() ?? val;
 
+
+
+watch(
+  () => formData.value.brand,
+  () => {
+    brandSelected(false);
+  }
+);
+watch(
+  () => formData.value.quantity,
+  () => {
+    nonNegative("quantity", false);
+  }
+);
+
+watch(
+  () => formData.value.price,
+  () => {
+    nonNegative("price", false);
+  }
+);
+
+watch(
+  () => formData.value.model,
+  () => {
+    maximumLength("model", false);
+  }
+);
+
+watch(
+  () => formData.value.description,
+  () => {
+    maximumLength("description", false);
+  }
+);
+
+watch(
+  () => formData.value.color,
+  () => {
+    maximumLength("color", false);
+  }
+);
+
+watch(
+  () => formData.value.ramGb,
+  () => {
+    isValidPositiveField("ramGb", false);
+  }
+);
+
+watch(
+  () => formData.value.screenSizeInch,
+  () => {
+    isValidPositiveField("screenSizeInch", false);
+  }
+);
+
+watch(
+  () => formData.value.storageGb,
+  () => {
+    isValidPositiveField("storageGb", false);
+  }
+);
+
 watchEffect(() => {
+  if (!allValid.value) {
+    isSave.value = true
+    return ;
+  }
+  
+
   for (const field of requireField) {
     if (!formData.value[field] || formData.value[field].id == 0) {
       isSave.value = true; // ยังกรอกไม่ครบ ไม่ควรบันทึก
       return;
     }
   }
+
+  console.log(isSave.value);
+  
   let hasChanges = false;
 
   if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
@@ -188,113 +343,9 @@ watchEffect(() => {
   }
 
   isSave.value = !hasChanges;
+  console.log(isSave.value);
 });
 
-function brandSelected() {
-  if (
-    (!formData.value.brand || formData.value.brand.id === 0) &&
-    !validate.value.brand.notNull
-  ) {
-    validate.value.brand.invalid = true;
-    return;
-  } else {
-    validate.value.brand.invalid = false;
-  }
-}
-function nonNegative(field) {
-  if (
-    (!formData.value[field]&& formData.value[field] !== 0) ||
-    (formData.value[field] && formData.value[field] < 0)
-  ) {
-    validate.value[field].invalid = true;
-    return;
-  } else {
-    validate.value[field].invalid = false;
-  }
-}
-
-function isValidPositiveField(field) {
-  if (!formData.value[field] && formData.value[field] !== 0) {
-    validate.value[field].invalid = false;
-    return;
-  }
-  const parsed = parseFloat(formData.value[field]);
-  if (isNaN(parsed) || parsed <= 0) {
-    validate.value[field].invalid = true;
-    return;
-  } else if (field === "screenSizeInch") {
-    const decimalPart = formData.value[field].toString().split(".")[1];
-    validate.value[field].invalid = decimalPart && decimalPart.length > 2;
-    return;
-  } else {
-    validate.value[field].invalid = false;
-  }
-}
-
-// const notNull = [...requireField, "quantity"];
-
-// watch(
-//   () => formData.value.brand,
-//   () => {
-//     if (
-//       (!formData.value.brand || formData.value.brand.id === 0) &&
-//       !validate.value.brand.notNull
-//     ) {
-//       validate.value.brand.msg = "Brand is required";
-//     } else {
-//       validate.value.brand.msg = "";
-//     }
-//   }
-// );
-
-// watch(
-//   () => formData.value.model,
-//   () => {
-//     if (!formData.value.model && !validate.value.model.notNull) {
-//       validate.value.model.msg = "Model is required";
-//     } else if (
-//       formData.value.model &&
-//       formData.value.model.length > validate.value.model.maxLength
-//     ) {
-//       validate.value.model.msg = `Model must be less than ${validate.value.model.maxLength} characters.`;
-//     } else {
-//       validate.value.model.msg = "";
-//     }
-//   }
-// );
-
-// watch(
-//   () => formData.value.description,
-//   () => {
-//     if (!formData.value.description && !validate.value.description.notNull) {
-//       validate.value.description.msg = "Description is required";
-//     } else {
-//       validate.value.description.msg = "";
-//     }
-//   }
-// );
-
-// watch(
-//   () => formData.value.price,
-//   () => {
-//     if (!formData.value.price && !validate.value.price.notNull) {
-//       validate.value.price.msg = "Price is required";
-//     } else {
-//       validate.value.price.msg = "";
-//     }
-//   }
-// );
-
-// watch(
-//   () => formData.value.quantity,
-//   () => {
-//     if (!formData.value.quantity && !validate.value.quantity.notNull) {
-//       validate.value.quantity.msg = "Quantity is required";
-//     } else {
-//       validate.value.quantity.msg = "";
-//     }
-//   }
-// );
 </script>
 
 <template>
@@ -330,7 +381,7 @@ function isValidPositiveField(field) {
               id="brand"
               class="itbms-brand select"
               v-model="formData.brand"
-              @blur="brandSelected"
+              @blur="brandSelected(true)"
             >
               <option :value="{ id: 0, name: '' }" disabled>
                 Select Brand
@@ -367,7 +418,7 @@ function isValidPositiveField(field) {
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
                   validate.model.invalid,
               }"
-              @blur="maximumLength('model')"
+              @blur="maximumLength('model', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
@@ -390,7 +441,7 @@ function isValidPositiveField(field) {
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
                   validate.price.invalid,
               }"
-              @blur="nonNegative('price')"
+              @blur="nonNegative('price', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
@@ -412,7 +463,7 @@ function isValidPositiveField(field) {
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
                   validate.description.invalid,
               }"
-              @blur="maximumLength('description')"
+              @blur="maximumLength('description', true)"
             ></textarea>
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
@@ -437,7 +488,7 @@ function isValidPositiveField(field) {
               }"
               min="1"
               v-model="formData.ramGb"
-              @blur="isValidPositiveField('ramGb')"
+              @blur="isValidPositiveField('ramGb', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
@@ -462,7 +513,7 @@ function isValidPositiveField(field) {
               step="0.01"
               min="1"
               v-model="formData.screenSizeInch"
-              @blur="isValidPositiveField('screenSizeInch')"
+              @blur="isValidPositiveField('screenSizeInch', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
@@ -484,7 +535,7 @@ function isValidPositiveField(field) {
               class="itbms-storageGb input"
               min="1"
               v-model="formData.storageGb"
-              @blur="isValidPositiveField('storageGb')"
+              @blur="isValidPositiveField('storageGb', true)"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
                   validate.storageGb.invalid,
@@ -494,9 +545,7 @@ function isValidPositiveField(field) {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.storageGb.invalid"
             >
-              <span class="font-extralight">{{
-                validate.storageGb.msg
-              }}</span>
+              <span class="font-extralight">{{ validate.storageGb.msg }}</span>
             </div>
           </div>
 
@@ -511,7 +560,7 @@ function isValidPositiveField(field) {
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
                   validate.color.invalid,
               }"
-              @blur="maximumLength('color')"
+              @blur="maximumLength('color', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
@@ -536,7 +585,7 @@ function isValidPositiveField(field) {
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
                   validate.quantity.invalid,
               }"
-              @blur="nonNegative('quantity')"
+              @blur="nonNegative('quantity', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
