@@ -18,66 +18,139 @@ const props = defineProps({
 
 const emit = defineEmits(["pageChanged"]);
 
-// ตั้งค่าหน้าปัจจุบัน และจำนวนหน้าที่จะแสดงใน pagination
-const currentPage = ref(1);
-const maxVisiblePages = 10; // แสดงปุ่มไม่เกิน 6 หน้าใน pagination
+const currentPage = ref(props.pageInfo.page);
+const pageNumbers = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+const startPageIndex = ref(0);
 
-function changPage(i) {
-  currentPage.value = i
-  emit("pageChanged",currentPage.value);
+const calcPageNumber = (oldPage) => {
+  const totalPages = props.pageInfo.totalPages;
+  const MAX_SHOW_PAGE = Math.min(totalPages, 10);
+
+  if (
+    currentPage.value >= 10 &&
+    totalPages > 10 &&
+    !isNaN(pageNumbers.value[9])
+  ) {
+    console.log("a");
+    startPageIndex.value += 1;
+  } else if (oldPage && currentPage.value < oldPage) {
+    console.log("b");
+    startPageIndex.value -= 1;
+  }
+
+  const newPageNumber = [];
+  for (
+    let i = startPageIndex.value;
+    i < MAX_SHOW_PAGE + startPageIndex.value;
+    i++
+  ) {
+    newPageNumber.push(i + 1);
+  }
+  pageNumbers.value = newPageNumber;
+};
+
+onMounted(() => {
+  if (currentPage.value > 10) {
+    console.log(currentPage.value);
+
+    startPageIndex.value =
+      Math.floor(currentPage.value / 10) > 1
+        ? (currentPage.value / 10) * 10 - 10
+        : currentPage.value % 10;
+
+    console.log(startPageIndex.value);
+  }
+  calcPageNumber();
+});
+
+function changePage(pageIndex) {
+  currentPage.value = pageIndex;
+  if (pageIndex == 0) {
+    startPageIndex.value = 0;
+    calcPageNumber();
+  } else if (pageIndex == props.pageInfo.totalPages - 1) {
+    startPageIndex.value =
+      Math.floor(currentPage.value / 10) > 1
+        ? (currentPage.value / 10) * 10 - 10
+        : currentPage.value % 10;
+
+    calcPageNumber();
+    console.log(startPageIndex.value);
+  }
+  emit("pageChanged", currentPage.value);
 }
-
-// คำนวณหน้าที่จะเริ่มต้นแสดงใน pagination
-const startPage = computed(() => {
-  const end = currentPage.value + maxVisiblePages - 1;
-
-  // ถ้าเลขหน้าสุดท้ายเกิน totalPages ให้ขยับ start กลับ
-  if (props.pageInfo && end > props.pageInfo.totalPages) {
-    return Math.max(1, props.pageInfo.totalPages - maxVisiblePages + 1);
-  }
-
-  return currentPage.value;
-});
-
-// คำนวณหน้าสุดท้ายที่จะแสดงใน pagination
-const endPage = computed(() => {
-  if (!props.pageInfo) return 1;
-
-  // เลือกค่าน้อยสุดระหว่าง end page ที่ควรจะแสดง กับ totalPages จริง
-  return Math.min(
-    startPage.value + maxVisiblePages - 1,
-    props.pageInfo.totalPages
-  );
-});
-
-// สร้าง array ของหมายเลขหน้า เช่น [1, 2, 3, 4, 5, 6]
-const pageNumbers = computed(() => {
-  const pages = [];
-  for (let i = startPage.value; i <= endPage.value; i++) {
-    pages.push(i);
-  }
-  return pages;
-});
-
 // เปลี่ยนไปหน้าถัดไป ถ้ายังไม่ถึงหน้าสุดท้าย
 function nextPage() {
-  if (currentPage.value < props.pageInfo.totalPages) {
+  if (currentPage.value < props.pageInfo.totalPages - 1) {
     currentPage.value++;
-    changPage(currentPage.value)
+    if (currentPage.value > 9) {
+      calcPageNumber();
+    }
+    changePage(currentPage.value);
   }
 }
-
 // เปลี่ยนไปหน้าก่อนหน้า ถ้ายังไม่ใช่หน้าแรก
 function prevPage() {
-  if (currentPage.value > 1) {
+  if (currentPage.value > 0) {
+    const oldPageNumber = currentPage.value;
     currentPage.value--;
-    changPage(currentPage.value)
+    console.log(currentPage.value);
+    console.log(pageNumbers.value[0]);
+
+    if (currentPage.value < pageNumbers.value[0] - 1) {
+      calcPageNumber(oldPageNumber);
+    }
+    changePage(currentPage.value);
   }
 }
 </script>
 
 <template>
   <div>
+    <div
+      v-if="pageInfo && pageInfo.totalPages !== 1"
+      class="join mt-7 w-full px-auto"
+    >
+      <button
+        class="itbms-page-first join-item btn"
+        @click="changePage(0)"
+        :disabled="pageInfo.first"
+      >
+        First
+      </button>
+      <button
+        class="itbms-page-prev join-item btn"
+        @click="prevPage"
+        :disabled="pageInfo.first"
+      >
+        Prev
+      </button>
+
+      <button
+        v-for="(number, index) in pageNumbers"
+        :class="'itbms-page-' + index"
+        class="btn"
+        :disabled="currentPage == number - 1"
+        @click="changePage(number - 1)"
+      >
+        {{ number }}
+      </button>
+
+      <button
+        class="itbms-page-next join-item btn"
+        @click="nextPage"
+        :disabled="pageInfo.last"
+      >
+        Next
+      </button>
+      <button
+        class="itbms-page-last join-item btn"
+        @click="changePage(pageInfo.totalPages - 1)"
+        :disabled="pageInfo.last"
+      >
+        Last
+      </button>
+    </div>
     <!-- error message -->
     <div
       v-if="!saleItems && hasError !== '' && hasError"
@@ -116,50 +189,6 @@ function prevPage() {
       </template>
     </ContainerList>
 
-    <div
-      v-if="pageInfo && pageInfo.totalPages !== 1"
-      class="join mt-7 w-full px-auto"
-    >
-      <button
-        class="join-item btn"
-        @click="changPage(1)"
-        :disabled="currentPage === 1"
-      >
-        First
-      </button>
-      <button
-        class="join-item btn"
-        @click="prevPage"
-        :disabled="currentPage === 1"
-      >
-        Prev
-      </button>
-
-      <button
-        v-for="i in pageNumbers"
-        :key="i"
-        class="join-item btn"
-        :class="{ 'btn-active': currentPage === i }"
-        @click="changPage(i)"
-      >
-        {{ i }}
-      </button>
-
-      <button
-        class="join-item btn"
-        @click="nextPage"
-        :disabled="currentPage === pageInfo.totalPages"
-      >
-        Next
-      </button>
-      <button
-        class="join-item btn"
-        @click="changPage(pageInfo.totalPages)"
-        :disabled="currentPage === pageInfo.totalPages"
-      >
-        Last
-      </button>
-    </div>
     <!-- no sale item -->
     <div
       v-if="saleItems && saleItems.length === 0"
