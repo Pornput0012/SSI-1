@@ -2,15 +2,17 @@
 import { computed, onMounted, ref } from "vue";
 import NavBar from "./components/NavBar.vue";
 import { useSaleItemStore } from "./stores/SaleItemStore";
-import { getAllSaleItems } from "./services/SaleItemService";
+import { getAllSaleItems, getAllSaleItems_v2 } from "./services/SaleItemService";
 import { getAllBrands, getBrandById } from "./services/BrandService";
 import FormBrand from "./components/FormBrand.vue";
 import { useBrandStore } from "./stores/BrandStore";
 
 const { getSaleItems } = useSaleItemStore();
+const {getSaleItemsPage} = useSaleItemStore();
 const {getBrands} = useBrandStore()
 
 const saleItems = computed(() => getSaleItems());
+const saleItemsPage = computed(()=>getSaleItemsPage())
 const brands = computed(()=> getBrands())
 const hasError = ref("");
 
@@ -24,6 +26,18 @@ onMounted(async () => {
     } catch (e) {
       hasError.value = e.message;
     }
+  }
+
+  if (saleItemsPage.value === null) {
+    try {
+      const response = await getAllSaleItems_v2();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+    } catch (e) {
+      hasError.value = e.message;
+    }
+    
   }
 
   if (brands.value === null) {

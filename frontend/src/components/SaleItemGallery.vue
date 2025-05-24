@@ -20,7 +20,7 @@ const emit = defineEmits(["pageChanged"]);
 
 // ตั้งค่าหน้าปัจจุบัน และจำนวนหน้าที่จะแสดงใน pagination
 const currentPage = ref(1);
-const maxVisiblePages = 6; // แสดงปุ่มไม่เกิน 6 หน้าใน pagination
+const maxVisiblePages = 10; // แสดงปุ่มไม่เกิน 6 หน้าใน pagination
 
 function changPage(i) {
   currentPage.value = i

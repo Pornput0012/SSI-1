@@ -1,25 +1,29 @@
 <script setup>
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import FormSaleItem from '@/components/FormSaleItem.vue'
-import SaleItemGallery from '@/components/SaleItemGallery.vue'
-import SaleItemGalleryModel from '@/components/SaleItemGalleryModel.vue'
-import { getAllBrands } from '@/services/BrandService'
-import { getAllSaleItems, getAllSaleItems_v2 } from '@/services/SaleItemService'
-import { useBrandStore } from '@/stores/BrandStore'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { useNotiStore } from '@/stores/์NotiStore'
-import { computed, onMounted, ref, watch } from 'vue'
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import FormSaleItem from "@/components/FormSaleItem.vue";
+import SaleItemGallery from "@/components/SaleItemGallery.vue";
+import SaleItemGalleryModel from "@/components/SaleItemGalleryModel.vue";
+import { getAllBrands } from "@/services/BrandService";
+import {
+  getAllSaleItems,
+  getAllSaleItems_v2,
+} from "@/services/SaleItemService";
+import { useBrandStore } from "@/stores/BrandStore";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useNotiStore } from "@/stores/์NotiStore";
+import { computed, onMounted, ref, watch } from "vue";
 
-const { getSaleItems } = useSaleItemStore()
+const { getSaleItems, getSaleItemsPage } = useSaleItemStore();
 
-const saleItems = computed(() => getSaleItems())
-const hasError = ref('')
-const saleItemStore = useSaleItemStore()
+const saleItems = computed(() => getSaleItems());
+const saleItemsPage = computed(() => getSaleItemsPage());
+const hasError = ref("");
+const saleItemStore = useSaleItemStore();
 
-const showFilterDropdown = ref(false)
-const brandStore = useBrandStore()
-const brandOptions = ref([])
-const selectedBrands = ref([])
+const showFilterDropdown = ref(false);
+const brandStore = useBrandStore();
+const brandOptions = ref([]);
+const selectedBrands = ref([]);
 
 const sortField = ref('createdOn')
 const sortDirection = ref('asc')
@@ -37,27 +41,27 @@ const applyFilter = async () => {
       sortDirection.value
     )
     if (response && !response.error) {
-      saleItemStore.setSaleItemsPage(response)
+      saleItemStore.setSaleItemsPage(response);
     } else {
-      throw new Error(response?.error)
+      throw new Error(response?.error);
     }
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-}
+};
 
 const selectBrand = (brand) => {
   if (!selectedBrands.value.some((b) => b.name === brand.name)) {
-    selectedBrands.value.push(brand)
+    selectedBrands.value.push(brand);
   }
-  showFilterDropdown.value = false
-}
+  showFilterDropdown.value = false;
+};
 
 const removeBrand = (brand) => {
   selectedBrands.value = selectedBrands.value.filter(
     (b) => b.name !== brand.name
-  )
-}
+  );
+};
 
 const clearAllBrands = () => {
   selectedBrands.value = []
@@ -84,39 +88,57 @@ watch(currentPage, () => {
   applyFilter()
 })
 
+const size = ref(10);
 onMounted(async () => {
-  try {
-    const response = await getAllSaleItems()
-    if (response.error) {
-      throw new Error(response.error)
+  if (saleItemsPage.value === null) {
+    try {
+      const response = await getAllSaleItems_v2();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+    } catch (e) {
+      hasError.value = e.message;
     }
-  } catch (e) {
-    hasError.value = e.message
+  }
+
+  if (saleItems.value === null) {
+    try {
+      const response = await getAllSaleItems();
+      if (response.error) {
+        throw new Error(response.error);
+      }
+    } catch (e) {
+      hasError.value = e.message;
+    }
   }
 
   try {
-    const response = await getAllBrands()
+    const response = await getAllBrands();
     if (response && !response.error) {
-      brandOptions.value = response.sort((a, b) => a.name.localeCompare(b.name))
-      brandStore.setBrand(response)
+      brandOptions.value = response.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      brandStore.setBrand(response);
     }
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-})
+});
 
-const notiStore = useNotiStore()
-const showCreatedModal = ref(false)
+const notiStore = useNotiStore();
+const showCreatedModal = ref(false);
 onMounted(() => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true
-    notiStore.createSuccess = false
+    showCreatedModal.value = true;
+    notiStore.createSuccess = false;
   }
 })
 
 function handlePageChange(page) {
-  console.log(page)
+  console.log(page);
 }
+
+watch();
 </script>
 
 <template>
@@ -155,82 +177,101 @@ function handlePageChange(page) {
       </div>
     </div>
 
-    <!-- Filter Section -->
-    <div class="mt-6 w-full max-w-md">
-      <div class="flex gap-3 items-center">
-        <!-- Filter input -->
-        <div class="relative flex-1">
-          <input
-            type="text"
-            class="itbms-brand-filter input input-sm w-full border border-gray-300 rounded px-3 py-2"
-            placeholder="Filter by brand(s)"
-            readonly
-          />
+    <div class="flex justify-between items-center mt-6">
+      <!-- Filter Section -->
+      <div class="w-full max-w-md">
+        <div class="flex gap-3 items-center">
+          <!-- Filter input -->
+          <div class="relative flex-1">
+            <input
+              type="text"
+              class="itbms-brand-filter input input-sm w-full border border-gray-300 rounded px-3 py-2"
+              placeholder="Filter by brand(s)"
+              readonly
+            />
 
-          <!-- Filter dropdown -->
-          <ul
-            v-if="showFilterDropdown"
-            class="absolute bg-white border border-gray-300 rounded mt-1 w-full z-10 shadow max-h-40 overflow-y-auto"
-          >
-            <li
-              v-for="(brand, idx) in brandOptions"
-              :key="idx"
-              @mousedown.prevent="selectBrand(brand)"
-              class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+            <!-- Filter dropdown -->
+            <ul
+              v-if="showFilterDropdown"
+              class="absolute bg-white border border-gray-300 rounded mt-1 w-full z-10 shadow max-h-40 overflow-y-auto"
             >
-              {{ brand.name }}
-            </li>
-          </ul>
-        </div>
+              <li
+                v-for="(brand, idx) in brandOptions"
+                :key="idx"
+                @mousedown.prevent="selectBrand(brand)"
+                class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+              >
+                {{ brand.name }}
+              </li>
+            </ul>
+          </div>
 
-        <!-- Filter button -->
-        <button
-          class="itbms-brand-filter-button btn btn-sm bg-green-500 hover:bg-green-600 px-3 py-2"
-          @click="showFilterDropdown = !showFilterDropdown"
-        >
-          <img src="../assets/icons/filter.png" alt="filter" class="w-5 h-5" />
-        </button>
-
-        <!-- Clear button -->
-        <button
-          v-if="selectedBrands.length"
-          class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-2"
-          @click="clearAllBrands"
-        >
-          Clear
-        </button>
-      </div>
-
-      <!-- Selected brands -->
-      <div class="flex flex-wrap gap-2 mt-3">
-        <div
-          v-for="(brand, index) in selectedBrands"
-          :key="index"
-          class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
-        >
-          <span class="itbms-filter-item">{{ brand.name }}</span>
+          <!-- Filter button -->
           <button
-            class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
-            @click="removeBrand(brand)"
+            class="itbms-brand-filter-button btn btn-sm bg-green-500 hover:bg-green-600 px-3 py-2"
+            @click="showFilterDropdown = !showFilterDropdown"
           >
-            ×
+            <img
+              src="../assets/icons/filter.png"
+              alt="filter"
+              class="w-5 h-5"
+            />
+          </button>
+
+          <!-- Clear button -->
+          <button
+            v-if="selectedBrands.length"
+            class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-2"
+            @click="clearAllBrands"
+          >
+            Clear
           </button>
         </div>
+
+        <!-- Selected brands -->
+        <div class="flex flex-wrap gap-2 mt-3">
+          <div
+            v-for="(brand, index) in selectedBrands"
+            :key="index"
+            class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+          >
+            <span class="itbms-filter-item">{{ brand.name }}</span>
+            <button
+              class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
+              @click="removeBrand(brand)"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- pagination -->
+      <div class="flex gap-3 mb-3 text-sm items-center">
+        <p>Show</p>
+        <select v-model="size" class="itbms-page-size h-8 select">
+          <option class="" value="5">5</option>
+          <option class="" value="10">10</option>
+          <option class="" value="20">20</option>
+        </select>
       </div>
     </div>
 
     <SaleItemGallery
       class="mt-10"
-      :sale-items="saleItems"
-      :page-info="{
-        last: false,
-        first: true,
-        totalPages: 13,
-        totalElements: 63,
-        size: 5,
-        sort: 'color: ASC',
-        page: 1,
-      }"
+      :sale-items="size ? saleItemsPage?.content : saleItems"
+      :page-info="
+        size
+          ? {
+              last: saleItemsPage?.last,
+              first: saleItemsPage?.first,
+              totalPages: saleItemsPage?.totalPages,
+              totalElements: saleItemsPage?.totalElements,
+              size: saleItemsPage?.size,
+              sort: saleItemsPage?.sort,
+              page: saleItemsPage?.page,
+            }
+          : null
+      "
       :has-error="hasError"
       @page-changed="handlePageChange"
     />

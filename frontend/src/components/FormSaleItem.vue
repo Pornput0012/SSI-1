@@ -31,11 +31,59 @@ const formData = ref({
 });
 
 const validate = ref({
-  brand: { msg: "", nullable: false },
-  model: { msg: "", maxLength: 60, nullable: false },
-  price: { msg: "", nullable: false },
-  description: { msg: "", nullable: false },
-  quantity: { msg: "", nullable: false },
+  brand: { msg: "Brand must be selected", invalid: false, notNull: true },
+  model: {
+    msg: "Model must be 1-60 characters long.",
+    notNull: true,
+    maxLength: 60,
+    wrong: false,
+    invalid: false,
+  },
+  color: {
+    msg: "Color must be 1-40 characters long or not specified.",
+    wrong: false,
+    maxLength: 40,
+    invalid: false,
+  },
+  price: {
+    msg: "Price must be non-negative integer",
+    wrong: false,
+    notNull: true,
+    nonNeg: true,
+    invalid: false,
+  },
+  description: {
+    msg: "Description must be 1-65,535 characters long.",
+    wrong: false,
+    notNull: true,
+    maxLength: 65535,
+    invalid: false,
+  },
+  quantity: {
+    msg: "Quantity must be non-negative integer",
+    wrong: false,
+    notNull: true,
+    nonNeg: true,
+    invalid: false,
+  },
+  ramGb: {
+    msg: "RAM size must be positive integer or not specified",
+    wrong: false,
+    positive: true,
+    invalid: false,
+  },
+  screenSizeInch: {
+    msg: "Screen size must be positive number with at most 2 decimal points or not specified",
+    wrong: false,
+    positive: true,
+    invalid: false,
+  },
+  storageGb: {
+    msg: "Storage size must be positive integer or not specified",
+    wrong: false,
+    positive: true,
+    invalid: false,
+  },
 });
 
 const errorTitle = ref("");
@@ -68,23 +116,8 @@ const fieldCheckOldData = [
   "quantity",
 ];
 
+const validateField = [...fieldCheckOldData, "brand", "color"];
 const handleSubmit = () => {
-  const validateField = [...requireField, "quantity"];
-  for (const field of validateField) {
-    if (validate.value[field].msg) {
-      const invalidFields = [];
-      if (validate.value[field].msg) {
-        invalidFields.push(field);
-      }
-      errorTitle.value = "Invalid Input";
-      errorMessage.value = `Please check your input field : ${invalidFields.join(
-        ", "
-      )}`;
-      showModal.value = true;
-      return;
-    }
-  }
-
   for (const field of requireField) {
     if (!formData.value[field] || formData.value[field].id === 0) {
       console.log(field + "2");
@@ -100,6 +133,103 @@ const handleSubmit = () => {
   emit("onSubmit", formData.value);
 };
 
+const allValid = computed(() => {
+  return validateField.every(field => validate.value[field]?.invalid === false &&validateField.every(field => validate.value[field]?.wrong === false ));
+});
+
+//false xerror->blur
+//true xerror->blur
+function maximumLength(field, blur) {
+  if (
+    (formData.value[field] &&
+      formData.value[field].length > validate.value[field].maxLength) ||
+    (validate.value[field].notNull && formData.value[field].length < 1)
+  ) {
+    validate.value[field].wrong = true;
+   
+    if (blur) {
+      // เช็คตอน blur แล้วผิด → ให้แสดง error
+      validate.value[field].invalid = true;
+    }
+  } else {
+    validate.value[field].wrong = false;
+    validate.value[field].invalid = false;
+    // ถ้าข้อมูลถูก → ลบ error ทิ้งเสมอ ไม่ว่าจะ blur หรือไม่
+  }
+}
+
+function brandSelected(blur) {
+  if (!formData.value.brand || formData.value.brand.id === 0) {
+    validate.value.brand.wrong = true;
+    if (blur) {
+      // เช็คตอน blur แล้วผิด → ให้แสดง error
+      validate.value.brand.invalid = true;
+    }
+    return;
+  } else {
+    validate.value.brand.wrong = false;
+    validate.value.brand.invalid = false;
+  }
+}
+function nonNegative(field, blur) {
+  if (
+    (!formData.value[field] && formData.value[field] !== 0) ||
+    (formData.value[field] && formData.value[field] < 0)
+  ) {
+    validate.value[field].wrong = true;
+   
+    if (blur) {
+      // เช็คตอน blur แล้วผิด → ให้แสดง error
+      validate.value[field].invalid = true;
+    }
+
+    return;
+  } else {
+    validate.value[field].wrong = false;
+    validate.value[field].invalid = false;
+  }
+}
+
+function isValidPositiveField(field, blur) {
+  if (!formData.value[field] && formData.value[field] !== 0) {
+    validate.value[field].invalid = false;
+    validate.value[field].wrong = false;
+    return;
+  }
+
+  const parsed = parseFloat(formData.value[field]);
+
+  // กรณีค่าที่กรอกไม่ใช่ตัวเลข หรือ <= 0
+  if (isNaN(parsed) || parsed <= 0) {
+    validate.value[field].wrong = true;
+    if (blur) {
+      validate.value[field].invalid = true;
+    }
+    return;
+  }
+
+  if (field === "screenSizeInch") {
+    const decimalPart = formData.value[field].toString().split(".")[1];
+    const hasTooManyDecimals = decimalPart && decimalPart.length > 2;
+
+    if (hasTooManyDecimals) {
+     validate.value[field].wrong = true;
+      if (blur) {
+        validate.value[field].invalid = true;
+      }
+    } else {
+      validate.value[field].invalid = false;
+      validate.value[field].wrong = false;
+    }
+
+    return;
+  }
+
+  // ถ้าผ่านทุกเงื่อนไขแล้ว → ถือว่าถูกต้อง ลบ error ทิ้ง
+  validate.value[field].invalid = false;
+  validate.value[field].wrong = false;
+}
+
 watchEffect(() => {
   if (brands.value && brands.value.length > 0 && formData.value.brand.name) {
     const foundBrand = brands.value.find(
@@ -113,13 +243,86 @@ watchEffect(() => {
 const normalize = (val) =>
   val === null || val === undefined ? "" : val.trim?.() ?? val;
 
+
+
+watch(
+  () => formData.value.brand,
+  () => {
+    brandSelected(false);
+  }
+);
+watch(
+  () => formData.value.quantity,
+  () => {
+    nonNegative("quantity", false);
+  }
+);
+
+watch(
+  () => formData.value.price,
+  () => {
+    nonNegative("price", false);
+  }
+);
+
+watch(
+  () => formData.value.model,
+  () => {
+    maximumLength("model", false);
+  }
+);
+
+watch(
+  () => formData.value.description,
+  () => {
+    maximumLength("description", false);
+  }
+);
+
+watch(
+  () => formData.value.color,
+  () => {
+    maximumLength("color", false);
+  }
+);
+
+watch(
+  () => formData.value.ramGb,
+  () => {
+    isValidPositiveField("ramGb", false);
+  }
+);
+
+watch(
+  () => formData.value.screenSizeInch,
+  () => {
+    isValidPositiveField("screenSizeInch", false);
+  }
+);
+
+watch(
+  () => formData.value.storageGb,
+  () => {
+    isValidPositiveField("storageGb", false);
+  }
+);
+
 watchEffect(() => {
+  if (!allValid.value) {
+    isSave.value = true
+    return ;
+  }
+  
+
   for (const field of requireField) {
     if (!formData.value[field] || formData.value[field].id == 0) {
       isSave.value = true; // ยังกรอกไม่ครบ ไม่ควรบันทึก
       return;
     }
   }
+
+  console.log(isSave.value);
+  
   let hasChanges = false;
 
   if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
@@ -140,72 +343,9 @@ watchEffect(() => {
   }
 
   isSave.value = !hasChanges;
+  console.log(isSave.value);
 });
 
-const notNull = [...requireField, "quantity"];
-
-watch(
-  () => formData.value.brand,
-  () => {
-    if (
-      (!formData.value.brand || formData.value.brand.id === 0) &&
-      !validate.value.brand.nullable
-    ) {
-      validate.value.brand.msg = "Brand is required";
-    } else {
-      validate.value.brand.msg = "";
-    }
-  }
-);
-
-watch(
-  () => formData.value.model,
-  () => {
-    if (!formData.value.model && !validate.value.model.nullable) {
-      validate.value.model.msg = "Model is required";
-    } else if (
-      formData.value.model &&
-      formData.value.model.length > validate.value.model.maxLength
-    ) {
-      validate.value.model.msg = `Model must be less than ${validate.value.model.maxLength} characters.`;
-    } else {
-      validate.value.model.msg = "";
-    }
-  }
-);
-
-watch(
-  () => formData.value.description,
-  () => {
-    if (!formData.value.description && !validate.value.description.nullable) {
-      validate.value.description.msg = "Description is required";
-    } else {
-      validate.value.description.msg = "";
-    }
-  }
-);
-
-watch(
-  () => formData.value.price,
-  () => {
-    if (!formData.value.price && !validate.value.price.nullable) {
-      validate.value.price.msg = "Price is required";
-    } else {
-      validate.value.price.msg = "";
-    }
-  }
-);
-
-watch(
-  () => formData.value.quantity,
-  () => {
-    if (!formData.value.quantity && !validate.value.quantity.nullable) {
-      validate.value.quantity.msg = "Quantity is required";
-    } else {
-      validate.value.quantity.msg = "";
-    }
-  }
-);
 </script>
 
 <template>
@@ -241,6 +381,7 @@ watch(
               id="brand"
               class="itbms-brand select"
               v-model="formData.brand"
+              @blur="brandSelected(true)"
             >
               <option :value="{ id: 0, name: '' }" disabled>
                 Select Brand
@@ -257,7 +398,7 @@ watch(
             </select>
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.brand.msg !== ''"
+              v-if="validate.brand.invalid"
             >
               <span class="font-extralight">{{ validate.brand.msg }}</span>
             </div>
@@ -275,12 +416,13 @@ watch(
               v-model.trim="formData.model"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.model.msg !== '',
+                  validate.model.invalid,
               }"
+              @blur="maximumLength('model', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.model.msg !== ''"
+              v-if="validate.model.invalid"
             >
               <span class="font-extralight">{{ validate.model.msg }}</span>
             </div>
@@ -297,12 +439,13 @@ watch(
               v-model="formData.price"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.price.msg !== '',
+                  validate.price.invalid,
               }"
+              @blur="nonNegative('price', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.price.msg !== ''"
+              v-if="validate.price.invalid"
             >
               <span class="font-extralight">{{ validate.price.msg }}</span>
             </div>
@@ -318,12 +461,13 @@ watch(
               v-model.trim="formData.description"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.description.msg !== '',
+                  validate.description.invalid,
               }"
+              @blur="maximumLength('description', true)"
             ></textarea>
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.description.msg !== ''"
+              v-if="validate.description.invalid"
             >
               <span class="font-extralight">{{
                 validate.description.msg
@@ -333,44 +477,98 @@ watch(
 
           <label class="text-sm md:text-base" for="ramGb">Ram (GB)</label>
 
-          <input
-            type="number"
-            id="ramGb"
-            class="itbms-ramGb input"
-            min="1"
-            v-model="formData.ramGb"
-          />
+          <div class="flex-col">
+            <input
+              type="number"
+              id="ramGb"
+              class="itbms-ramGb input"
+              :class="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                  validate.ramGb.invalid,
+              }"
+              min="1"
+              v-model="formData.ramGb"
+              @blur="isValidPositiveField('ramGb', true)"
+            />
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.ramGb.invalid"
+            >
+              <span class="font-extralight">{{ validate.ramGb.msg }}</span>
+            </div>
+          </div>
 
           <label class="text-sm md:text-base max-w-[110px]" for="screenSizeInch"
             >Screen Size (Inch)</label
           >
-          <input
-            type="number"
-            id="screenSizeInch"
-            class="itbms-screenSizeInch input"
-            step="0.01"
-            min="1"
-            v-model="formData.screenSizeInch"
-          />
+          <div class="flex-col">
+            <input
+              type="number"
+              id="screenSizeInch"
+              class="itbms-screenSizeInch input"
+              :class="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                  validate.screenSizeInch.invalid,
+              }"
+              step="0.01"
+              min="1"
+              v-model="formData.screenSizeInch"
+              @blur="isValidPositiveField('screenSizeInch', true)"
+            />
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.screenSizeInch.invalid"
+            >
+              <span class="font-extralight">{{
+                validate.screenSizeInch.msg
+              }}</span>
+            </div>
+          </div>
 
           <label class="text-sm md:text-base" for="storageGb"
             >Storage (GB)</label
           >
-          <input
-            type="number"
-            id="storageGb"
-            class="itbms-storageGb input"
-            min="1"
-            v-model="formData.storageGb"
-          />
+          <div class="flex-col">
+            <input
+              type="number"
+              id="storageGb"
+              class="itbms-storageGb input"
+              min="1"
+              v-model="formData.storageGb"
+              @blur="isValidPositiveField('storageGb', true)"
+              :class="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                  validate.storageGb.invalid,
+              }"
+            />
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.storageGb.invalid"
+            >
+              <span class="font-extralight">{{ validate.storageGb.msg }}</span>
+            </div>
+          </div>
 
           <label class="text-sm md:text-base" for="color">Color</label>
-          <input
-            type="text"
-            id="color"
-            class="itbms-color input"
-            v-model.trim="formData.color"
-          />
+          <div class="flex-col">
+            <input
+              type="text"
+              id="color"
+              class="itbms-color input"
+              v-model.trim="formData.color"
+              :class="{
+                'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                  validate.color.invalid,
+              }"
+              @blur="maximumLength('color', true)"
+            />
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.color.invalid"
+            >
+              <span class="font-extralight">{{ validate.color.msg }}</span>
+            </div>
+          </div>
 
           <label class="text-sm md:text-base" for="quantity"
             >Quantity<span class="text-red-500"> *</span></label
@@ -385,12 +583,13 @@ watch(
               v-model="formData.quantity"
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
-                  validate.quantity.msg !== '',
+                  validate.quantity.invalid,
               }"
+              @blur="nonNegative('quantity', true)"
             />
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
-              v-if="validate.quantity.msg !== ''"
+              v-if="validate.quantity.invalid"
             >
               <span class="font-extralight">{{ validate.quantity.msg }}</span>
             </div>
