@@ -1,14 +1,17 @@
 <script setup>
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import FormSaleItem from '@/components/FormSaleItem.vue'
-import SaleItemGallery from '@/components/SaleItemGallery.vue'
-import SaleItemGalleryModel from '@/components/SaleItemGalleryModel.vue'
-import { getAllBrands } from '@/services/BrandService'
-import { getAllSaleItems, getAllSaleItems_v2 } from '@/services/SaleItemService'
-import { useBrandStore } from '@/stores/BrandStore'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { useNotiStore } from '@/stores/์NotiStore'
-import { computed, onMounted, ref } from 'vue'
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import FormSaleItem from "@/components/FormSaleItem.vue";
+import SaleItemGallery from "@/components/SaleItemGallery.vue";
+import SaleItemGalleryModel from "@/components/SaleItemGalleryModel.vue";
+import { getAllBrands } from "@/services/BrandService";
+import {
+  getAllSaleItems,
+  getAllSaleItems_v2,
+} from "@/services/SaleItemService";
+import { useBrandStore } from "@/stores/BrandStore";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useNotiStore } from "@/stores/์NotiStore";
+import { computed, onMounted, ref, watch } from "vue";
 
 const { getSaleItems, getSaleItemsPage } = useSaleItemStore();
 
