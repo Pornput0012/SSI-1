@@ -1,21 +1,18 @@
 <script setup>
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
 // import FormSaleItem from '@/components/FormSaleItem.vue'
-import SaleItemGallery from "@/components/SaleItemGallery.vue";
+import SaleItemGallery from '@/components/SaleItemGallery.vue'
 // import SaleItemGalleryModel from '@/components/SaleItemGalleryModel.vue'
-import { getAllBrands } from "@/services/BrandService";
-import {
-  getAllSaleItems,
-  getAllSaleItems_v2,
-} from "@/services/SaleItemService";
-import { useBrandStore } from "@/stores/BrandStore";
-import { useFilterStore } from "@/stores/FilterStore";
+import { getAllBrands } from '@/services/BrandService'
+import { getAllSaleItems, getAllSaleItems_v2 } from '@/services/SaleItemService'
+import { useBrandStore } from '@/stores/BrandStore'
+import { useFilterStore } from '@/stores/FilterStore'
 
-import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useNotiStore } from "@/stores/์NotiStore";
-import { computed, onMounted, ref, watch } from "vue";
+import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { useNotiStore } from '@/stores/์NotiStore'
+import { computed, onMounted, ref, watch } from 'vue'
 
-const { getSaleItemsPage } = useSaleItemStore();
+const { getSaleItemsPage } = useSaleItemStore()
 const {
   getFilterList,
   setSelectBrand,
@@ -24,24 +21,23 @@ const {
   removeBrand,
   setPageSize,
   setSortBrand,
-} = useFilterStore();
-const filterStore = useFilterStore();
+} = useFilterStore()
+const filterStore = useFilterStore()
 
-const sortField = computed(() => filterStore.sortField);
-const sortDirection = computed(() => filterStore.sortDirection);
-const currentPage = computed(() => filterStore.currentPage);
-const pageSize = computed(() => filterStore.pageSize);
-const selectedBrands = computed(() => filterStore.selectedBrands);
+const sortField = computed(() => filterStore.sortField)
+const sortDirection = computed(() => filterStore.sortDirection)
+const currentPage = computed(() => filterStore.currentPage)
+const pageSize = computed(() => filterStore.pageSize)
+const selectedBrands = computed(() => filterStore.selectedBrands)
 
-const filterBrands = computed(() => getFilterList());
-const saleItems = computed(() => getSaleItemsPage());
+const filterBrands = computed(() => getFilterList())
+const saleItems = computed(() => getSaleItemsPage())
 
+const hasError = ref('')
 
-const hasError = ref("");
-
-const showFilterDropdown = ref(false);
-const brandStore = useBrandStore();
-const brandOptions = ref([]);
+const showFilterDropdown = ref(false)
+const brandStore = useBrandStore()
+const brandOptions = ref([])
 
 const applyFilter = async () => {
   try {
@@ -51,96 +47,91 @@ const applyFilter = async () => {
       size: pageSize.value,
       sortField: sortField.value,
       sortDirection: sortDirection.value,
-    });
+    })
+    localStorage.setItem('selectedBrands', JSON.stringify(selectedBrands.value))
     localStorage.setItem(
-      "selectedBrands",
-      JSON.stringify(selectedBrands.value)
-    );
-    localStorage.setItem(
-      "pageInfo",
+      'pageInfo',
       JSON.stringify({
         page: currentPage.value,
         size: pageSize.value,
         sortField: sortField.value,
         sortDirection: sortDirection.value,
       })
-    );
+    )
     if (response.error && !response) {
-      throw new Error(response?.error);
+      throw new Error(response?.error)
     }
   } catch (error) {
-    hasError.value = error.message;
+    hasError.value = error.message
   }
-};
+}
 
 const selectBrand = (brand) => {
-  setSelectBrand(brand);
-  showFilterDropdown.value = false;
-};
+  setSelectBrand(brand)
+  showFilterDropdown.value = false
+}
 
 const clearAllBrands = () => {
-  clearAllSelectedBrands();
-};
+  clearAllSelectedBrands()
+}
 
 // เมื่อ selectedBrands เปลี่ยน ให้ reset หน้า และเรียก applyFilter
 watch(
   selectedBrands,
   () => {
-    setCurrentPage(0);
-    applyFilter();
+    setCurrentPage(0)
+    applyFilter()
   },
   { deep: true }
-);
+)
 
 // เมื่อ sortField หรือ sortDirection เปลี่ยน
 watch([sortField, sortDirection, pageSize], () => {
-  setCurrentPage(0);
-  applyFilter();
-});
+  setCurrentPage(0)
+  applyFilter()
+})
 
-const size = ref(10);
+const size = ref(10)
 onMounted(async () => {
-   try {
+  try {
     const response = await getAllSaleItems_v2({
       page: currentPage.value,
       size: pageSize.value,
-    });
+    })
     if (response.error) {
-      throw new Error(response.error);
+      throw new Error(response.error)
     }
   } catch (e) {
-    hasError.value = e.message;
+    hasError.value = e.message
   }
-});
+})
 onMounted(async () => {
   try {
-    const response = await getAllBrands();
+    const response = await getAllBrands()
     if (response && !response.error) {
-      brandOptions.value = response.sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
-      brandStore.setBrand(response);
+      brandOptions.value = response.sort((a, b) => a.name.localeCompare(b.name))
+      brandStore.setBrand(response)
     }
   } catch (error) {
-    hasError.value = error.message;
+    hasError.value = error.message
   }
-});
+})
 
-const notiStore = useNotiStore();
-const showCreatedModal = ref(false);
+const notiStore = useNotiStore()
+const showCreatedModal = ref(false)
 onMounted(() => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true;
-    notiStore.createSuccess = false;
+    showCreatedModal.value = true
+    notiStore.createSuccess = false
   }
-});
+})
 
 function handlePageChange(pageIndex) {
-  setCurrentPage(pageIndex);
-  applyFilter();
+  setCurrentPage(pageIndex)
+  applyFilter()
 }
 
-watch();
+watch()
 </script>
 
 <template>
@@ -231,20 +222,24 @@ watch();
         </div>
         <!-- number of element and sort  -->
         <div class="flex gap-3 items-center">
-          <label for="numberElement">Show</label>
-          <select
-            id="numberElement"
-            class="itbms-page-size select"
-            @input="setPageSize($event.target.value)"
-          >
-            <option
-              v-for="ele in [5, 10, 20]"
-              :value="ele"
-              :selected="ele === pageSize"
-            >
-              {{ ele }}
-            </option>
-          </select>
+          <div class="hidden md:block">
+            <div class="flex items-center gap-3">
+              <label for="numberElement">Show</label>
+              <select
+                id="numberElement"
+                class="itbms-page-size select"
+                @input="setPageSize($event.target.value)"
+              >
+                <option
+                  v-for="ele in [5, 10, 20]"
+                  :value="ele"
+                  :selected="ele === pageSize"
+                >
+                  {{ ele }}
+                </option>
+              </select>
+            </div>
+          </div>
 
           <button
             @click="setSortBrand()"
@@ -304,41 +299,40 @@ watch();
         </div>
       </div>
 
-          <!-- Clear button -->
+      <!-- Selected brands -->
+      <div class="flex flex-wrap gap-2 mt-3">
+        <div
+          v-for="(brand, index) in selectedBrands"
+          :key="index"
+          class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+        >
+          <span class="itbms-filter-item">{{ brand.name }}</span>
           <button
-            v-if="selectedBrands.length"
-            class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white font-bold px-3 py-2"
-            @click="clearAllBrands"
+            class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
+            @click="removeBrand(brand)"
           >
-            Clear
+            ×
           </button>
         </div>
-
-        <!-- Selected brands -->
-        <div class="flex flex-wrap gap-2 mt-3">
-          <div
-            v-for="(brand, index) in selectedBrands"
-            :key="index"
-            class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
-          >
-            <span class="itbms-filter-item">{{ brand.name }}</span>
-            <button
-              class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
-              @click="removeBrand(brand)"
-            >
-              ×
-            </button>
-          </div>
-        </div>
       </div>
-      <!-- pagination -->
-      <div class="flex gap-3 mb-3 text-sm items-center">
-        <p>Show</p>
-        <select v-model="size" class="itbms-page-size h-8 select">
-          <option class="" value="5">5</option>
-          <option class="" value="10">10</option>
-          <option class="" value="20">20</option>
-        </select>
+      <!-- number of element  -->
+      <div class="block md:hidden">
+        <div class="flex gap-3 mt-4 mb-3 text-sm items-center">
+          <p>Show</p>
+          <select
+            id="numberElement"
+            class="itbms-page-size h-8 select"
+            @input="setPageSize($event.target.value)"
+          >
+            <option
+              v-for="ele in [5, 10, 20]"
+              :value="ele"
+              :selected="ele === pageSize"
+            >
+              {{ ele }}
+            </option>
+          </select>
+        </div>
       </div>
     </div>
 
