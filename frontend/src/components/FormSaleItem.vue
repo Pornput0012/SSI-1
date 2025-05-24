@@ -2,8 +2,7 @@
 import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watch, watchEffect } from "vue";
-import { useRouter } from "vue-router";
-const router = useRouter();
+
 const emit = defineEmits(["onSubmit"]);
 const { getBrands } = useBrandStore();
 const brands = computed(() => getBrands());

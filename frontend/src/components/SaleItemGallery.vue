@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import ContainerList from "./ContainerList.vue";
 import SaleItemGalleryModel from "./SaleItemGalleryModel.vue";
 
@@ -8,19 +8,16 @@ const props = defineProps({
     type: [Array, null],
     required: true,
   },
-
-  pageInfo: {
-    type: Object,
-  },
-
+  pageInfo: Object,
   hasError: String,
 });
 
 const emit = defineEmits(["pageChanged"]);
 
-const currentPage = ref(props.pageInfo.page);
-const pageNumbers = ref([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+const currentPage = ref(props.pageInfo?.page ?? 0);
+const pageNumbers = ref([]);
 const startPageIndex = ref(0);
+const isActionPage = ref(true);
 
 const calcPageNumber = (oldPage) => {
   const totalPages = props.pageInfo.totalPages;
@@ -31,55 +28,57 @@ const calcPageNumber = (oldPage) => {
     totalPages > 10 &&
     !isNaN(pageNumbers.value[9])
   ) {
-    console.log("a");
+    isActionPage.value = true;
     startPageIndex.value += 1;
   } else if (oldPage && currentPage.value < oldPage) {
-    console.log("b");
+    isActionPage.value = true;
     startPageIndex.value -= 1;
   }
 
-  const newPageNumber = [];
-  for (
-    let i = startPageIndex.value;
-    i < MAX_SHOW_PAGE + startPageIndex.value;
-    i++
-  ) {
-    newPageNumber.push(i + 1);
+  if (isActionPage.value) {
+    const newPageNumber = [];
+    for (
+      let i = startPageIndex.value;
+      i < MAX_SHOW_PAGE + startPageIndex.value;
+      i++
+    ) {
+      newPageNumber.push(i + 1);
+    }
+    pageNumbers.value = newPageNumber;
   }
-  pageNumbers.value = newPageNumber;
+  isActionPage.value = false;
 };
 
 onMounted(() => {
   if (currentPage.value > 10) {
-    console.log(currentPage.value);
-
+    // มีเหตุผลอะไรถึงต้อง +1 ???
     startPageIndex.value =
-      Math.floor(currentPage.value / 10) > 1
-        ? (currentPage.value / 10) * 10 - 10
-        : currentPage.value % 10;
-
-    console.log(startPageIndex.value);
+      Math.floor((currentPage.value + 1) / 10) > 1
+        ? ((currentPage.value + 1) / 10) * 10 - 10
+        : (currentPage.value + 1) % 10;
   }
   calcPageNumber();
 });
 
 function changePage(pageIndex) {
   currentPage.value = pageIndex;
-  if (pageIndex == 0) {
+  if (pageIndex === 0) {
     startPageIndex.value = 0;
+    isActionPage.value = true;
     calcPageNumber();
-  } else if (pageIndex == props.pageInfo.totalPages - 1) {
+  } else if (pageIndex === props.pageInfo.totalPages - 1) {
     startPageIndex.value =
-      Math.floor(currentPage.value / 10) > 1
-        ? (currentPage.value / 10) * 10 - 10
-        : currentPage.value % 10;
-
+      props.pageInfo.totalPages > 10
+        ? Math.floor(currentPage.value / 10) > 1
+          ? (currentPage.value / 10) * 10 - 10
+          : currentPage.value % 10
+        : 0;
+    isActionPage.value = true;
     calcPageNumber();
-    console.log(startPageIndex.value);
   }
   emit("pageChanged", currentPage.value);
 }
-// เปลี่ยนไปหน้าถัดไป ถ้ายังไม่ถึงหน้าสุดท้าย
+
 function nextPage() {
   if (currentPage.value < props.pageInfo.totalPages - 1) {
     currentPage.value++;
@@ -89,44 +88,56 @@ function nextPage() {
     changePage(currentPage.value);
   }
 }
-// เปลี่ยนไปหน้าก่อนหน้า ถ้ายังไม่ใช่หน้าแรก
+
 function prevPage() {
   if (currentPage.value > 0) {
     const oldPageNumber = currentPage.value;
     currentPage.value--;
-    console.log(currentPage.value);
-    console.log(pageNumbers.value[0]);
-
     if (currentPage.value < pageNumbers.value[0] - 1) {
       calcPageNumber(oldPageNumber);
     }
     changePage(currentPage.value);
   }
 }
+
+watch(
+  () => props.pageInfo,
+  (newVal) => {
+    if (newVal) {
+      startPageIndex.value = 0;
+      currentPage.value = newVal.page;
+      isActionPage.value = true;
+      calcPageNumber();
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <template>
   <div>
-    <!-- error message -->
+    <!-- Error message -->
     <div
       v-if="!saleItems && hasError !== '' && hasError"
       class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-red-100 border-1 border-red-300"
     >
       <p class="text-red-500 font-extralight">{{ hasError }}</p>
     </div>
-    <!-- loader -->
+
+    <!-- Loader -->
     <div
       v-else-if="!saleItems"
       class="w-full h-full justify-center items-center grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 md:gap-6 lg:grid-cols-4 lg:gap-8 xl:grid-cols-5 xl:gap-10"
     >
-      <div v-for="i in 5" class="flex w-full flex-col gap-4">
+      <div v-for="i in 5" :key="i" class="flex w-full flex-col gap-4">
         <div class="skeleton h-32 w-full"></div>
         <div class="skeleton h-4 w-28"></div>
         <div class="skeleton h-4 w-full"></div>
         <div class="skeleton h-4 w-full"></div>
       </div>
     </div>
-    <!-- show sale item -->
+
+    <!-- Show sale items -->
     <ContainerList
       v-else-if="saleItems && saleItems.length > 0"
       :items="saleItems"
@@ -145,9 +156,18 @@ function prevPage() {
       </template>
     </ContainerList>
 
+    <!-- No sale item -->
+    <div
+      v-if="saleItems && saleItems.length === 0"
+      class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
+    >
+      <p class="text-purple-700 font-medium">no sale item</p>
+    </div>
+
+    <!-- Pagination -->
     <div
       v-if="pageInfo && pageInfo.totalPages !== 1"
-      class="join mt-10 w-full px-auto"
+      class="join mt-7 w-full px-auto"
     >
       <button
         class="itbms-page-first join-item btn"
@@ -163,9 +183,9 @@ function prevPage() {
       >
         Prev
       </button>
-
       <button
         v-for="(number, index) in pageNumbers"
+        :key="index"
         :class="'itbms-page-' + index"
         class="btn"
         :disabled="currentPage == number - 1"
@@ -173,7 +193,6 @@ function prevPage() {
       >
         {{ number }}
       </button>
-
       <button
         class="itbms-page-next join-item btn"
         @click="nextPage"
@@ -188,14 +207,6 @@ function prevPage() {
       >
         Last
       </button>
-    </div>
-
-    <!-- no sale item -->
-    <div
-      v-if="saleItems && saleItems.length === 0"
-      class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
-    >
-      <p class="text-purple-700 font-medium">no sale item</p>
     </div>
   </div>
 </template>

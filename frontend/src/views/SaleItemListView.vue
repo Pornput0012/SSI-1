@@ -1,5 +1,4 @@
 <script setup>
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import SaleItemList from '@/components/SaleItemList.vue'
 import { getAllSaleItems } from '@/services/SaleItemService'
 import { useSaleItemStore } from '@/stores/SaleItemStore'

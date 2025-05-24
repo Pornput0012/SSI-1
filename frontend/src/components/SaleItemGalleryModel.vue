@@ -1,5 +1,4 @@
 <script setup>
-import { useSaleItemStore } from "@/stores/SaleItemStore";
 
 const props = defineProps({
   id: {

@@ -1,8 +1,5 @@
 <script setup>
-import { getAllBrands } from "@/services/BrandService";
-import { useBrandStore } from "@/stores/BrandStore";
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
-import router from "@/router";
+import { ref, watchEffect } from "vue";
 
 const emit = defineEmits(["onSubmit"]);
 
