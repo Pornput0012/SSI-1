@@ -9,20 +9,17 @@ import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/์NotiStore";
 import { computed, onMounted, ref } from "vue";
 
-// Constants
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
 const STORAGE_KEYS = {
   SELECTED_BRANDS: "selectedBrands",
   PAGE_INFO: "pageInfo",
 };
 
-// Store initialization
 const filterStore = useFilterStore();
 const saleItemStore = useSaleItemStore();
 const notiStore = useNotiStore();
 const brandStore = useBrandStore();
 
-// Destructure store methods
 const {
   getFilterList,
   setSelectBrand,
@@ -39,7 +36,6 @@ const {
 
 const { getSaleItemsPage } = saleItemStore;
 
-// Computed properties
 const sortField = computed(() => filterStore.sortField);
 const sortDirection = computed(() => filterStore.sortDirection);
 const currentPage = computed(() => filterStore.currentPage);
@@ -48,13 +44,11 @@ const selectedBrands = computed(() => filterStore.selectedBrands);
 const filterBrands = computed(() => getFilterList());
 const saleItems = computed(() => getSaleItemsPage());
 
-// Reactive state
 const hasError = ref("");
 const showFilterDropdown = ref(false);
 const showCreatedModal = ref(false);
 const brandOptions = ref([]);
 
-// Utility functions
 const saveToLocalStorage = () => {
   localStorage.setItem(
     STORAGE_KEYS.SELECTED_BRANDS,
@@ -90,7 +84,6 @@ const setDefaultStoreValues = (pageInfo) => {
   setSortDirection(pageInfo?.sortDirection ?? null);
 };
 
-// Main functions
 const applyFilter = async () => {
   try {
     console.log("FetchApplyFilter");
@@ -176,7 +169,6 @@ const showSuccessModal = () => {
   }
 };
 
-// Lifecycle hooks
 onMounted(async () => {
   try {
     const { pageInfo } = getFromLocalStorage();
