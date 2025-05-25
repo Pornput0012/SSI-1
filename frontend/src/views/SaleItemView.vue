@@ -273,7 +273,7 @@ onMounted(async () => {
         <!-- Sort and Page Size Controls -->
         <div class="flex gap-3 items-center">
           <label>Show</label>
-          <select class="select" @input="handlePageSizeChange">
+          <select class="itbms-page-size select" @input="handlePageSizeChange">
             <option
               v-for="size in PAGE_SIZE_OPTIONS"
               :key="size"

@@ -176,11 +176,12 @@ watch(
 
     <!-- Pagination -->
     <div
-      v-if="pageInfo && pageInfo.totalPages !== 1 && !hasError && saleItems && saleItems.length !== 0"
+      v-if="pageInfo && !hasError && saleItems && saleItems.length !== 0"
       class="join mt-7 w-full px-auto"
     >
       <button
         class="itbms-page-first join-item btn"
+        :class="pageInfo.totalPages === 1 ? 'hidden' : ''"
         @click="changePage(0)"
         :disabled="pageInfo.first"
       >
@@ -188,6 +189,7 @@ watch(
       </button>
       <button
         class="itbms-page-prev join-item btn"
+        :class="pageInfo.totalPages === 1 ? 'hidden' : ''"
         @click="prevPage"
         :disabled="pageInfo.first"
       >
@@ -196,7 +198,10 @@ watch(
       <button
         v-for="(number, index) in pageNumbers"
         :key="index"
-        :class="'itbms-page-' + index"
+        :class="[
+          'itbms-page-' + index,
+          pageInfo.totalPages === 1 ? 'hidden' : '',
+        ]"
         class="btn"
         :disabled="currentPage == number - 1"
         @click="changePage(number - 1)"
@@ -206,6 +211,7 @@ watch(
       <button
         class="itbms-page-next join-item btn"
         @click="nextPage"
+        :class="pageInfo.totalPages === 1 ? 'hidden' : ''"
         :disabled="pageInfo.last"
       >
         Next
@@ -213,6 +219,7 @@ watch(
       <button
         class="itbms-page-last join-item btn"
         @click="changePage(pageInfo.totalPages - 1)"
+        :class="pageInfo.totalPages === 1 ? 'hidden' : ''"
         :disabled="pageInfo.last"
       >
         Last
