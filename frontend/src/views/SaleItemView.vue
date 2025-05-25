@@ -86,6 +86,9 @@ const setDefaultStoreValues = (pageInfo) => {
 
 const applyFilter = async (closeModal = false) => {
   try {
+    console.log(sortField.value);
+    console.log(sortDirection.value);
+
     showFilterDropdown.value = closeModal;
 
     console.log("FetchApplyFilter");
@@ -141,8 +144,9 @@ const handleSortChange = async (sortType) => {
   if (sortType) {
     setSortBrand(sortType);
   } else {
-    setSortBrand();
+    setSortBrand("");
   }
+
   resetCurrentPage();
   await applyFilter();
 };
@@ -268,8 +272,8 @@ onMounted(async () => {
           <button
             @click="handleSortChange(null)"
             class="itbms-brand-none btn"
-            :class="{ 'btn-active': !sortDirection && !sortField }"
-            :disabled="!sortDirection && !sortField"
+            :class="{ 'btn-active': !['ASC', 'DESC'].includes(sortDirection) }"
+            :disabled="!['ASC', 'DESC'].includes(sortDirection)"
           >
             None
           </button>

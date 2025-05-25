@@ -31,22 +31,44 @@ public class ProductService {
                 ProductItemDTO.class, modelMapper);
     }
 
-    public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection, List<String> filterBrands) {
-        PageRequest pageable;
-        if (sortField == null) {
-            pageable = PageRequest.of(page, size);
-        } else {
-            Sort sort = "asc".equalsIgnoreCase(sortDirection) ?
-                    Sort.by(Sort.Order.asc(sortField)) :
-                    Sort.by(Sort.Order.desc(sortField));
-            pageable = PageRequest.of(page, size, sort);
-        }
-
+    public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
+            List<String> filterBrands) {
         ProductPageDTO productPage;
-        if (filterBrands == null || filterBrands.isEmpty()) {
-            productPage = modelMapper.map(productRepository.findAll(pageable), ProductPageDTO.class);
+
+        boolean hasSortField = sortField != null && !sortField.isBlank();
+        boolean hasFilter = filterBrands != null && !filterBrands.isEmpty();
+
+        if (hasSortField) {
+            Sort sort = "desc".equalsIgnoreCase(sortDirection)
+                    ? Sort.by(Sort.Order.desc(sortField))
+                    : Sort.by(Sort.Order.asc(sortField));
+            PageRequest pageable = PageRequest.of(page, size, sort);
+
+            if (hasFilter) {
+                // เปลี่ยนจาก findDistinctByBrandNameIn เป็น findByBrandNameIn
+                productPage = modelMapper.map(productRepository.findByBrandNameIn(filterBrands, pageable),
+                        ProductPageDTO.class);
+            } else {
+                productPage = modelMapper.map(productRepository.findAll(pageable), ProductPageDTO.class);
+            }
+
         } else {
-            productPage = modelMapper.map(productRepository.findAllByBrandNameIn(filterBrands, pageable), ProductPageDTO.class);
+            boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
+
+            if (hasFilter) {
+                productPage = sortDesc
+                        ? modelMapper.map(productRepository.findAllByBrandNameInOrderByBrandCreatedOnDesc(filterBrands,
+                                PageRequest.of(page, size)), ProductPageDTO.class)
+                        : modelMapper.map(productRepository.findAllByBrandNameInOrderByBrandCreatedOnAsc(filterBrands,
+                                PageRequest.of(page, size)), ProductPageDTO.class);
+            } else {
+                productPage = sortDesc
+                        ? modelMapper.map(
+                                productRepository.findAllOrderByBrandCreatedOnDesc(PageRequest.of(page, size)),
+                                ProductPageDTO.class)
+                        : modelMapper.map(productRepository.findAllOrderByBrandCreatedOnAsc(PageRequest.of(page, size)),
+                                ProductPageDTO.class);
+            }
         }
 
         productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));

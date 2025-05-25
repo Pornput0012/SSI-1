@@ -44,9 +44,9 @@ export const useFilterStore = defineStore("Filter", () => {
     pageSize.value = Number(size);
   };
 
-  const setSortBrand = (direction = "ASC") => {
-    sortField.value = direction ? "brand.name" : "createdOn";
-    sortDirection.value = direction.toUpperCase();
+  const setSortBrand = (direction) => {
+    sortField.value = direction ? "brand.name" : "";
+    sortDirection.value = direction ? direction.toUpperCase() : "";
   };
 
   const setSortField = (field) => {

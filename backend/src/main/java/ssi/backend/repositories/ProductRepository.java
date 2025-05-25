@@ -12,7 +12,23 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
 
-    @Query("SELECT p FROM Product p JOIN p.brand b WHERE b.name IN ?1")
-    Page<Product> findAllByBrandNameIn(List<String> brandNames, Pageable pageable);
+    // แก้ไข: เอา DISTINCT ออกและใช้ custom query แทน
+    @Query("SELECT p FROM Product p JOIN p.brand brand WHERE brand.name IN :brandNames")
+    Page<Product> findByBrandNameIn(List<String> brandNames, Pageable pageable);
 
+    @Query("SELECT p FROM Product p JOIN p.brand brand ORDER BY brand.createdOn ASC, p.id ASC")
+    Page<Product> findAllOrderByBrandCreatedOnAsc(Pageable pageable);
+
+    @Query("SELECT p FROM Product p JOIN p.brand brand ORDER BY brand.createdOn DESC, p.id DESC")
+    Page<Product> findAllOrderByBrandCreatedOnDesc(Pageable pageable);
+
+    @Query("SELECT p FROM Product p JOIN p.brand brand WHERE brand.name IN :brandNames ORDER BY brand.createdOn ASC, p.id ASC")
+    Page<Product> findAllByBrandNameInOrderByBrandCreatedOnAsc(List<String> brandNames, Pageable pageable);
+
+    @Query("SELECT p FROM Product p JOIN p.brand brand WHERE brand.name IN :brandNames ORDER BY brand.createdOn DESC, p.id DESC")
+    Page<Product> findAllByBrandNameInOrderByBrandCreatedOnDesc(List<String> brandNames, Pageable pageable);
+
+    // หากต้องการ DISTINCT จริงๆ ให้ใช้แบบนี้
+    @Query("SELECT DISTINCT p FROM Product p JOIN p.brand brand WHERE brand.name IN :brandNames ORDER BY p.id")
+    Page<Product> findDistinctByBrandNameInOrderById(List<String> brandNames, Pageable pageable);
 }
