@@ -103,7 +103,7 @@ const applyFilter = async (closeModal = false) => {
 
     saveToLocalStorage();
 
-    if (response.error && !response) {
+    if (response.error) {
       throw new Error(response?.error);
     }
   } catch (error) {
@@ -152,21 +152,37 @@ const handleSortChange = async (sortType) => {
 };
 
 const initializeBrands = async () => {
-  const response = await getAllBrands();
-  if (!response.error) {
-    brandOptions.value = response.sort((a, b) => a.name.localeCompare(b.name));
-    brandStore.setBrand(response);
+  try {
+    const response = await getAllBrands();
+    if (!response.error) {
+      brandOptions.value = response.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      brandStore.setBrand(response);
+    } else {
+      throw new Error(response?.error);
+    }
+  } catch (error) {
+    hasError.value = error.message;
   }
 };
 
 const initializeSaleItems = async (pageInfo) => {
-  await getAllSaleItems_v2({
-    filterBrands: getFilterList(),
-    page: pageInfo?.page ?? 0,
-    size: pageInfo?.size ?? 10,
-    sortField: pageInfo?.sortField ?? null,
-    sortDirection: pageInfo?.sortDirection ?? null,
-  });
+  try {
+    const response = await getAllSaleItems_v2({
+      filterBrands: getFilterList(),
+      page: pageInfo?.page ?? 0,
+      size: pageInfo?.size ?? 10,
+      sortField: pageInfo?.sortField ?? null,
+      sortDirection: pageInfo?.sortDirection ?? null,
+    });
+    
+    if (response.error) {
+      throw new Error(response?.error);
+    }
+  } catch (error) {
+    hasError.value = error.message;
+  }
 };
 
 const showSuccessModal = () => {
@@ -317,9 +333,9 @@ onMounted(async () => {
 
     <!-- Sale Item Gallery -->
     <SaleItemGallery
-      v-if="saleItems"
+      v-if="saleItems || hasError"
       class="mt-10"
-      :sale-items="saleItems?.content"
+      :sale-items="saleItems?.content || null"
       :page-info="{ ...saleItems, page: currentPage }"
       :has-error="hasError"
       @page-changed="handlePageChange"
