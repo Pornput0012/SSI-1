@@ -269,6 +269,7 @@ onMounted(async () => {
             @click="handleSortChange(null)"
             class="itbms-brand-none btn"
             :class="{ 'btn-active': !sortDirection && !sortField }"
+            :disabled="!sortDirection && !sortField"
           >
             None
           </button>
@@ -276,6 +277,7 @@ onMounted(async () => {
             @click="handleSortChange('ASC')"
             class="itbms-brand-asc btn"
             :class="{ 'btn-active': sortDirection === 'ASC' }"
+            :disabled="sortDirection === 'ASC'"
           >
             Asc
           </button>
@@ -283,6 +285,7 @@ onMounted(async () => {
             @click="handleSortChange('DESC')"
             class="itbms-brand-desc btn"
             :class="{ 'btn-active': sortDirection === 'DESC' }"
+            :disabled="sortDirection === 'DESC'"
           >
             Desc
           </button>
