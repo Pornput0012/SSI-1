@@ -84,8 +84,10 @@ const setDefaultStoreValues = (pageInfo) => {
   setSortDirection(pageInfo?.sortDirection ?? null);
 };
 
-const applyFilter = async () => {
+const applyFilter = async (closeModal = false) => {
   try {
+    showFilterDropdown.value = closeModal;
+
     console.log("FetchApplyFilter");
 
     const response = await getAllSaleItems_v2({
@@ -108,9 +110,8 @@ const applyFilter = async () => {
 
 const selectBrand = async (brand) => {
   setSelectBrand(brand);
-  showFilterDropdown.value = false;
   resetCurrentPage();
-  await applyFilter();
+  await applyFilter(true);
 };
 
 const clearAllBrands = async () => {
@@ -193,7 +194,10 @@ onMounted(async () => {
     <header class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Products</h1>
       <div class="flex gap-4 items-center">
-        <router-link :to="{ name: 'create-sale-item' }" class="btn btn-primary">
+        <router-link
+          :to="{ name: 'create-sale-item' }"
+          class="itbms-sale-item-add btn btn-primary"
+        >
           Add Sale Item
         </router-link>
         <label class="w-fit h-8 input input-xs hidden sm:flex">
@@ -223,7 +227,7 @@ onMounted(async () => {
                 v-for="(brand, idx) in brandOptions"
                 :key="idx"
                 @mousedown.prevent="selectBrand(brand)"
-                class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                class="itbms-filter-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
                 {{ brand.name }}
               </li>
@@ -232,14 +236,14 @@ onMounted(async () => {
 
           <!-- Filter Actions -->
           <button
-            class="btn btn-sm bg-green-500 hover:bg-green-600"
+            class="itbms-brand-filter btn btn-sm bg-green-500 hover:bg-green-600"
             @click="showFilterDropdown = !showFilterDropdown"
           >
             Filter
           </button>
           <button
             v-if="selectedBrands?.length"
-            class="btn btn-sm bg-red-500 hover:bg-red-600 text-white"
+            class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white"
             @click="clearAllBrands"
           >
             Clear
@@ -263,21 +267,21 @@ onMounted(async () => {
           <!-- Sort Buttons -->
           <button
             @click="handleSortChange(null)"
-            class="btn"
+            class="itbms-brand-none btn"
             :class="{ 'btn-active': !sortDirection && !sortField }"
           >
             None
           </button>
           <button
             @click="handleSortChange('ASC')"
-            class="btn"
+            class="itbms-brand-asc btn"
             :class="{ 'btn-active': sortDirection === 'ASC' }"
           >
             Asc
           </button>
           <button
             @click="handleSortChange('DESC')"
-            class="btn"
+            class="itbms-brand-desc btn"
             :class="{ 'btn-active': sortDirection === 'DESC' }"
           >
             Desc
@@ -290,11 +294,11 @@ onMounted(async () => {
         <div
           v-for="(brand, index) in selectedBrands"
           :key="index"
-          class="bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+          class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
         >
-          <span>{{ brand.name }}</span>
+          <span class="itbms-filter-item">{{ brand.name }}</span>
           <button
-            class="text-red-500 font-bold cursor-pointer"
+            class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
             @click="removeBrandAndApply(brand)"
             aria-label="Remove brand filter"
           >
@@ -319,8 +323,10 @@ onMounted(async () => {
   <div v-if="showCreatedModal" class="modal modal-open">
     <div class="modal-box text-center">
       <h3 class="font-bold text-success">Successfully!</h3>
-      <p class="py-4">The sale item has been successfully added.</p>
-      <div class="modal-action justify-center">
+      <p class="py-4 itbms-message">
+        The sale item has been successfully added.
+      </p>
+      <div class="itbms-button modal-action justify-center">
         <button @click="showCreatedModal = false" class="btn btn-primary">
           OK
         </button>

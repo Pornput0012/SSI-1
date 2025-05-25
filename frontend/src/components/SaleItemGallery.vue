@@ -105,18 +105,19 @@ function prevPage() {
 watch(
   () => props.pageInfo,
   (newVal, oldVal) => {
-    if (newVal) {
-      if (
-        newVal.size != oldVal.size ||
+    if (
+      newVal &&
+      (newVal.size != oldVal.size ||
         newVal.totalPages != oldVal.totalPages ||
         newVal.sort != oldVal.sort ||
-        newVal.totalElements != oldVal.totalElements
-      ) {
-        startPageIndex.value = 0;
-        currentPage.value = newVal.page;
-        isActionPage.value = true;
-        calcPageNumber();
-      }
+        newVal.totalElements != oldVal.totalElements)
+    ) {
+      startPageIndex.value = 0;
+      currentPage.value = newVal.page;
+      isActionPage.value = true;
+      calcPageNumber();
+    } else if (newVal && newVal.page != oldVal.page) {
+      currentPage.value = newVal.page;
     }
   },
   { deep: true }
