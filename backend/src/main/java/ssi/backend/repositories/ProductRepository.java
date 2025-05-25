@@ -28,7 +28,4 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT p FROM Product p JOIN p.brand brand WHERE brand.name IN :brandNames ORDER BY brand.createdOn DESC, p.id DESC")
     Page<Product> findAllByBrandNameInOrderByBrandCreatedOnDesc(List<String> brandNames, Pageable pageable);
 
-    // หากต้องการ DISTINCT จริงๆ ให้ใช้แบบนี้
-    @Query("SELECT DISTINCT p FROM Product p JOIN p.brand brand WHERE brand.name IN :brandNames ORDER BY p.id")
-    Page<Product> findDistinctByBrandNameInOrderById(List<String> brandNames, Pageable pageable);
 }

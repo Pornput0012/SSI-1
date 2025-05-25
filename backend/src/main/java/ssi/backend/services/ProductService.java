@@ -3,6 +3,7 @@ package ssi.backend.services;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ssi.backend.dtos.*;
@@ -35,17 +36,19 @@ public class ProductService {
             List<String> filterBrands) {
         ProductPageDTO productPage;
 
+        Pageable pageable;
         boolean hasSortField = sortField != null && !sortField.isBlank();
         boolean hasFilter = filterBrands != null && !filterBrands.isEmpty();
 
+        boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
+
         if (hasSortField) {
-            Sort sort = "desc".equalsIgnoreCase(sortDirection)
+            Sort sort = sortDesc
                     ? Sort.by(Sort.Order.desc(sortField))
                     : Sort.by(Sort.Order.asc(sortField));
-            PageRequest pageable = PageRequest.of(page, size, sort);
+            pageable = PageRequest.of(page, size, sort);
 
             if (hasFilter) {
-                // เปลี่ยนจาก findDistinctByBrandNameIn เป็น findByBrandNameIn
                 productPage = modelMapper.map(productRepository.findByBrandNameIn(filterBrands, pageable),
                         ProductPageDTO.class);
             } else {
@@ -53,20 +56,19 @@ public class ProductService {
             }
 
         } else {
-            boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
-
+            pageable = PageRequest.of(page, size);
             if (hasFilter) {
                 productPage = sortDesc
                         ? modelMapper.map(productRepository.findAllByBrandNameInOrderByBrandCreatedOnDesc(filterBrands,
-                                PageRequest.of(page, size)), ProductPageDTO.class)
+                                pageable), ProductPageDTO.class)
                         : modelMapper.map(productRepository.findAllByBrandNameInOrderByBrandCreatedOnAsc(filterBrands,
-                                PageRequest.of(page, size)), ProductPageDTO.class);
+                                pageable), ProductPageDTO.class);
             } else {
                 productPage = sortDesc
                         ? modelMapper.map(
-                                productRepository.findAllOrderByBrandCreatedOnDesc(PageRequest.of(page, size)),
+                                productRepository.findAllOrderByBrandCreatedOnDesc(pageable),
                                 ProductPageDTO.class)
-                        : modelMapper.map(productRepository.findAllOrderByBrandCreatedOnAsc(PageRequest.of(page, size)),
+                        : modelMapper.map(productRepository.findAllOrderByBrandCreatedOnAsc(pageable),
                                 ProductPageDTO.class);
             }
         }

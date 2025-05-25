@@ -25,7 +25,6 @@ public class BrandRequestDTO {
     private Boolean isActive;
 
     public void setName(String name) {
-        //this.name = name.trim().length() <= 30 ? name.trim() : name.substring(0,30);
         this.name = name.trim();
     }
 
