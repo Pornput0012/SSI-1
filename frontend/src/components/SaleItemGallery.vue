@@ -176,7 +176,7 @@ watch(
 
     <!-- Pagination -->
     <div
-      v-if="pageInfo && pageInfo.totalPages !== 1 && !hasError"
+      v-if="pageInfo && pageInfo.totalPages !== 1 && !hasError && saleItems && saleItems.length !== 0"
       class="join mt-7 w-full px-auto"
     >
       <button
