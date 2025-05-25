@@ -50,11 +50,11 @@ const showCreatedModal = ref(false);
 const brandOptions = ref([]);
 
 const saveToLocalStorage = () => {
-  localStorage.setItem(
+  sessionStorage.setItem(
     STORAGE_KEYS.SELECTED_BRANDS,
     JSON.stringify(selectedBrands.value)
   );
-  localStorage.setItem(
+  sessionStorage.setItem(
     STORAGE_KEYS.PAGE_INFO,
     JSON.stringify({
       page: currentPage.value,
@@ -67,9 +67,9 @@ const saveToLocalStorage = () => {
 
 const getFromLocalStorage = () => {
   const selectedBrands = JSON.parse(
-    localStorage.getItem(STORAGE_KEYS.SELECTED_BRANDS)
+    sessionStorage.getItem(STORAGE_KEYS.SELECTED_BRANDS)
   );
-  const pageInfo = JSON.parse(localStorage.getItem(STORAGE_KEYS.PAGE_INFO));
+  const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO));
 
   return { selectedBrands, pageInfo };
 };
