@@ -3,6 +3,7 @@ package ssi.backend.services;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ssi.backend.dtos.*;
@@ -31,22 +32,45 @@ public class ProductService {
                 ProductItemDTO.class, modelMapper);
     }
 
-    public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection, List<String> filterBrands) {
-        PageRequest pageable;
-        if (sortField == null) {
-            pageable = PageRequest.of(page, size);
-        } else {
-            Sort sort = "asc".equalsIgnoreCase(sortDirection) ?
-                    Sort.by(Sort.Order.asc(sortField)) :
-                    Sort.by(Sort.Order.desc(sortField));
-            pageable = PageRequest.of(page, size, sort);
-        }
-
+    public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
+            List<String> filterBrands) {
         ProductPageDTO productPage;
-        if (filterBrands == null || filterBrands.isEmpty()) {
-            productPage = modelMapper.map(productRepository.findAll(pageable), ProductPageDTO.class);
+
+        Pageable pageable;
+        boolean hasSortField = sortField != null && !sortField.isBlank();
+        boolean hasFilter = filterBrands != null && !filterBrands.isEmpty();
+
+        boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
+
+        if (hasSortField) {
+            Sort sort = sortDesc
+                    ? Sort.by(Sort.Order.desc(sortField))
+                    : Sort.by(Sort.Order.asc(sortField));
+            pageable = PageRequest.of(page, size, sort);
+
+            if (hasFilter) {
+                productPage = modelMapper.map(productRepository.findByBrandNameIn(filterBrands, pageable),
+                        ProductPageDTO.class);
+            } else {
+                productPage = modelMapper.map(productRepository.findAll(pageable), ProductPageDTO.class);
+            }
+
         } else {
-            productPage = modelMapper.map(productRepository.findAllByBrandNameIn(filterBrands, pageable), ProductPageDTO.class);
+            pageable = PageRequest.of(page, size);
+            if (hasFilter) {
+                productPage = sortDesc
+                        ? modelMapper.map(productRepository.findAllByBrandNameInOrderByBrandCreatedOnDesc(filterBrands,
+                                pageable), ProductPageDTO.class)
+                        : modelMapper.map(productRepository.findAllByBrandNameInOrderByBrandCreatedOnAsc(filterBrands,
+                                pageable), ProductPageDTO.class);
+            } else {
+                productPage = sortDesc
+                        ? modelMapper.map(
+                                productRepository.findAllOrderByBrandCreatedOnDesc(pageable),
+                                ProductPageDTO.class)
+                        : modelMapper.map(productRepository.findAllOrderByBrandCreatedOnAsc(pageable),
+                                ProductPageDTO.class);
+            }
         }
 
         productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));

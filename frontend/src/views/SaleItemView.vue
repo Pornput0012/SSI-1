@@ -50,11 +50,11 @@ const showCreatedModal = ref(false);
 const brandOptions = ref([]);
 
 const saveToLocalStorage = () => {
-  localStorage.setItem(
+  sessionStorage.setItem(
     STORAGE_KEYS.SELECTED_BRANDS,
     JSON.stringify(selectedBrands.value)
   );
-  localStorage.setItem(
+  sessionStorage.setItem(
     STORAGE_KEYS.PAGE_INFO,
     JSON.stringify({
       page: currentPage.value,
@@ -67,9 +67,9 @@ const saveToLocalStorage = () => {
 
 const getFromLocalStorage = () => {
   const selectedBrands = JSON.parse(
-    localStorage.getItem(STORAGE_KEYS.SELECTED_BRANDS)
+    sessionStorage.getItem(STORAGE_KEYS.SELECTED_BRANDS)
   );
-  const pageInfo = JSON.parse(localStorage.getItem(STORAGE_KEYS.PAGE_INFO));
+  const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO));
 
   return { selectedBrands, pageInfo };
 };
@@ -84,8 +84,13 @@ const setDefaultStoreValues = (pageInfo) => {
   setSortDirection(pageInfo?.sortDirection ?? null);
 };
 
-const applyFilter = async () => {
+const applyFilter = async (closeModal = false) => {
   try {
+    console.log(sortField.value);
+    console.log(sortDirection.value);
+
+    showFilterDropdown.value = closeModal;
+
     console.log("FetchApplyFilter");
 
     const response = await getAllSaleItems_v2({
@@ -98,7 +103,7 @@ const applyFilter = async () => {
 
     saveToLocalStorage();
 
-    if (response.error && !response) {
+    if (response.error) {
       throw new Error(response?.error);
     }
   } catch (error) {
@@ -108,18 +113,19 @@ const applyFilter = async () => {
 
 const selectBrand = async (brand) => {
   setSelectBrand(brand);
-  showFilterDropdown.value = false;
   resetCurrentPage();
-  await applyFilter();
+  await applyFilter(true);
 };
 
 const clearAllBrands = async () => {
   clearAllSelectedBrands();
+  resetCurrentPage();
   await applyFilter();
 };
 
 const removeBrandAndApply = async (brand) => {
   removeBrand(brand);
+  resetCurrentPage();
   await applyFilter();
 };
 
@@ -138,28 +144,45 @@ const handleSortChange = async (sortType) => {
   if (sortType) {
     setSortBrand(sortType);
   } else {
-    setSortBrand();
+    setSortBrand("");
   }
+
   resetCurrentPage();
   await applyFilter();
 };
 
 const initializeBrands = async () => {
-  const response = await getAllBrands();
-  if (!response.error) {
-    brandOptions.value = response.sort((a, b) => a.name.localeCompare(b.name));
-    brandStore.setBrand(response);
+  try {
+    const response = await getAllBrands();
+    if (!response.error) {
+      brandOptions.value = response.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      brandStore.setBrand(response);
+    } else {
+      throw new Error(response?.error);
+    }
+  } catch (error) {
+    hasError.value = error.message;
   }
 };
 
 const initializeSaleItems = async (pageInfo) => {
-  await getAllSaleItems_v2({
-    filterBrands: getFilterList(),
-    page: pageInfo?.page ?? 0,
-    size: pageInfo?.size ?? 10,
-    sortField: pageInfo?.sortField ?? null,
-    sortDirection: pageInfo?.sortDirection ?? null,
-  });
+  try {
+    const response = await getAllSaleItems_v2({
+      filterBrands: getFilterList(),
+      page: pageInfo?.page ?? 0,
+      size: pageInfo?.size ?? 10,
+      sortField: pageInfo?.sortField ?? null,
+      sortDirection: pageInfo?.sortDirection ?? null,
+    });
+    
+    if (response.error) {
+      throw new Error(response?.error);
+    }
+  } catch (error) {
+    hasError.value = error.message;
+  }
 };
 
 const showSuccessModal = () => {
@@ -191,7 +214,10 @@ onMounted(async () => {
     <header class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Products</h1>
       <div class="flex gap-4 items-center">
-        <router-link :to="{ name: 'create-sale-item' }" class="btn btn-primary">
+        <router-link
+          :to="{ name: 'create-sale-item' }"
+          class="itbms-sale-item-add btn btn-primary"
+        >
           Add Sale Item
         </router-link>
         <label class="w-fit h-8 input input-xs hidden sm:flex">
@@ -221,7 +247,7 @@ onMounted(async () => {
                 v-for="(brand, idx) in brandOptions"
                 :key="idx"
                 @mousedown.prevent="selectBrand(brand)"
-                class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                class="itbms-filter-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
                 {{ brand.name }}
               </li>
@@ -230,14 +256,14 @@ onMounted(async () => {
 
           <!-- Filter Actions -->
           <button
-            class="btn btn-sm bg-green-500 hover:bg-green-600"
+            class="itbms-brand-filter btn btn-sm bg-green-500 hover:bg-green-600"
             @click="showFilterDropdown = !showFilterDropdown"
           >
             Filter
           </button>
           <button
             v-if="selectedBrands?.length"
-            class="btn btn-sm bg-red-500 hover:bg-red-600 text-white"
+            class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white"
             @click="clearAllBrands"
           >
             Clear
@@ -261,22 +287,25 @@ onMounted(async () => {
           <!-- Sort Buttons -->
           <button
             @click="handleSortChange(null)"
-            class="btn"
-            :class="{ 'btn-active': !sortDirection && !sortField }"
+            class="itbms-brand-none btn"
+            :class="{ 'btn-active': !['ASC', 'DESC'].includes(sortDirection) }"
+            :disabled="!['ASC', 'DESC'].includes(sortDirection)"
           >
             None
           </button>
           <button
             @click="handleSortChange('ASC')"
-            class="btn"
+            class="itbms-brand-asc btn"
             :class="{ 'btn-active': sortDirection === 'ASC' }"
+            :disabled="sortDirection === 'ASC'"
           >
             Asc
           </button>
           <button
             @click="handleSortChange('DESC')"
-            class="btn"
+            class="itbms-brand-desc btn"
             :class="{ 'btn-active': sortDirection === 'DESC' }"
+            :disabled="sortDirection === 'DESC'"
           >
             Desc
           </button>
@@ -288,11 +317,11 @@ onMounted(async () => {
         <div
           v-for="(brand, index) in selectedBrands"
           :key="index"
-          class="bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+          class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
         >
-          <span>{{ brand.name }}</span>
+          <span class="itbms-filter-item">{{ brand.name }}</span>
           <button
-            class="text-red-500 font-bold cursor-pointer"
+            class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
             @click="removeBrandAndApply(brand)"
             aria-label="Remove brand filter"
           >
@@ -304,9 +333,9 @@ onMounted(async () => {
 
     <!-- Sale Item Gallery -->
     <SaleItemGallery
-      v-if="saleItems"
+      v-if="saleItems || hasError"
       class="mt-10"
-      :sale-items="saleItems?.content"
+      :sale-items="saleItems?.content || null"
       :page-info="{ ...saleItems, page: currentPage }"
       :has-error="hasError"
       @page-changed="handlePageChange"
@@ -317,8 +346,10 @@ onMounted(async () => {
   <div v-if="showCreatedModal" class="modal modal-open">
     <div class="modal-box text-center">
       <h3 class="font-bold text-success">Successfully!</h3>
-      <p class="py-4">The sale item has been successfully added.</p>
-      <div class="modal-action justify-center">
+      <p class="py-4 itbms-message">
+        The sale item has been successfully added.
+      </p>
+      <div class="itbms-button modal-action justify-center">
         <button @click="showCreatedModal = false" class="btn btn-primary">
           OK
         </button>
