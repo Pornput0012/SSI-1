@@ -46,7 +46,7 @@ public class ProductService {
             Sort sort = sortDesc
                     ? Sort.by(Sort.Order.desc(sortField))
                     : Sort.by(Sort.Order.asc(sortField));
-            pageable = PageRequest.of(page, size, sort);
+            pageable = PageRequest.of(page, size, sort.and(Sort.by(Sort.Order.asc("id"))));
 
             if (hasFilter) {
                 productPage = modelMapper.map(productRepository.findByBrandNameIn(filterBrands, pageable),
