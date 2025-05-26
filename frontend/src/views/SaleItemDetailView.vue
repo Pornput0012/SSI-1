@@ -9,7 +9,7 @@ import {
   getSaleItemById,
   deleteSaleItemById,
 } from "@/services/SaleItemService";
-import Breadcrumbs from "./Breadcrumbs.vue";
+import Breadcrumbs from "../components/Breadcrumbs.vue";
 import { useNotiStore } from "@/stores/์NotiStore";
 
 const route = useRoute();

@@ -256,14 +256,14 @@ onMounted(async () => {
 
           <!-- Filter Actions -->
           <button
-            class="itbms-brand-filter btn btn-sm bg-green-500 hover:bg-green-600"
+            class="itbms-brand-filter btn btn-success btn-sm text-white"
             @click="showFilterDropdown = !showFilterDropdown"
           >
             Filter
           </button>
           <button
             v-if="selectedBrands?.length"
-            class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white"
+            class="itbms-brand-filter-clear btn btn-error btn-sm text-white"
             @click="clearAllBrands"
           >
             Clear
@@ -317,11 +317,12 @@ onMounted(async () => {
         <div
           v-for="(brand, index) in selectedBrands"
           :key="index"
-          class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+          class="itbms-filter-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
           <span class="itbms-brand-filter">{{ brand.name }}</span>
           <button
-            class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
+            class="itbms-filter-item-clear  font-bold cursor-pointer"
+            
             @click="removeBrandAndApply(brand)"
             aria-label="Remove brand filter"
           >

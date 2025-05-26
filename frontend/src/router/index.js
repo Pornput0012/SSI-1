@@ -1,4 +1,4 @@
-import SaleItemDetail from "@/components/SaleItemDetail.vue";
+import SaleItemDetailView from "@/views/SaleItemDetailView.vue";
 import BrandListView from "@/views/BrandListView.vue";
 import CreateBrandView from "@/views/CreateBrandView.vue";
 import CreateSaleItemView from "@/views/CreateSaleItemView.vue";
@@ -24,7 +24,7 @@ const router = createRouter({
     },
     {
       path: "/sale-items/:id",
-      component: SaleItemDetail,
+      component: SaleItemDetailView,
       name: "sale-item-detail",
     },
     {
