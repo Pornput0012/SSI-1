@@ -273,7 +273,7 @@ onMounted(async () => {
         <!-- Sort and Page Size Controls -->
         <div class="flex gap-3 items-center">
           <label>Show</label>
-          <select class="select" @input="handlePageSizeChange">
+          <select class="itbms-page-size select" @input="handlePageSizeChange">
             <option
               v-for="size in PAGE_SIZE_OPTIONS"
               :key="size"
@@ -319,7 +319,7 @@ onMounted(async () => {
           :key="index"
           class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
         >
-          <span class="itbms-filter-item">{{ brand.name }}</span>
+          <span class="itbms-brand-filter">{{ brand.name }}</span>
           <button
             class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
             @click="removeBrandAndApply(brand)"
