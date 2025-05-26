@@ -15,6 +15,13 @@ export const useFilterStore = defineStore("Filter", () => {
 
   const resetCurrentPage = () => {
     currentPage.value = 0;
+    const pageInfo = JSON.parse(sessionStorage.getItem("pageInfo"));
+    if (pageInfo?.page) {
+      console.log(pageInfo.page);
+
+      pageInfo.page = 0;
+    }
+    sessionStorage.setItem("pageInfo", JSON.stringify(pageInfo));
   };
 
   const setSelectBrand = (brand) => {

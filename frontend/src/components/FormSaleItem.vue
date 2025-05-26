@@ -119,7 +119,7 @@ const validateField = [...fieldCheckOldData, "brand", "color"];
 const handleSubmit = () => {
   for (const field of requireField) {
     if ((!formData.value[field] && formData.value[field] !== 0) || formData.value[field].id === 0) {
-      console.log(field + "2");
+      // console.log(field + "2");
       errorTitle.value = "Missing Required Field";
       errorMessage.value = `Please fill out the required field: ${field}`;
       showModal.value = true;
@@ -127,7 +127,7 @@ const handleSubmit = () => {
     }
   }
 
-  console.log(formData.value);
+  // console.log(formData.value);
 
   emit("onSubmit", formData.value);
 };
@@ -278,7 +278,7 @@ watchEffect(() => {
     }
   }
 
-  console.log(isSave.value);
+  // console.log(isSave.value);
 
   let hasChanges = false;
 
@@ -300,7 +300,7 @@ watchEffect(() => {
   }
 
   isSave.value = !hasChanges;
-  console.log(isSave.value);
+  // console.log(isSave.value);
 });
 </script>
 
