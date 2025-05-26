@@ -48,6 +48,8 @@ const pattern = /^https?:\/\/.+/;
 
 function isValidUrl() {
   if (!pattern.test(formData.value.websiteUrl)) {
+    console.log();
+    
     validate.value.websiteUrl.msg = `Brand URL must be a valid URL or not specified`;
     return ;
   }
@@ -65,9 +67,11 @@ function maximumLength(field) {
       return field.toLowerCase().includes(normalizedLabel);
     }) || field;
   if (
-    formData.value[field] &&
-    formData.value[field].length > validate.value[field].maxLength
+    (formData.value[field] &&
+    formData.value[field].length > validate.value[field].maxLength) || (field === "name" && !formData.value.name)
   ) {
+    console.log(formData.value.length );
+    
     validate.value[field].msg =
       `Brand ${matchedLabel} must be 1-${validate.value[field].maxLength} characters long` +
       (matchedLabel === "country of origin" ? " or not specified." : ".");
@@ -90,13 +94,16 @@ watchEffect(() => {
       isInvalid = true;
       
     } 
-    else if(field !== "websiteUrl" || !formData.value.websiteUrl){
+    else if(field !== "websiteUrl" || (field === "websiteUrl" && !formData.value.websiteUrl)){
       validate.value[field].msg = ""
     }
   }
 
   if(formData.value.websiteUrl && !pattern.test(formData.value.websiteUrl)) {
       isInvalid = true
+   }
+   else {
+    validate.value.websiteUrl.msg = ""
    }
 
   if (

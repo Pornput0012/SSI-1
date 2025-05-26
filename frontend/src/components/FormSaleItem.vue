@@ -272,7 +272,7 @@ watchEffect(() => {
   }
 
   for (const field of requireField) {
-    if (!formData.value[field] || formData.value[field].id == 0) {
+    if ((!formData.value[field] && formData.value[field] !== 0)|| formData.value[field].id == 0) {
       isSave.value = true; // ยังกรอกไม่ครบ ไม่ควรบันทึก
       return;
     }
