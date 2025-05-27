@@ -30,7 +30,7 @@ const menu = [
           >ITB MShop</RouterLink
         >
         <div>
-          <button class="btn btn-primary px-4 text-white bg-purple-700">
+          <button class="btn btn-primary px-4">
             Log in
           </button>
         </div>

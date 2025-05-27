@@ -176,7 +176,7 @@ const initializeSaleItems = async (pageInfo) => {
       sortField: pageInfo?.sortField ?? null,
       sortDirection: pageInfo?.sortDirection ?? null,
     });
-    
+
     if (response.error) {
       throw new Error(response?.error);
     }
@@ -193,6 +193,8 @@ const showSuccessModal = () => {
 };
 
 onMounted(async () => {
+  window.addEventListener("resize", updateWidth);
+
   try {
     const { pageInfo } = getFromLocalStorage();
 
@@ -204,6 +206,12 @@ onMounted(async () => {
     hasError.value = error.message;
   }
 });
+
+const windowWidth = ref(window.innerWidth);
+
+const updateWidth = () => {
+  windowWidth.value = window.innerWidth;
+};
 </script>
 
 <template>
@@ -232,7 +240,7 @@ onMounted(async () => {
       <div class="flex justify-between items-center">
         <div class="flex gap-3 items-center">
           <!-- Brand Dropdown -->
-          <div class="relative flex-1">
+          <div class="itbms-brand-filter relative flex-1">
             <input
               type="text"
               readonly
@@ -256,14 +264,14 @@ onMounted(async () => {
 
           <!-- Filter Actions -->
           <button
-            class="itbms-brand-filter btn btn-sm bg-green-500 hover:bg-green-600"
+            class="itbms-brand-filter-button btn btn-success btn-sm text-white"
             @click="showFilterDropdown = !showFilterDropdown"
           >
             Filter
           </button>
           <button
             v-if="selectedBrands?.length"
-            class="itbms-brand-filter-clear btn btn-sm bg-red-500 hover:bg-red-600 text-white"
+            class="itbms-brand-filter-clear btn btn-error btn-sm text-white"
             @click="clearAllBrands"
           >
             Clear
@@ -272,17 +280,24 @@ onMounted(async () => {
 
         <!-- Sort and Page Size Controls -->
         <div class="flex gap-3 items-center">
-          <label>Show</label>
-          <select class="itbms-page-size select" @input="handlePageSizeChange">
-            <option
-              v-for="size in PAGE_SIZE_OPTIONS"
-              :key="size"
-              :value="size"
-              :selected="size === pageSize"
-            >
-              {{ size }}
-            </option>
-          </select>
+          <div class="hidden md:block">
+            <div class="flex gap-3 items-center">
+              <label>Show</label>
+              <select
+                class="itbms-page-size select"
+                @input="handlePageSizeChange"
+              >
+                <option
+                  v-for="size in PAGE_SIZE_OPTIONS"
+                  :key="size"
+                  :value="size"
+                  :selected="size === pageSize"
+                >
+                  {{ size }}
+                </option>
+              </select>
+            </div>
+          </div>
 
           <!-- Sort Buttons -->
           <button
@@ -317,16 +332,33 @@ onMounted(async () => {
         <div
           v-for="(brand, index) in selectedBrands"
           :key="index"
-          class="itbms-filter-item bg-gray-200 px-3 py-1 rounded-full flex items-center gap-1"
+          class="itbms-filter-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
           <span class="itbms-brand-filter">{{ brand.name }}</span>
           <button
-            class="itbms-filter-item-clear text-red-500 font-bold cursor-pointer"
+            class="itbms-filter-item-clear font-bold cursor-pointer"
             @click="removeBrandAndApply(brand)"
             aria-label="Remove brand filter"
           >
             ×
           </button>
+        </div>
+      </div>
+
+      <!-- Sort and Page Size Controls -->
+      <div class="block" v-if="windowWidth < 768">
+        <div class="flex gap-3 items-center">
+          <label>Show</label>
+          <select class="itbms-page-size select" @input="handlePageSizeChange">
+            <option
+              v-for="size in PAGE_SIZE_OPTIONS"
+              :key="size"
+              :value="size"
+              :selected="size === pageSize"
+            >
+              {{ size }}
+            </option>
+          </select>
         </div>
       </div>
     </section>

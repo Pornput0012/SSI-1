@@ -9,8 +9,9 @@ import {
   getSaleItemById,
   deleteSaleItemById,
 } from "@/services/SaleItemService";
-import Breadcrumbs from "./Breadcrumbs.vue";
+import Breadcrumbs from "../components/Breadcrumbs.vue";
 import { useNotiStore } from "@/stores/์NotiStore";
+import MessageModal from "@/components/MessageModal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -259,26 +260,13 @@ onMounted(() => {
     </div>
   </div>
 
-  <div v-if="isNotFound" class="modal modal-open">
-    <div class="modal-box text-center">
-      <h3
-        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-red-500"
-      >
-        Product Not Found
-      </h3>
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        {{ errorMessage }}
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button
-          @click="router.push({ name: 'sale-items' })"
-          class="btn btn-primary bg-purple-700"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div>
+  <MessageModal
+    v-if="isNotFound"
+    :handle-ok="() => router.push({ name: 'sale-items' })"
+    :title="'Product Not Found'"
+    :message="errorMessage"
+  />
+
   <div v-if="deleteSuccess" class="modal modal-open">
     <div class="modal-box text-center">
       <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
@@ -291,7 +279,16 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <div v-if="showUpdatedModal" class="modal modal-open">
+
+  <MessageModal
+    v-if="showUpdatedModal"
+    :handle-ok="() => (showUpdatedModal = false)"
+    :title="'Successfully!'"
+    :message="'The sale item has been updated.'"
+    :type-modal="'text-success'"
+  />
+
+  <!-- <div v-if="showUpdatedModal" class="modal modal-open">
     <div class="modal-box text-center">
       <h3
         class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
@@ -310,7 +307,7 @@ onMounted(() => {
         </button>
       </div>
     </div>
-  </div>
+  </div> -->
 </template>
 
 <style scoped></style>

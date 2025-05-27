@@ -1,5 +1,6 @@
 <script setup>
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import MessageModal from "@/components/MessageModal.vue";
 import { deleteBrandById, getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
@@ -48,6 +49,8 @@ const confirmDelete = (brand) => {
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
+      console.log(deleteTargetId.value);
+
       const response = await deleteBrandById(deleteTargetId.value);
       showDeleteModal.value = false;
       if (response.success) {
@@ -292,7 +295,15 @@ onMounted(() => {
     </div>
   </div>
 
-  <div v-if="showCreatedModal" class="modal modal-open">
+  <MessageModal
+    v-if="showCreatedModal"
+    :handle-ok="() => (showCreatedModal = false)"
+    :title="'Successfully!'"
+    :message="'The brand has been added.'"
+    :type-modal="'text-success'"
+  />
+
+  <!-- <div v-if="showCreatedModal" class="modal modal-open">
     <div class="modal-box text-center">
       <h3
         class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
@@ -311,9 +322,17 @@ onMounted(() => {
         </button>
       </div>
     </div>
-  </div>
+  </div> -->
 
-  <div v-if="showUpdatedModal" class="modal modal-open">
+  <MessageModal
+    v-if="showUpdatedModal"
+    :handle-ok="() => (showUpdatedModal = false)"
+    :title="'Successfully!'"
+    :message="'The brand has been updated.'"
+    :type-modal="'text-success'"
+  />
+
+  <!-- <div v-if="showUpdatedModal" class="modal modal-open">
     <div class="modal-box text-center">
       <h3
         class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
@@ -332,28 +351,14 @@ onMounted(() => {
         </button>
       </div>
     </div>
-  </div>
+  </div> -->
 
-  <div v-if="errorMessage" class="modal modal-open">
-    <div class="modal-box text-center">
-      <h3
-        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-error"
-      >
-        Brand Not Found!
-      </h3>
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        {{ errorMessage }}
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button
-          @click="errorMessage = ''"
-          class="btn btn-primary bg-purple-700"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div>
+  <MessageModal
+    v-if="errorMessage"
+    :handle-ok="() => (errorMessage = '')"
+    :title="'Brand Not Found!'"
+    :message="errorMessage"
+  />
 </template>
 
 <style scoped></style>

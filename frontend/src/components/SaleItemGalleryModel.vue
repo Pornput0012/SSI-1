@@ -67,13 +67,13 @@ const props = defineProps({
         </div>
         <div class="pt-1 flex justify-between items-center">
           <p
-            class="itbms-price text-[11px] font-semibold text-purple-700 sm:text-sm"
+            class="itbms-price text-[11px] font-semibold text-indigo-700 sm:text-sm"
           >
             <span class="itbms-price-unit">Bath </span
             >{{ price.toLocaleString() }}
           </p>
           <button
-            class="ml-1 btn btn-sm btn-primary bg-purple-700 btn-square hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+            class="ml-1 btn btn-sm btn-primary btn-square hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
           >
             <svg
               class="p-1 sm:p-0"
