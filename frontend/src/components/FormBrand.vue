@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watchEffect } from "vue";
+import MessageModal from "./MessageModal.vue";
 
 const emit = defineEmits(["onSubmit"]);
 
@@ -49,14 +50,12 @@ const pattern = /^https?:\/\/.+/;
 function isValidUrl() {
   if (!pattern.test(formData.value.websiteUrl)) {
     console.log();
-    
+
     validate.value.websiteUrl.msg = `Brand URL must be a valid URL or not specified`;
-    return ;
-  }
-  else {
+    return;
+  } else {
     validate.value.websiteUrl.msg = "";
   }
-
 }
 
 function maximumLength(field) {
@@ -68,10 +67,11 @@ function maximumLength(field) {
     }) || field;
   if (
     (formData.value[field] &&
-    formData.value[field].length > validate.value[field].maxLength) || (field === "name" && !formData.value.name)
+      formData.value[field].length > validate.value[field].maxLength) ||
+    (field === "name" && !formData.value.name)
   ) {
-    console.log(formData.value.length );
-    
+    console.log(formData.value.length);
+
     validate.value[field].msg =
       `Brand ${matchedLabel} must be 1-${validate.value[field].maxLength} characters long` +
       (matchedLabel === "country of origin" ? " or not specified." : ".");
@@ -80,31 +80,29 @@ function maximumLength(field) {
   }
 }
 
-
 watchEffect(() => {
-
   let isInvalid = false;
 
   for (const field of validateField) {
     if (
-      (formData.value[field] &&
+      formData.value[field] &&
       validate.value[field].maxLength &&
-      formData.value[field].length > validate.value[field].maxLength) 
+      formData.value[field].length > validate.value[field].maxLength
     ) {
       isInvalid = true;
-      
-    } 
-    else if(field !== "websiteUrl" || (field === "websiteUrl" && !formData.value.websiteUrl)){
-      validate.value[field].msg = ""
+    } else if (
+      field !== "websiteUrl" ||
+      (field === "websiteUrl" && !formData.value.websiteUrl)
+    ) {
+      validate.value[field].msg = "";
     }
   }
 
-  if(formData.value.websiteUrl && !pattern.test(formData.value.websiteUrl)) {
-      isInvalid = true
-   }
-   else {
-    validate.value.websiteUrl.msg = ""
-   }
+  if (formData.value.websiteUrl && !pattern.test(formData.value.websiteUrl)) {
+    isInvalid = true;
+  } else {
+    validate.value.websiteUrl.msg = "";
+  }
 
   if (
     !formData.value?.name ||
@@ -120,11 +118,11 @@ watchEffect(() => {
   let hasChanges = false;
 
   const normalizeOptional = (val) =>
-  typeof val === "string"
-  ? val.trim() === ""
-  ? null
-  : val.trim()
-  : val ?? null;
+    typeof val === "string"
+      ? val.trim() === ""
+        ? null
+        : val.trim()
+      : val ?? null;
 
   if (!hasChanges) {
     for (const field of fieldCheckOldData) {
@@ -133,7 +131,7 @@ watchEffect(() => {
         break;
       }
     }
-    
+
     for (const field of emptyCheck) {
       if (
         normalizeOptional(formData.value[field]) !==
@@ -153,11 +151,9 @@ watchEffect(() => {
     isCanNotSave.value = true;
     return;
   }
-  
+
   isCanNotSave.value = !hasChanges;
 });
-
-
 </script>
 
 <template>
@@ -168,10 +164,10 @@ watchEffect(() => {
       >
       <div class="flex-col">
         <input
-        type="text"
-        id="name"
-        class="itbms-name input w-full"
-        :class="{
+          type="text"
+          id="name"
+          class="itbms-name input w-full"
+          :class="{
             'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
               validate.name.msg !== '',
           }"
@@ -262,26 +258,12 @@ watchEffect(() => {
     </div>
   </div>
 
-  <div v-if="showModal" class="modal modal-open">
-    <div class="modal-box text-center">
-      <h3
-        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-red-500"
-      >
-        {{ errorTitle }}
-      </h3>
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        {{ errorMessage }}
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button
-          @click="showModal = false"
-          class="btn btn-primary bg-purple-700"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div>
+  <MessageModal
+    v-if="showModal"
+    :handle-ok="() => (showModal = false)"
+    :title="errorTitle"
+    :message="errorMessage"
+  />
 </template>
 
 <style scoped></style>

@@ -2,6 +2,7 @@
 import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import MessageModal from "./MessageModal.vue";
 
 const emit = defineEmits(["onSubmit"]);
 const { getBrands } = useBrandStore();
@@ -118,7 +119,10 @@ const fieldCheckOldData = [
 const validateField = [...fieldCheckOldData, "brand", "color"];
 const handleSubmit = () => {
   for (const field of requireField) {
-    if ((!formData.value[field] && formData.value[field] !== 0) || formData.value[field].id === 0) {
+    if (
+      (!formData.value[field] && formData.value[field] !== 0) ||
+      formData.value[field].id === 0
+    ) {
       // console.log(field + "2");
       errorTitle.value = "Missing Required Field";
       errorMessage.value = `Please fill out the required field: ${field}`;
@@ -134,7 +138,8 @@ const handleSubmit = () => {
 
 const allValid = computed(() => {
   return validateField.every(
-    (field) => !validate.value[field]?.showError && !validate.value[field]?.invalid
+    (field) =>
+      !validate.value[field]?.showError && !validate.value[field]?.invalid
   );
 });
 
@@ -245,25 +250,38 @@ const normalize = (val) =>
   val === null || val === undefined ? "" : val.trim?.() ?? val;
 
 ["quantity", "price"].forEach((field) => {
-  watch(() => formData.value[field], () => nonNegative(field, false));
+  watch(
+    () => formData.value[field],
+    () => nonNegative(field, false)
+  );
 });
 
 ["model", "description"].forEach((field) => {
-  watch(() => formData.value[field], () => maximumLength(field, false));
+  watch(
+    () => formData.value[field],
+    () => maximumLength(field, false)
+  );
 });
 
 ["ramGb", "screenSizeInch", "storageGb"].forEach((field) => {
-  watch(() => formData.value[field], () => isValidPositiveField(field, false));
+  watch(
+    () => formData.value[field],
+    () => isValidPositiveField(field, false)
+  );
 });
 
+watch(
+  () => formData.value.brand,
+  () => brandSelected(false)
+);
 
-watch(() => formData.value.brand, () => brandSelected(false));
-
-watch(() => formData.value.color, () => {
-  formData.value.color = normalize(formData.value.color);
-  maximumLength("color", false);
-});
-
+watch(
+  () => formData.value.color,
+  () => {
+    formData.value.color = normalize(formData.value.color);
+    maximumLength("color", false);
+  }
+);
 
 watchEffect(() => {
   if (!allValid.value) {
@@ -272,7 +290,10 @@ watchEffect(() => {
   }
 
   for (const field of requireField) {
-    if ((!formData.value[field] && formData.value[field] !== 0)|| formData.value[field].id == 0) {
+    if (
+      (!formData.value[field] && formData.value[field] !== 0) ||
+      formData.value[field].id == 0
+    ) {
       isSave.value = true; // ยังกรอกไม่ครบ ไม่ควรบันทึก
       return;
     }
@@ -571,26 +592,13 @@ watchEffect(() => {
       </div>
     </div>
   </div>
-  <div v-if="showModal" class="modal modal-open">
-    <div class="modal-box text-center">
-      <h3
-        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-red-500"
-      >
-        {{ errorTitle }}
-      </h3>
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        {{ errorMessage }}
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button
-          @click="showModal = false"
-          class="btn btn-primary bg-purple-700"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div>
+  <MessageModal
+    v-if="showModal"
+    :handle-ok="() => (showModal = false)"
+    :title="errorTitle"
+    :message="errorMessage"
+  />
+
 </template>
 
 <style scoped></style>
