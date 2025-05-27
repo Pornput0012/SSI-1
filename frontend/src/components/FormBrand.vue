@@ -51,7 +51,7 @@ function isValidUrl() {
   if (!pattern.test(formData.value.websiteUrl)) {
     console.log();
 
-    validate.value.websiteUrl.msg = `Brand URL must be a valid URL or not specified`;
+    validate.value.websiteUrl.msg = `Brand URL must be a valid URL or not specified.`;
     return;
   } else {
     validate.value.websiteUrl.msg = "";
@@ -178,7 +178,7 @@ watchEffect(() => {
           class="text-red-500 mt-2 flex gap-2 text-sm"
           v-if="validate.name.msg !== ''"
         >
-          <span class="font-extralight">{{ validate.name.msg }}</span>
+          <span class="font-extralight itbms-message">{{ validate.name.msg }}</span>
         </div>
       </div>
 
@@ -199,7 +199,7 @@ watchEffect(() => {
           class="text-red-500 mt-2 flex gap-2 text-sm"
           v-if="validate.websiteUrl.msg !== ''"
         >
-          <span class="font-extralight">{{ validate.websiteUrl.msg }}</span>
+          <span class="font-extralight itbms-message">{{ validate.websiteUrl.msg }}</span>
         </div>
       </div>
 
@@ -234,7 +234,7 @@ watchEffect(() => {
           class="text-red-500 mt-2 flex gap-2 text-sm"
           v-if="validate.countryOfOrigin.msg !== ''"
         >
-          <span class="font-extralight">{{
+          <span class="font-extralight itbms-message">{{
             validate.countryOfOrigin.msg
           }}</span>
         </div>
