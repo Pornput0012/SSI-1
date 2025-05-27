@@ -48,14 +48,19 @@ const validateField = [...requireField, ...emptyCheck];
 const pattern = /^https?:\/\/.+/;
 
 function isValidUrl() {
-  if (!pattern.test(formData.value.websiteUrl)) {
-    console.log();
+  const url = formData.value.websiteUrl?.trim();
 
+  if (!url) {
+    validate.value.websiteUrl.msg = "";
+    return;
+  }
+
+  if (!pattern.test(url)) {
     validate.value.websiteUrl.msg = `Brand URL must be a valid URL or not specified.`;
     return;
-  } else {
-    validate.value.websiteUrl.msg = "";
   }
+
+  validate.value.websiteUrl.msg = "";
 }
 
 function maximumLength(field) {
@@ -65,13 +70,25 @@ function maximumLength(field) {
       const normalizedLabel = label.toLowerCase().replace(/\s+/g, ""); //ลบช่องว่าง \s
       return field.toLowerCase().includes(normalizedLabel);
     }) || field;
-  if (
-    (formData.value[field] &&
-      formData.value[field].length > validate.value[field].maxLength) ||
-    (field === "name" && !formData.value.name)
-  ) {
-    console.log(formData.value.length);
+  const trimField =
+    typeof formData.value[field] === "string"
+      ? formData.value[field].trim()
+      : formData.value[field];
 
+  const isTooLong =
+    typeof trimField === "string" &&
+    trimField.length > validate.value[field].maxLength;
+
+  const isRequiredButEmpty =
+    field === "name" && (!trimField || trimField.length === 0);
+
+  console.log(isTooLong);
+  console.log(isRequiredButEmpty);
+
+  if (isTooLong || isRequiredButEmpty) {
+    console.log(`Brand ${matchedLabel} must be 1-${validate.value[field].maxLength} characters long` +
+      (matchedLabel === "country of origin" ? " or not specified." : "."));
+    
     validate.value[field].msg =
       `Brand ${matchedLabel} must be 1-${validate.value[field].maxLength} characters long` +
       (matchedLabel === "country of origin" ? " or not specified." : ".");
@@ -81,19 +98,37 @@ function maximumLength(field) {
 }
 
 watchEffect(() => {
+  console.log("disableSaveBtn from props", props.disableSaveBtn);
+
   let isInvalid = false;
 
   for (const field of validateField) {
+    console.log("validate length of", field, "value:", formData.value[field]);
+    const trimField =
+      typeof formData.value[field] == "string"
+        ? formData.value[field].trim()
+        : formData.value[field];
     if (
-      formData.value[field] &&
+      trimField &&
       validate.value[field].maxLength &&
-      formData.value[field].length > validate.value[field].maxLength
+      trimField.length > validate.value[field].maxLength
     ) {
+      console.log(validate.value[field].maxLength);
+
+      console.log(
+        formData.value[field].length > validate.value[field].maxLength
+      );
+
+      console.log("isInvalid: true");
+
       isInvalid = true;
     } else if (
+      (trimField && field === 'name') &&
       field !== "websiteUrl" ||
       (field === "websiteUrl" && !formData.value.websiteUrl)
     ) {
+      console.log(field);
+      
       validate.value[field].msg = "";
     }
   }
@@ -105,12 +140,18 @@ watchEffect(() => {
   }
 
   if (
-    !formData.value?.name ||
+    !formData.value?.name.trim() ||
     validate.value.name.msg ||
     validate.value.countryOfOrigin.msg ||
     validate.value.websiteUrl.msg ||
     isInvalid
   ) {
+    console.log(!formData.value?.name.trim());
+    console.log(validate.value.name.msg);
+    console.log(isInvalid);
+
+    console.log("✖️ name invalid", validate.value.name.msg);
+
     isCanNotSave.value = true;
     return;
   }
@@ -148,6 +189,8 @@ watchEffect(() => {
     validate.value.countryOfOrigin.msg ||
     validate.value.websiteUrl.msg
   ) {
+    console.log("isCanNotSave?", isCanNotSave.value);
+
     isCanNotSave.value = true;
     return;
   }
@@ -171,14 +214,16 @@ watchEffect(() => {
             'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
               validate.name.msg !== '',
           }"
-          v-model.trim="formData.name"
+          v-model="formData.name"
           @blur="maximumLength('name')"
         />
         <div
           class="text-red-500 mt-2 flex gap-2 text-sm"
           v-if="validate.name.msg !== ''"
         >
-          <span class="font-extralight itbms-message">{{ validate.name.msg }}</span>
+          <span class="font-extralight itbms-message">{{
+            validate.name.msg
+          }}</span>
         </div>
       </div>
 
@@ -199,7 +244,9 @@ watchEffect(() => {
           class="text-red-500 mt-2 flex gap-2 text-sm"
           v-if="validate.websiteUrl.msg !== ''"
         >
-          <span class="font-extralight itbms-message">{{ validate.websiteUrl.msg }}</span>
+          <span class="font-extralight itbms-message">{{
+            validate.websiteUrl.msg
+          }}</span>
         </div>
       </div>
 

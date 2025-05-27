@@ -1,24 +1,24 @@
 <script setup>
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import SaleItemGallery from '@/components/SaleItemGallery.vue'
-import { getAllBrands } from '@/services/BrandService'
-import { getAllSaleItems_v2 } from '@/services/SaleItemService'
-import { useBrandStore } from '@/stores/BrandStore'
-import { useFilterStore } from '@/stores/FilterStore'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { useNotiStore } from '@/stores/์NotiStore'
-import { computed, onMounted, ref } from 'vue'
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import SaleItemGallery from "@/components/SaleItemGallery.vue";
+import { getAllBrands } from "@/services/BrandService";
+import { getAllSaleItems_v2 } from "@/services/SaleItemService";
+import { useBrandStore } from "@/stores/BrandStore";
+import { useFilterStore } from "@/stores/FilterStore";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useNotiStore } from "@/stores/์NotiStore";
+import { computed, onMounted, ref } from "vue";
 
-const PAGE_SIZE_OPTIONS = [5, 10, 20]
+const PAGE_SIZE_OPTIONS = [5, 10, 20];
 const STORAGE_KEYS = {
-  SELECTED_BRANDS: 'selectedBrands',
-  PAGE_INFO: 'pageInfo',
-}
+  SELECTED_BRANDS: "selectedBrands",
+  PAGE_INFO: "pageInfo",
+};
 
-const filterStore = useFilterStore()
-const saleItemStore = useSaleItemStore()
-const notiStore = useNotiStore()
-const brandStore = useBrandStore()
+const filterStore = useFilterStore();
+const saleItemStore = useSaleItemStore();
+const notiStore = useNotiStore();
+const brandStore = useBrandStore();
 
 const {
   getFilterList,
@@ -32,28 +32,28 @@ const {
   setSortField,
   setSortDirection,
   resetCurrentPage,
-} = filterStore
+} = filterStore;
 
-const { getSaleItemsPage } = saleItemStore
+const { getSaleItemsPage } = saleItemStore;
 
-const sortField = computed(() => filterStore.sortField)
-const sortDirection = computed(() => filterStore.sortDirection)
-const currentPage = computed(() => filterStore.currentPage)
-const pageSize = computed(() => filterStore.pageSize)
-const selectedBrands = computed(() => filterStore.selectedBrands)
-const filterBrands = computed(() => getFilterList())
-const saleItems = computed(() => getSaleItemsPage())
+const sortField = computed(() => filterStore.sortField);
+const sortDirection = computed(() => filterStore.sortDirection);
+const currentPage = computed(() => filterStore.currentPage);
+const pageSize = computed(() => filterStore.pageSize);
+const selectedBrands = computed(() => filterStore.selectedBrands);
+const filterBrands = computed(() => getFilterList());
+const saleItems = computed(() => getSaleItemsPage());
 
-const hasError = ref('')
-const showFilterDropdown = ref(false)
-const showCreatedModal = ref(false)
-const brandOptions = ref([])
+const hasError = ref("");
+const showFilterDropdown = ref(false);
+const showCreatedModal = ref(false);
+const brandOptions = ref([]);
 
 const saveToLocalStorage = () => {
   sessionStorage.setItem(
     STORAGE_KEYS.SELECTED_BRANDS,
     JSON.stringify(selectedBrands.value)
-  )
+  );
   sessionStorage.setItem(
     STORAGE_KEYS.PAGE_INFO,
     JSON.stringify({
@@ -62,36 +62,36 @@ const saveToLocalStorage = () => {
       sortField: sortField.value,
       sortDirection: sortDirection.value,
     })
-  )
-}
+  );
+};
 
 const getFromLocalStorage = () => {
   const selectedBrands = JSON.parse(
     sessionStorage.getItem(STORAGE_KEYS.SELECTED_BRANDS)
-  )
-  const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO))
+  );
+  const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO));
 
-  return { selectedBrands, pageInfo }
-}
+  return { selectedBrands, pageInfo };
+};
 
 const setDefaultStoreValues = (pageInfo) => {
-  const { selectedBrands } = getFromLocalStorage()
+  const { selectedBrands } = getFromLocalStorage();
 
-  setSelectedBrand(Array.isArray(selectedBrands) ? selectedBrands : [])
-  setCurrentPage(pageInfo?.page ?? 0)
-  setPageSize(pageInfo?.size ?? 10)
-  setSortField(pageInfo?.sortField ?? null)
-  setSortDirection(pageInfo?.sortDirection ?? null)
-}
+  setSelectedBrand(Array.isArray(selectedBrands) ? selectedBrands : []);
+  setCurrentPage(pageInfo?.page ?? 0);
+  setPageSize(pageInfo?.size ?? 10);
+  setSortField(pageInfo?.sortField ?? null);
+  setSortDirection(pageInfo?.sortDirection ?? null);
+};
 
 const applyFilter = async (closeModal = false) => {
   try {
-    console.log(sortField.value)
-    console.log(sortDirection.value)
+    console.log(sortField.value);
+    console.log(sortDirection.value);
 
-    showFilterDropdown.value = closeModal
+    showFilterDropdown.value = closeModal;
 
-    console.log('FetchApplyFilter')
+    console.log("FetchApplyFilter");
 
     const response = await getAllSaleItems_v2({
       filterBrands: filterBrands.value,
@@ -99,71 +99,73 @@ const applyFilter = async (closeModal = false) => {
       size: pageSize.value,
       sortField: sortField.value,
       sortDirection: sortDirection.value,
-    })
+    });
 
-    saveToLocalStorage()
+    saveToLocalStorage();
 
     if (response.error) {
-      throw new Error(response?.error)
+      throw new Error(response?.error);
     }
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-}
+};
 
 const selectBrand = async (brand) => {
-  setSelectBrand(brand)
-  resetCurrentPage()
-  await applyFilter(true)
-}
+  setSelectBrand(brand);
+  resetCurrentPage();
+  await applyFilter(true);
+};
 
 const clearAllBrands = async () => {
-  clearAllSelectedBrands()
-  resetCurrentPage()
-  await applyFilter()
-}
+  clearAllSelectedBrands();
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const removeBrandAndApply = async (brand) => {
-  removeBrand(brand)
-  resetCurrentPage()
-  await applyFilter()
-}
+  removeBrand(brand);
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const handlePageChange = async (pageIndex) => {
-  setCurrentPage(pageIndex)
-  await applyFilter()
-}
+  setCurrentPage(pageIndex);
+  await applyFilter();
+};
 
 const handlePageSizeChange = async (event) => {
-  setPageSize(event.target.value)
-  resetCurrentPage()
-  await applyFilter()
-}
+  setPageSize(event.target.value);
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const handleSortChange = async (sortType) => {
   if (sortType) {
-    setSortBrand(sortType)
+    setSortBrand(sortType);
   } else {
-    setSortBrand('')
+    setSortBrand("");
   }
 
-  resetCurrentPage()
-  await applyFilter()
-}
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const initializeBrands = async () => {
   try {
-    const response = await getAllBrands()
+    const response = await getAllBrands();
     if (!response.error) {
-      brandOptions.value = response.sort((a, b) => a.name.localeCompare(b.name))
-      brandStore.setBrand(response)
+      brandOptions.value = response.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+      brandStore.setBrand(response);
     } else {
-      throw new Error(response?.error)
+      throw new Error(response?.error);
     }
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-}
+};
 
 const initializeSaleItems = async (pageInfo) => {
   try {
@@ -173,35 +175,43 @@ const initializeSaleItems = async (pageInfo) => {
       size: pageInfo?.size ?? 10,
       sortField: pageInfo?.sortField ?? null,
       sortDirection: pageInfo?.sortDirection ?? null,
-    })
+    });
 
     if (response.error) {
-      throw new Error(response?.error)
+      throw new Error(response?.error);
     }
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-}
+};
 
 const showSuccessModal = () => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true
-    notiStore.createSuccess = false
+    showCreatedModal.value = true;
+    notiStore.createSuccess = false;
   }
-}
+};
 
 onMounted(async () => {
-  try {
-    const { pageInfo } = getFromLocalStorage()
+  window.addEventListener("resize", updateWidth);
 
-    setDefaultStoreValues(pageInfo)
-    await initializeBrands()
-    await initializeSaleItems(pageInfo)
-    showSuccessModal()
+  try {
+    const { pageInfo } = getFromLocalStorage();
+
+    setDefaultStoreValues(pageInfo);
+    await initializeBrands();
+    await initializeSaleItems(pageInfo);
+    showSuccessModal();
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-})
+});
+
+const windowWidth = ref(window.innerWidth);
+
+const updateWidth = () => {
+  windowWidth.value = window.innerWidth;
+};
 </script>
 
 <template>
@@ -230,7 +240,7 @@ onMounted(async () => {
       <div class="flex justify-between items-center">
         <div class="flex gap-3 items-center">
           <!-- Brand Dropdown -->
-          <div class="relative flex-1">
+          <div class="itbms-brand-filter relative flex-1">
             <input
               type="text"
               readonly
@@ -254,7 +264,7 @@ onMounted(async () => {
 
           <!-- Filter Actions -->
           <button
-            class="itbms-brand-filter btn btn-success btn-sm text-white"
+            class="itbms-brand-filter-button btn btn-success btn-sm text-white"
             @click="showFilterDropdown = !showFilterDropdown"
           >
             Filter
@@ -336,7 +346,7 @@ onMounted(async () => {
       </div>
 
       <!-- Sort and Page Size Controls -->
-      <div class="block md:hidden">
+      <div class="block" v-if="windowWidth < 768">
         <div class="flex gap-3 items-center">
           <label>Show</label>
           <select class="itbms-page-size select" @input="handlePageSizeChange">
