@@ -1,122 +1,122 @@
 <script setup>
-import { getAllBrands } from "@/services/BrandService";
-import { useBrandStore } from "@/stores/BrandStore";
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
-import MessageModal from "./MessageModal.vue";
+import { getAllBrands } from '@/services/BrandService'
+import { useBrandStore } from '@/stores/BrandStore'
+import { computed, onMounted, ref, watch, watchEffect } from 'vue'
+import MessageModal from './MessageModal.vue'
 
-const emit = defineEmits(["onSubmit"]);
-const { getBrands } = useBrandStore();
-const brands = computed(() => getBrands());
-const isSave = ref(true);
+const emit = defineEmits(['onSubmit'])
+const { getBrands } = useBrandStore()
+const brands = computed(() => getBrands())
+const isSave = ref(true)
 
 const props = defineProps({
   saleItemDetail: {
     type: Object,
   },
   disableSaveBtn: Boolean,
-});
+})
 const formData = ref({
   brand: {
     id: 0,
-    name: props.saleItemDetail?.brandName || "",
+    name: props.saleItemDetail?.brandName || '',
   },
-  model: props.saleItemDetail?.model || "",
+  model: props.saleItemDetail?.model || '',
   price: props.saleItemDetail?.price || null,
-  description: props.saleItemDetail?.description || "",
+  description: props.saleItemDetail?.description || '',
   ramGb: props.saleItemDetail?.ramGb || null,
   screenSizeInch: props.saleItemDetail?.screenSizeInch || null,
   storageGb: props.saleItemDetail?.storageGb || null,
-  color: props.saleItemDetail?.color || "",
+  color: props.saleItemDetail?.color || '',
   quantity: props.saleItemDetail?.quantity || null,
-});
+})
 
 const validate = ref({
-  brand: { msg: "Brand must be selected", showError: false, notNull: true },
+  brand: { msg: 'Brand must be selected.', showError: false, notNull: true },
   model: {
-    msg: "Model must be 1-60 characters long.",
+    msg: 'Model must be 1-60 characters long.',
     notNull: true,
     maxLength: 60,
     invalid: false,
     showError: false,
   },
   color: {
-    msg: "Color must be 1-40 characters long or not specified.",
+    msg: 'Color must be 1-40 characters long or not specified.',
     invalid: false,
     maxLength: 40,
     showError: false,
   },
   price: {
-    msg: "Price must be non-negative integer",
+    msg: 'Price must be non-negative integer.',
     invalid: false,
     notNull: true,
     nonNeg: true,
     showError: false,
   },
   description: {
-    msg: "Description must be 1-65,535 characters long.",
+    msg: 'Description must be 1-65,535 characters long.',
     invalid: false,
     notNull: true,
     maxLength: 65535,
     showError: false,
   },
   quantity: {
-    msg: "Quantity must be non-negative integer",
+    msg: 'Quantity must be non-negative integer.',
     invalid: false,
     notNull: true,
     nonNeg: true,
     showError: false,
   },
   ramGb: {
-    msg: "RAM size must be positive integer or not specified",
+    msg: 'RAM size must be positive integer or not specified.',
     invalid: false,
     positive: true,
     showError: false,
   },
   screenSizeInch: {
-    msg: "Screen size must be positive number with at most 2 decimal points or not specified",
+    msg: 'Screen size must be positive number with at most 2 decimal points or not specified.',
     invalid: false,
     positive: true,
     showError: false,
   },
   storageGb: {
-    msg: "Storage size must be positive integer or not specified",
+    msg: 'Storage size must be positive integer or not specified.',
     invalid: false,
     positive: true,
     showError: false,
   },
-});
+})
 
-const errorTitle = ref("");
-const errorMessage = ref("");
-const showModal = ref(false);
+const errorTitle = ref('')
+const errorMessage = ref('')
+const showModal = ref(false)
 
 onMounted(async () => {
   if (brands.value === null) {
     try {
-      const response = await getAllBrands();
+      const response = await getAllBrands()
       if (response.error) {
-        throw new Error(response.error);
+        throw new Error(response.error)
       }
     } catch (e) {
-      errorTitle.value = "Something Wrong!";
-      errorMessage.value = e.message;
-      showModal.value = true;
+      errorTitle.value = 'Something Wrong!'
+      errorMessage.value = e.message
+      showModal.value = true
     }
   }
-});
+})
 
-const requireField = ["brand", "model", "price", "description"];
+const requireField = ['brand', 'model', 'price', 'description']
 const fieldCheckOldData = [
-  "model",
-  "price",
-  "description",
-  "ramGb",
-  "screenSizeInch",
-  "storageGb",
-  "quantity",
-];
+  'model',
+  'price',
+  'description',
+  'ramGb',
+  'screenSizeInch',
+  'storageGb',
+  'quantity',
+]
 
-const validateField = [...fieldCheckOldData, "brand", "color"];
+const validateField = [...fieldCheckOldData, 'brand', 'color']
 const handleSubmit = () => {
   for (const field of requireField) {
     if (
@@ -124,24 +124,24 @@ const handleSubmit = () => {
       formData.value[field].id === 0
     ) {
       // console.log(field + "2");
-      errorTitle.value = "Missing Required Field";
-      errorMessage.value = `Please fill out the required field: ${field}`;
-      showModal.value = true;
-      return;
+      errorTitle.value = 'Missing Required Field'
+      errorMessage.value = `Please fill out the required field: ${field}`
+      showModal.value = true
+      return
     }
   }
 
   // console.log(formData.value);
 
-  emit("onSubmit", formData.value);
-};
+  emit('onSubmit', formData.value)
+}
 
 const allValid = computed(() => {
   return validateField.every(
     (field) =>
       !validate.value[field]?.showError && !validate.value[field]?.invalid
-  );
-});
+  )
+})
 
 //false xerror->blur
 //true xerror->blur
@@ -151,30 +151,30 @@ function maximumLength(field, blur) {
       formData.value[field].length > validate.value[field].maxLength) ||
     (validate.value[field].notNull && formData.value[field].length < 1)
   ) {
-    validate.value[field].invalid = true;
+    validate.value[field].invalid = true
 
     if (blur) {
       // เช็คตอน blur แล้วผิด → ให้แสดง error
-      validate.value[field].showError = true;
+      validate.value[field].showError = true
     }
   } else {
-    validate.value[field].invalid = false;
-    validate.value[field].showError = false;
+    validate.value[field].invalid = false
+    validate.value[field].showError = false
     // ถ้าข้อมูลถูก → ลบ error ทิ้งเสมอ ไม่ว่าจะ blur หรือไม่
   }
 }
 
 function brandSelected(blur) {
   if (!formData.value.brand || formData.value.brand.id === 0) {
-    validate.value.brand.invalid = true;
+    validate.value.brand.invalid = true
     if (blur) {
       // เช็คตอน blur แล้วผิด → ให้แสดง error
-      validate.value.brand.showError = true;
+      validate.value.brand.showError = true
     }
-    return;
+    return
   } else {
-    validate.value.brand.invalid = false;
-    validate.value.brand.showError = false;
+    validate.value.brand.invalid = false
+    validate.value.brand.showError = false
   }
 }
 function nonNegative(field, blur) {
@@ -182,111 +182,111 @@ function nonNegative(field, blur) {
     (!formData.value[field] && formData.value[field] !== 0) ||
     (formData.value[field] && formData.value[field] < 0)
   ) {
-    validate.value[field].invalid = true;
+    validate.value[field].invalid = true
 
     if (blur) {
       // เช็คตอน blur แล้วผิด → ให้แสดง error
-      validate.value[field].showError = true;
+      validate.value[field].showError = true
     }
 
-    return;
+    return
   } else {
-    validate.value[field].invalid = false;
-    validate.value[field].showError = false;
+    validate.value[field].invalid = false
+    validate.value[field].showError = false
   }
 }
 
 function isValidPositiveField(field, blur) {
   if (!formData.value[field] && formData.value[field] !== 0) {
-    validate.value[field].showError = false;
-    validate.value[field].invalid = false;
-    return;
+    validate.value[field].showError = false
+    validate.value[field].invalid = false
+    return
   }
 
-  const parsed = parseFloat(formData.value[field]);
+  const parsed = parseFloat(formData.value[field])
 
   // กรณีค่าที่กรอกไม่ใช่ตัวเลข หรือ <= 0
   if (isNaN(parsed) || parsed <= 0) {
-    validate.value[field].invalid = true;
+    validate.value[field].invalid = true
     if (blur) {
-      validate.value[field].showError = true;
+      validate.value[field].showError = true
     }
-    return;
+    return
   }
 
-  if (field === "screenSizeInch") {
-    const decimalPart = formData.value[field].toString().split(".")[1];
-    const hasTooManyDecimals = decimalPart && decimalPart.length > 2;
+  if (field === 'screenSizeInch') {
+    const decimalPart = formData.value[field].toString().split('.')[1]
+    const hasTooManyDecimals = decimalPart && decimalPart.length > 2
 
     if (hasTooManyDecimals) {
-      validate.value[field].invalid = true;
+      validate.value[field].invalid = true
       if (blur) {
-        validate.value[field].showError = true;
+        validate.value[field].showError = true
       }
     } else {
-      validate.value[field].showError = false;
-      validate.value[field].invalid = false;
+      validate.value[field].showError = false
+      validate.value[field].invalid = false
     }
 
-    return;
+    return
   }
 
   // ถ้าผ่านทุกเงื่อนไขแล้ว → ถือว่าถูกต้อง ลบ error ทิ้ง
-  validate.value[field].showError = false;
-  validate.value[field].invalid = false;
+  validate.value[field].showError = false
+  validate.value[field].invalid = false
 }
 
 watchEffect(() => {
   if (brands.value && brands.value.length > 0 && formData.value.brand.name) {
     const foundBrand = brands.value.find(
       (brand) => brand.name === formData.value.brand.name
-    );
+    )
     if (foundBrand) {
-      formData.value.brand = foundBrand;
+      formData.value.brand = foundBrand
     }
   }
-});
+})
 const normalize = (val) =>
-  val === null || val === undefined ? "" : val.trim?.() ?? val;
+  val === null || val === undefined ? '' : val.trim?.() ?? val
 
-["quantity", "price"].forEach((field) => {
+;['quantity', 'price'].forEach((field) => {
   watch(
     () => formData.value[field],
     () => nonNegative(field, false)
-  );
-});
+  )
+})
 
-["model", "description"].forEach((field) => {
+;['model', 'description'].forEach((field) => {
   watch(
     () => formData.value[field],
     () => maximumLength(field, false)
-  );
-});
+  )
+})
 
-["ramGb", "screenSizeInch", "storageGb"].forEach((field) => {
+;['ramGb', 'screenSizeInch', 'storageGb'].forEach((field) => {
   watch(
     () => formData.value[field],
     () => isValidPositiveField(field, false)
-  );
-});
+  )
+})
 
 watch(
   () => formData.value.brand,
   () => brandSelected(false)
-);
+)
 
 watch(
   () => formData.value.color,
   () => {
-    formData.value.color = normalize(formData.value.color);
-    maximumLength("color", false);
+    formData.value.color = normalize(formData.value.color)
+    maximumLength('color', false)
   }
-);
+)
 
 watchEffect(() => {
   if (!allValid.value) {
-    isSave.value = true;
-    return;
+    isSave.value = true
+    return
   }
 
   for (const field of requireField) {
@@ -294,35 +294,35 @@ watchEffect(() => {
       (!formData.value[field] && formData.value[field] !== 0) ||
       formData.value[field].id == 0
     ) {
-      isSave.value = true; // ยังกรอกไม่ครบ ไม่ควรบันทึก
-      return;
+      isSave.value = true // ยังกรอกไม่ครบ ไม่ควรบันทึก
+      return
     }
   }
 
   // console.log(isSave.value);
 
-  let hasChanges = false;
+  let hasChanges = false
 
   if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
-    hasChanges = true;
+    hasChanges = true
   }
 
   if (!hasChanges) {
     for (const field of fieldCheckOldData) {
       if (formData.value[field] !== props.saleItemDetail[field]) {
-        hasChanges = true;
-        break;
+        hasChanges = true
+        break
       }
     }
 
     if (formData.value.color !== normalize(props.saleItemDetail.color)) {
-      hasChanges = true;
+      hasChanges = true
     }
   }
 
-  isSave.value = !hasChanges;
+  isSave.value = !hasChanges
   // console.log(isSave.value);
-});
+})
 </script>
 
 <template>
@@ -360,9 +360,7 @@ watchEffect(() => {
               v-model="formData.brand"
               @blur="brandSelected(true)"
             >
-              <option :value="{ id: 0, name: '' }" disabled>
-                Select Brand
-              </option>
+              <option value="">Select Brand</option>
               <option
                 v-for="(brand, i) in brands
                   ?.sort((a, b) => a.name.localeCompare(b.name))
@@ -377,7 +375,9 @@ watchEffect(() => {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.brand.showError"
             >
-              <span class="font-extralight">{{ validate.brand.msg }}</span>
+              <span class="font-extralight itbms-message">{{
+                validate.brand.msg
+              }}</span>
             </div>
           </div>
 
@@ -401,7 +401,9 @@ watchEffect(() => {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.model.showError"
             >
-              <span class="font-extralight">{{ validate.model.msg }}</span>
+              <span class="font-extralight itbms-message">{{
+                validate.model.msg
+              }}</span>
             </div>
           </div>
 
@@ -424,7 +426,9 @@ watchEffect(() => {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.price.showError"
             >
-              <span class="font-extralight">{{ validate.price.msg }}</span>
+              <span class="font-extralight itbms-message">{{
+                validate.price.msg
+              }}</span>
             </div>
           </div>
 
@@ -446,7 +450,7 @@ watchEffect(() => {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.description.showError"
             >
-              <span class="font-extralight">{{
+              <span class="font-extralight itbms-message">{{
                 validate.description.msg
               }}</span>
             </div>
@@ -471,7 +475,9 @@ watchEffect(() => {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.ramGb.showError"
             >
-              <span class="font-extralight">{{ validate.ramGb.msg }}</span>
+              <span class="font-extralight itbms-message">{{
+                validate.ramGb.msg
+              }}</span>
             </div>
           </div>
 
@@ -496,7 +502,7 @@ watchEffect(() => {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.screenSizeInch.showError"
             >
-              <span class="font-extralight">{{
+              <span class="font-extralight itbms-message">{{
                 validate.screenSizeInch.msg
               }}</span>
             </div>
@@ -522,7 +528,9 @@ watchEffect(() => {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.storageGb.showError"
             >
-              <span class="font-extralight">{{ validate.storageGb.msg }}</span>
+              <span class="font-extralight itbms-message">{{
+                validate.storageGb.msg
+              }}</span>
             </div>
           </div>
 
@@ -543,7 +551,9 @@ watchEffect(() => {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.color.showError"
             >
-              <span class="font-extralight">{{ validate.color.msg }}</span>
+              <span class="font-extralight itbms-message">{{
+                validate.color.msg
+              }}</span>
             </div>
           </div>
 
@@ -568,7 +578,9 @@ watchEffect(() => {
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.quantity.showError"
             >
-              <span class="font-extralight">{{ validate.quantity.msg }}</span>
+              <span class="font-extralight itbms-message">{{
+                validate.quantity.msg
+              }}</span>
             </div>
           </div>
 
@@ -598,7 +610,6 @@ watchEffect(() => {
     :title="errorTitle"
     :message="errorMessage"
   />
-
 </template>
 
 <style scoped></style>
