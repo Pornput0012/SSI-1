@@ -57,8 +57,11 @@ function isValidUrl() {
 
   if (!pattern.test(url)) {
     validate.value.websiteUrl.msg = `Brand URL must be a valid URL or not specified.`;
+  
+
     return;
   }
+
 
   validate.value.websiteUrl.msg = "";
 }
@@ -92,7 +95,6 @@ function maximumLength(field) {
 }
 
 watchEffect(() => {
-
   let isInvalid = false;
 
   for (const field of validateField) {
@@ -107,20 +109,23 @@ watchEffect(() => {
     ) {
       isInvalid = true;
     } else if (
-      (trimField && field === 'name') &&
-      field !== "websiteUrl" ||
-      (field === "websiteUrl" && !formData.value.websiteUrl)
+      field !== "websiteUrl" &&
+      trimField &&
+      validate.value[field].maxLength &&
+      trimField.length <= validate.value[field].maxLength
     ) {
       validate.value[field].msg = "";
-    }
-    else if( trimField &&
-      validate.value[field].maxLength &&
-      trimField.length <= validate.value[field].maxLength){
-       validate.value[field].msg = "";
+    } else if (trimField && field === "name" && field !== "websiteUrl") {
+      validate.value[field].msg = "";
     }
   }
 
-  if (formData.value.websiteUrl && !pattern.test(formData.value.websiteUrl)) {
+  if (
+    formData.value.websiteUrl &&
+    !pattern.test(formData.value.websiteUrl) &&
+    formData.value.websiteUrl.trim().length <=
+      validate.value.websiteUrl.maxLength
+  ) {
     isInvalid = true;
   } else {
     validate.value.websiteUrl.msg = "";
@@ -133,7 +138,6 @@ watchEffect(() => {
     validate.value.websiteUrl.msg ||
     isInvalid
   ) {
-
     isCanNotSave.value = true;
     return;
   }
@@ -171,7 +175,6 @@ watchEffect(() => {
     validate.value.countryOfOrigin.msg ||
     validate.value.websiteUrl.msg
   ) {
-
     isCanNotSave.value = true;
     return;
   }
