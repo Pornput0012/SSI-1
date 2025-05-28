@@ -30,7 +30,7 @@ const fetchBrandById = async () => {
 
     if (response && !response.error) {
       selectBrand.value = response;
-      console.log(selectBrand.value);
+      
     } else {
       throw new Error("The brand does not exist.");
     }
