@@ -49,16 +49,12 @@ const confirmDelete = (brand) => {
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-      console.log(deleteTargetId.value);
 
       const response = await deleteBrandById(deleteTargetId.value);
       showDeleteModal.value = false;
       if (response.success) {
-        console.log(deleteTargetId.value);
-
         brandStore.deleteBrandById(deleteTargetId.value);
 
-        console.log(brandStore.brands);
 
         deleteSuccess.value = true;
       } else {

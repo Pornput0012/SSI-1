@@ -51,16 +51,13 @@ onMounted(fetchSaleItemById);
 
 const handleDelete = async (id) => {
   try {
-    console.log(selectSaleItem.value.id);
     if (selectSaleItem.value && selectSaleItem.value.id) {
       const response = await deleteSaleItemById(selectSaleItem.value.id);
       showDeleteModal.value = false;
-      console.log(response);
       if (response.success) {
         saleItemStore.deleteSaleItemById(selectSaleItem.value.id);
         deleteSuccess.value = true;
         selectSaleItem.value = null;
-        console.log(selectSaleItem.value);
       } else {
         throw new Error("The requested sale item does not exist.");
       }

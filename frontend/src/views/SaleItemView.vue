@@ -86,12 +86,9 @@ const setDefaultStoreValues = (pageInfo) => {
 
 const applyFilter = async (closeModal = false) => {
   try {
-    console.log(sortField.value);
-    console.log(sortDirection.value);
 
     showFilterDropdown.value = closeModal;
 
-    console.log("FetchApplyFilter");
 
     const response = await getAllSaleItems_v2({
       filterBrands: filterBrands.value,

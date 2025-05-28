@@ -17,7 +17,6 @@ export const useFilterStore = defineStore("Filter", () => {
     currentPage.value = 0;
     const pageInfo = JSON.parse(sessionStorage.getItem("pageInfo"));
     if (pageInfo?.page) {
-      console.log(pageInfo.page);
 
       pageInfo.page = 0;
     }

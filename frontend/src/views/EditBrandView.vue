@@ -57,8 +57,6 @@ const editBrand = async (formData) => {
 
     if (formData) {
       const response = await updateBrand(selectBrand.value.id, sentData);
-      console.log(response);
-      console.log(response.error);
       if (response && !response.error) {
         brandStore.updateBrandById(selectBrand.value.id, response);
         updateSuccess();
