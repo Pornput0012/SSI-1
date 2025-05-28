@@ -34,8 +34,7 @@ public class Product {
     @Column(name = "model", nullable = false, length = 60)
     private String model;
 
-    @Size(max = 400)
-    @Column(name = "description", length = 400)
+    @Column(name = "description")
     private String description;
 
     @NotNull

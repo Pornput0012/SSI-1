@@ -50,7 +50,7 @@ const validate = ref({
     showError: false,
   },
   description: {
-    msg: "Description must be 1-65,535 characters long.",
+    msg: "Description must be 1-16,384 characters long.",
     invalid: false,
     notNull: true,
     maxLength: 65535,

@@ -18,7 +18,7 @@ create table if not exists products (
   product_id integer AUTO_INCREMENT PRIMARY KEY,
   brand_id integer not null,
   model varchar(60) not null,
-  description varchar(400),
+  description text,
   price integer not null,
   ramGb integer,
   screenSizeInch decimal(4, 2),
