@@ -177,7 +177,7 @@ watch(
     <!-- Pagination -->
     <div
       v-if="pageInfo && !hasError && saleItems && saleItems.length !== 0"
-      class="join mt-7 w-full justify-center"
+      class="join mt-7 w-full justify-center flex-wrap md:flex-nowrap"
     >
       <button
         class="itbms-page-first join-item btn"
@@ -203,7 +203,6 @@ watch(
           pageInfo.totalPages === 1 ? 'hidden' : '',
         ]"
         class="btn"
-        
         :disabled="currentPage == number - 1"
         @click="changePage(number - 1)"
       >
