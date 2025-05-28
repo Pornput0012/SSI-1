@@ -4,7 +4,7 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 export const useFilterStore = defineStore("Filter", () => {
   const selectedBrands = ref([]);
 
-  const sortField = ref("createdOn");
+  const sortField = ref("");
   const sortDirection = ref("ASC");
   const currentPage = ref(0);
   const pageSize = ref(10);
