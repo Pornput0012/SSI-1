@@ -158,7 +158,6 @@ const initializeBrands = async () => {
       brandOptions.value = response.sort((a, b) =>
         a.name.localeCompare(b.name)
       );
-      brandStore.setBrand(response);
     } else {
       throw new Error(response?.error);
     }

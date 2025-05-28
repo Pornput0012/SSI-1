@@ -88,17 +88,15 @@ const errorMessage = ref("");
 const showModal = ref(false);
 
 onMounted(async () => {
-  if (brands.value === null) {
-    try {
-      const response = await getAllBrands();
-      if (response.error) {
-        throw new Error(response.error);
-      }
-    } catch (e) {
-      errorTitle.value = "Something Wrong!";
-      errorMessage.value = e.message;
-      showModal.value = true;
+  try {
+    const response = await getAllBrands();
+    if (response.error) {
+      throw new Error(response.error);
     }
+  } catch (e) {
+    errorTitle.value = "Something Wrong!";
+    errorMessage.value = e.message;
+    showModal.value = true;
   }
 });
 
