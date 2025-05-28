@@ -106,17 +106,19 @@ watchEffect(() => {
       trimField.length > validate.value[field].maxLength
     ) {
       isInvalid = true;
-    } else if (
+    } 
+    else if( trimField &&
+      validate.value[field].maxLength &&
+      trimField.length <= validate.value[field].maxLength){
+       validate.value[field].msg = "";
+    }
+    
+    else if (
       (trimField && field === 'name') &&
       field !== "websiteUrl" ||
       (field === "websiteUrl" && !formData.value.websiteUrl)
     ) {
       validate.value[field].msg = "";
-    }
-    else if( trimField &&
-      validate.value[field].maxLength &&
-      trimField.length <= validate.value[field].maxLength){
-       validate.value[field].msg = "";
     }
   }
 
