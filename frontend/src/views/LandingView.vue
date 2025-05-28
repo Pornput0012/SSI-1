@@ -1,39 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-
-// สร้างตัวแปรเพื่อควบคุม hero slider
-const currentSlide = ref(0)
-const totalSlides = 3
-
-// รูปภาพสำหรับ hero slider
-const heroImages = [
-  'https://picsum.photos/1280/720?random=1',
-  'https://picsum.photos/1280/720?random=2',
-  'https://picsum.photos/1280/720?random=3',
-]
-
-// ฟังก์ชันสำหรับเลื่อน slide
-const nextSlide = () => {
-  currentSlide.value = (currentSlide.value + 1) % totalSlides
-}
-
-const prevSlide = () => {
-  currentSlide.value = (currentSlide.value - 1 + totalSlides) % totalSlides
-}
-
-onMounted(() => {
-  setInterval(nextSlide, 5000)
-})
+import { ref, onMounted } from "vue";
 </script>
 
 <template>
   <div class="overflow-hidden">
-    <div class="relative h-[calc(100vh-154px)] w-full">
+    <div class="relative h-screen w-full">
       <div class="carousel w-full h-full">
         <div class="carousel-item relative w-full">
           <div
             class="w-full h-full bg-no-repeat bg-cover bg-center"
-            style="background-image: url('https://picsum.photos/id/1/1280/720')"
+            style="background-image: url('/pictures/bg_landing.jpg')"
           >
             <div class="absolute inset-0 bg-black/40">
               <div
@@ -43,7 +19,7 @@ onMounted(() => {
                   <div
                     class="mask mask-squircle bg-white w-20 h-20 flex items-center justify-center mb-4 mx-auto"
                   >
-                    <span class="text-xl font-bold select-none">ITB</span>
+                    <img src="/logo.png" alt="" />
                   </div>
                 </div>
 

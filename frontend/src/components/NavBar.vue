@@ -16,6 +16,10 @@ const menu = [
     to: "sale-items",
     text: "Sale Items",
   },
+  {
+    to: "brands",
+    text: "Manage Brand",
+  },
 ];
 </script>
 
@@ -25,13 +29,13 @@ const menu = [
       <div class="w-full flex justify-between items-center text-lg">
         <RouterLink
           :to="{ name: 'home' }"
-          class="font-bold transition-all duration-200 hover:tracking-wider hover:text-purple-800"
-          >ITB MShop</RouterLink
+          class="font-bold transition-all duration-200 hover:tracking-wider hover:text-purple-800 flex items-center justify-center"
         >
+          <img src="/logo.png" class="h-14 aspect-square" alt="logo" />
+          ITB MShop
+        </RouterLink>
         <div>
-          <button class="btn btn-primary px-4">
-            Log in
-          </button>
+          <button class="btn btn-primary px-4">Log in</button>
         </div>
       </div>
     </div>
@@ -75,11 +79,11 @@ const menu = [
         </button>
       </div>
     </div>
-    <div>
-      <RouterLink :to="{ name: 'home' }" class="btn btn-ghost text-xl"
-        >ITB MShop</RouterLink
+    <!-- <div>
+      <RouterLink :to="{ name: 'home' }" class="btn btn-ghost text-xl">
+        ITB MShop</RouterLink
       >
-    </div>
+    </div> -->
     <div class="">
       <button class="btn btn-ghost btn-circle">
         <svg
