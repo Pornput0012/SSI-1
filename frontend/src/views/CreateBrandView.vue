@@ -39,7 +39,6 @@ const handleCreateBrand = async (formData) => {
 const notiStore = useNotiStore();
 const router = useRouter();
 const createSuccess = () => {
-  console.log("Noti Store push");
 
   notiStore.createSuccess = true;
   router.push({ name: "brands" });

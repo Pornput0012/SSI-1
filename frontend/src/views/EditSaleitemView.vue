@@ -47,14 +47,11 @@ onMounted(fetchSaleItemById);
 const editSaleItem = async (formData) => {
   try {
     isSaving.value = true;
-    console.log(formData);
     if (formData) {
       const response = await updateSaleItemById(
         selectSaleItem.value.id,
         formData
       );
-      console.log(response);
-      console.log(response.error);
       if (response && !response.error) {
         saleItemStore.updateSaleItemById(selectSaleItem.value.id, response);
         updateSuccess();
@@ -64,7 +61,6 @@ const editSaleItem = async (formData) => {
     }
   } catch (error) {
     isSaving.value = false;
-    console.log(error.message);
   }
 };
 

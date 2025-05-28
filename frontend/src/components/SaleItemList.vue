@@ -35,7 +35,6 @@ const handleDelete = async () => {
       showDeleteModal.value = false
       if (response.success) {
         saleItemStore.deleteSaleItemById(deleteTargetId.value)
-        console.log(saleItemStore.saleItems)
         deleteSuccess.value = true
       } else {
         throw new Error('The requested sale item does not exist.')

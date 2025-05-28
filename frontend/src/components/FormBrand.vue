@@ -82,13 +82,7 @@ function maximumLength(field) {
   const isRequiredButEmpty =
     field === "name" && (!trimField || trimField.length === 0);
 
-  console.log(isTooLong);
-  console.log(isRequiredButEmpty);
-
   if (isTooLong || isRequiredButEmpty) {
-    console.log(`Brand ${matchedLabel} must be 1-${validate.value[field].maxLength} characters long` +
-      (matchedLabel === "country of origin" ? " or not specified." : "."));
-    
     validate.value[field].msg =
       `Brand ${matchedLabel} must be 1-${validate.value[field].maxLength} characters long` +
       (matchedLabel === "country of origin" ? " or not specified." : ".");
@@ -98,12 +92,10 @@ function maximumLength(field) {
 }
 
 watchEffect(() => {
-  console.log("disableSaveBtn from props", props.disableSaveBtn);
 
   let isInvalid = false;
 
   for (const field of validateField) {
-    console.log("validate length of", field, "value:", formData.value[field]);
     const trimField =
       typeof formData.value[field] == "string"
         ? formData.value[field].trim()
@@ -113,23 +105,18 @@ watchEffect(() => {
       validate.value[field].maxLength &&
       trimField.length > validate.value[field].maxLength
     ) {
-      console.log(validate.value[field].maxLength);
-
-      console.log(
-        formData.value[field].length > validate.value[field].maxLength
-      );
-
-      console.log("isInvalid: true");
-
       isInvalid = true;
     } else if (
       (trimField && field === 'name') &&
       field !== "websiteUrl" ||
       (field === "websiteUrl" && !formData.value.websiteUrl)
     ) {
-      console.log(field);
-      
       validate.value[field].msg = "";
+    }
+    else if( trimField &&
+      validate.value[field].maxLength &&
+      trimField.length <= validate.value[field].maxLength){
+       validate.value[field].msg = "";
     }
   }
 
@@ -146,11 +133,6 @@ watchEffect(() => {
     validate.value.websiteUrl.msg ||
     isInvalid
   ) {
-    console.log(!formData.value?.name.trim());
-    console.log(validate.value.name.msg);
-    console.log(isInvalid);
-
-    console.log("✖️ name invalid", validate.value.name.msg);
 
     isCanNotSave.value = true;
     return;
@@ -189,7 +171,6 @@ watchEffect(() => {
     validate.value.countryOfOrigin.msg ||
     validate.value.websiteUrl.msg
   ) {
-    console.log("isCanNotSave?", isCanNotSave.value);
 
     isCanNotSave.value = true;
     return;

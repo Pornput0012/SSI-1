@@ -5,7 +5,7 @@ import { deleteBrandById, getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/์NotiStore";
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const brandStore = useBrandStore();
@@ -49,16 +49,12 @@ const confirmDelete = (brand) => {
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-      console.log(deleteTargetId.value);
 
       const response = await deleteBrandById(deleteTargetId.value);
       showDeleteModal.value = false;
       if (response.success) {
-        console.log(deleteTargetId.value);
-
         brandStore.deleteBrandById(deleteTargetId.value);
 
-        console.log(brandStore.brands);
 
         deleteSuccess.value = true;
       } else {

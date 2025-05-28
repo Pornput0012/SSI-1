@@ -86,12 +86,9 @@ const setDefaultStoreValues = (pageInfo) => {
 
 const applyFilter = async (closeModal = false) => {
   try {
-    console.log(sortField.value);
-    console.log(sortDirection.value);
 
     showFilterDropdown.value = closeModal;
 
-    console.log("FetchApplyFilter");
 
     const response = await getAllSaleItems_v2({
       filterBrands: filterBrands.value,
@@ -158,7 +155,6 @@ const initializeBrands = async () => {
       brandOptions.value = response.sort((a, b) =>
         a.name.localeCompare(b.name)
       );
-      brandStore.setBrand(response);
     } else {
       throw new Error(response?.error);
     }
@@ -237,7 +233,7 @@ const updateWidth = () => {
     <!-- Filter Section -->
     <section class="mt-6 w-full">
       <!-- Brand Filter Controls -->
-      <div class="flex justify-between items-center">
+      <div class="flex justify-between items-center flex-wrap md:flex-nowrap gap-2">
         <div class="flex gap-3 items-center">
           <!-- Brand Dropdown -->
           <div class="itbms-brand-filter relative flex-1">
