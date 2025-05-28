@@ -8,25 +8,20 @@ import { useNotiStore } from "@/stores/์NotiStore";
 import { ref } from "vue";
 
 const isSaving = ref(false);
-// const saleItemStore = useSaleItemStore();
 const handleCreateSaleItem = async (formData) => {
   try {
     isSaving.value = true;
-    console.log(formData);
     if (formData) {
       const response = await createSaleItem(formData);
       if (response && !response.error) {
-        // saleItemStore.createSaleItem(response);
         createSuccess();
       } else {
-        console.log(response.error);
         
         throw new Error("Failed to add sale item");
       }
     }
   } catch (error) {
     isSaving.value = false;
-    console.log(error.message);
   }
 };
 

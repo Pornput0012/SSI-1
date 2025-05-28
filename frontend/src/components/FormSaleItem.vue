@@ -116,7 +116,7 @@ const handleSubmit = () => {
   for (const field of requireField) {
     if (
       (!formData.value[field] && formData.value[field] !== 0) ||
-      formData.value[field] === "" || // เพิ่มการเช็ค empty string
+      formData.value[field] === "" || 
       formData.value[field].id === 0
     ) {
       errorTitle.value = "Missing Required Field";
@@ -136,8 +136,7 @@ const allValid = computed(() => {
   );
 });
 
-//false xerror->blur
-//true xerror->blur
+
 function maximumLength(field, blur) {
   if (
     (formData.value[field] &&
@@ -147,13 +146,13 @@ function maximumLength(field, blur) {
     validate.value[field].invalid = true;
 
     if (blur) {
-      // เช็คตอน blur แล้วผิด → ให้แสดง error
+      // เช็คตอน blur แล้วผิดให้แสดง error
       validate.value[field].showError = true;
     }
   } else {
     validate.value[field].invalid = false;
     validate.value[field].showError = false;
-    // ถ้าข้อมูลถูก → ลบ error ทิ้งเสมอ ไม่ว่าจะ blur หรือไม่
+    // ถ้าข้อมูลถูกลบ error ทิ้งไม่ว่าจะ blur ไหม
   }
 }
 
@@ -181,7 +180,6 @@ function nonNegative(field, blur) {
     validate.value[field].invalid = true;
 
     if (blur) {
-      // เช็คตอน blur แล้วผิด → ให้แสดง error
       validate.value[field].showError = true;
     }
 
@@ -201,7 +199,6 @@ function isValidPositiveField(field, blur) {
 
   const parsed = parseFloat(formData.value[field]);
 
-  // กรณีค่าที่กรอกไม่ใช่ตัวเลข หรือ <= 0
   if (isNaN(parsed) || parsed <= 0) {
     validate.value[field].invalid = true;
     if (blur) {
@@ -227,7 +224,7 @@ function isValidPositiveField(field, blur) {
     return;
   }
 
-  // ถ้าผ่านทุกเงื่อนไขแล้ว → ถือว่าถูกต้อง ลบ error ทิ้ง
+  // ถ้าผ่านทุกเงื่อนไขแล้ว ลบ error ทิ้ง
   validate.value[field].showError = false;
   validate.value[field].invalid = false;
 }
@@ -288,12 +285,11 @@ watchEffect(() => {
       (!formData.value[field] && formData.value[field] !== 0) ||
       formData.value[field].id == 0
     ) {
-      isSave.value = true; // ยังกรอกไม่ครบ ไม่ควรบันทึก
+      isSave.value = true;
       return;
     }
   }
 
-  // console.log(isSave.value);
 
   let hasChanges = false;
 
@@ -315,7 +311,6 @@ watchEffect(() => {
   }
 
   isSave.value = !hasChanges;
-  // console.log(isSave.value);
 });
 </script>
 

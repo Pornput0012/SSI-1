@@ -5,7 +5,6 @@ const openHamburger = ref(false);
 
 function setOpenHamburger() {
   openHamburger.value = !openHamburger.value;
-  console.log(openHamburger.value);
 }
 
 const menu = [

@@ -33,10 +33,8 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     if (!Array.isArray(saleItems.value)) {
       return null;
     }
-    console.log(saleItems.value);
 
     const index = saleItems.value.findIndex((item) => item.id == id);
-    console.log(index);
 
     if (index === -1) {
       return null;
@@ -52,7 +50,6 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     const index = saleItemsPage.value.content.findIndex(
       (item) => item.id == id
     );
-    console.log(index);
 
     if (index === -1) {
       return null;
