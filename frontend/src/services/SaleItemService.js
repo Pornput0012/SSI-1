@@ -1,12 +1,8 @@
 import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 
-const SALE_ITEM_API_URL_V1 = `${
-  import.meta.env.VITE_BACKEND_URL
-}/v1/sale-items`;
-const SALE_ITEM_API_URL_V2 = `${
-  import.meta.env.VITE_BACKEND_URL
-}/v2/sale-items`;
+const SALE_ITEM_API_URL_V1 = "/ssi1/itb-mshop/v1/sale-items"
+const SALE_ITEM_API_URL_V2 = "/ssi1/itb-mshop/v2/sale-items"
 
 // GET all sale-items
 const getAllSaleItems = async () => {

@@ -1,7 +1,5 @@
 import { useBrandStore } from "@/stores/BrandStore";
-
-const BRAND_API_URL_V1 = `${import.meta.env.VITE_BACKEND_URL}/v1/brands`;
-
+const BRAND_API_URL_V1 = "/ssi1/itb-mshop/v1/brands"
 // GET all brand
 const getAllBrands = async () => {
   try {
