@@ -36,7 +36,7 @@ const fetchSaleItemById = async () => {
     }
 
     const response = await getSaleItemById(saleItemId);
-    if (response && !response.error) {
+    if (!response.error) {
       selectSaleItem.value = response;
     } else {
       throw new Error("The requested sale item does not exist.");
@@ -55,7 +55,7 @@ const handleDelete = async (id) => {
       const response = await deleteSaleItemById(selectSaleItem.value.id);
       showDeleteModal.value = false;
       if (response.success) {
-        saleItemStore.deleteSaleItemById(selectSaleItem.value.id);
+        //saleItemStore.deleteSaleItemById(selectSaleItem.value.id);
         deleteSuccess.value = true;
         selectSaleItem.value = null;
       } else {

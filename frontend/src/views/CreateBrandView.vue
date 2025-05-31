@@ -28,7 +28,7 @@ const handleCreateBrand = async (formData) => {
 
     if (formData) {
       const response = await createBrand(sentData)
-      if (response && !response.error) {
+      if (!response.error) {
         brandStore.createBrand(response)
         createSuccess()
       } else {
@@ -39,7 +39,7 @@ const handleCreateBrand = async (formData) => {
     isSaving.value = false
 
     errorTitle.value = 'Failed to add brand'
-    errorMessage.value = error.message
+    errorMessage.value =  error.message.substr(7,error.message.length)
     showModal.value = true
   }
 }
