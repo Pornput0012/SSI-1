@@ -25,9 +25,9 @@ public class ProductController {
     @GetMapping("/v2/sale-items")
     public ResponseEntity<ProductPageDTO> getAllProductsV2(@RequestParam int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "", required = false) String sortField,
-            @RequestParam(required = false, defaultValue = "asc") String sortDirection,
-            @RequestParam(defaultValue = "") List<String> filterBrands) {
+            @RequestParam(required = false) String sortField,
+            @RequestParam(defaultValue = "asc") String sortDirection,
+            @RequestParam(required = false) List<String> filterBrands) {
 
         ProductPageDTO productPageDTO = productService.getAllProductsV2(page, size, sortField, sortDirection,
                 filterBrands);

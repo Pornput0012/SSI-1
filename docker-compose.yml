@@ -9,6 +9,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-0000}
       MYSQL_CHARACTER_SET_SERVER: utf8mb4
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+      TZ: Asia/Bangkok
     volumes:
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
@@ -17,7 +18,7 @@ services:
       timeout: 30s
       retries: 3
       start_period: 10s
-
+    restart: always
   backend:
     build: ./backend
     container_name: backend
@@ -31,4 +32,4 @@ services:
     depends_on:
       db_server:
         condition: service_healthy
-
+    restart: always
