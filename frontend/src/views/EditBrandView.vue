@@ -8,6 +8,9 @@ import { useNotiStore } from "@/stores/์NotiStore";
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
+const errorTitle = ref('')
+const showModal = ref(false)
+
 const isSaving = ref(false);
 const brandStore = useBrandStore();
 
@@ -28,7 +31,7 @@ const fetchBrandById = async () => {
 
     const response = await getBrandById(brandId);
 
-    if (response && !response.error) {
+    if (!response.error) {
       selectBrand.value = response;
       
     } else {
@@ -57,14 +60,18 @@ const editBrand = async (formData) => {
 
     if (formData) {
       const response = await updateBrand(selectBrand.value.id, sentData);
-      if (response && !response.error) {
+      if (!response.error) {
         brandStore.updateBrandById(selectBrand.value.id, response);
         updateSuccess();
       } else {
-        throw new Error("Failed to update brand");
+        throw new Error(response.error);
       }
     }
   } catch (error) {
+    errorTitle.value = 'Failed to update brand'
+
+    errorMessage.value = error.message.substr(7,error.message.length)
+    showModal.value = true
     isSaving.value = false;
   }
 };
@@ -99,6 +106,12 @@ const updateSuccess = () => {
     v-if="isNotFound"
     :handle-ok="() => router.push({ name: 'brands' })"
     :title="'Brand Not Found'"
+    :message="errorMessage"
+  />
+   <MessageModal
+    v-if="showModal"
+    :handle-ok="() => (showModal = false)"
+    :title="errorTitle"
     :message="errorMessage"
   />
 </template>

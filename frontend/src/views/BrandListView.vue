@@ -2,6 +2,7 @@
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import MessageModal from "@/components/MessageModal.vue";
 import { deleteBrandById, getAllBrands } from "@/services/BrandService";
+import { getAllSaleItems } from "@/services/SaleItemService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/์NotiStore";
@@ -25,6 +26,10 @@ onMounted(async () => {
     const response = await getAllBrands();
     if (response.error) {
       throw new Error(response.error);
+    }
+    const responseSaleItem = await getAllSaleItems()
+    if(responseSaleItem.error){
+      throw new Error(responseSaleItem.error);
     }
   } catch (e) {
     hasError.value = e.message;

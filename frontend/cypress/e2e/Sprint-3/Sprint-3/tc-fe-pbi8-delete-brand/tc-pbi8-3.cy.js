@@ -60,7 +60,7 @@ describe(`TC-FE-PBI8-DELETE-BRAND-3\n
         cy.wait(100)
 
         cy.get('.itbms-message').should('exist') 
-        cy.get('.itbms-message').should('contain.text', "Delete Infinix (2025) is not allowed. There are sle items with Infinix (2025) brand.") ;
+        cy.get('.itbms-message').should('contain.text', "Delete Infinix (2025) is not allowed. There are sale items with Infinix (2025) brand.") ;
         cy.get('.itbms-cancel-button').should('exist') ;
         cy.get('.itbms-confirm-button').should('not.exist') ; 
 

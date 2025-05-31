@@ -1,5 +1,5 @@
 import { useBrandStore } from "@/stores/BrandStore";
-const BRAND_API_URL_V1 = "/ssi1/itb-mshop/v1/brands"
+const BRAND_API_URL_V1 = `${import.meta.env.VITE_URL_API || '/ssi1'}/itb-mshop/v1/brands`
 // GET all brand
 const getAllBrands = async () => {
   try {
@@ -47,7 +47,7 @@ const createBrand = async (brand) => {
     });
 
     if (response.status !== 201) {
-      throw new Error(`The status could not be added.`);
+      throw new Error(`The brand could not be added.`);
     }
 
     const data = await response.json();
@@ -72,7 +72,7 @@ const updateBrand = async (id, brand) => {
     });
 
     if (!response.ok) {
-      throw new Error(`The brand does not exist.`);
+      throw new Error(response.status === 404 ? `The brand does not exist.` : 'An error has occured, Duplicate brand name');
     }
 
     const data = await response.json();
