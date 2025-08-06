@@ -3,6 +3,8 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 
 export const useFilterStore = defineStore("Filter", () => {
   const selectedBrands = ref([]);
+  const selectedPrices = ref({min: null, max: null})
+  const selectedStorages = ref([])
 
   const sortField = ref("");
   const sortDirection = ref("ASC");
@@ -36,9 +38,23 @@ export const useFilterStore = defineStore("Filter", () => {
     currentPage.value = page;
   };
 
-  const clearAllSelectedBrands = () => {
+  const clearAllFilters = () => {
+    selectedBrands.value = [];
+    selectedPrices.value = {min: null, max: null}
+    selectedStorages.value = []
+  }
+
+  const clearSelectedBrands = () => {
     selectedBrands.value = [];
   };
+
+  const clearSelectedPrices = () => {
+    selectedPrices.value = {min: null, max: null}
+  }
+
+  const clearSelectedStorages = () => {
+    selectedStorages.value = []
+  }
 
   const removeBrand = (brand) => {
     selectedBrands.value = selectedBrands.value.filter(
@@ -68,7 +84,10 @@ export const useFilterStore = defineStore("Filter", () => {
     sortDirection,
     currentPage,
     pageSize,
-    clearAllSelectedBrands,
+    clearSelectedBrands,
+    clearAllFilters,
+    clearSelectedPrices,
+    clearSelectedStorages,
     removeBrand,
     resetCurrentPage,
     getFilterList,

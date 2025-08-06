@@ -22,7 +22,7 @@ const {
   getFilterList,
   setSelectBrand,
   setCurrentPage,
-  clearAllSelectedBrands,
+  clearSelectedBrands,
   removeBrand,
   setPageSize,
   setSortBrand,
@@ -113,7 +113,7 @@ const selectBrand = async (brand) => {
 }
 
 const clearAllBrands = async () => {
-  clearAllSelectedBrands()
+  clearSelectedBrands()
   resetCurrentPage()
   await applyFilter()
 }
