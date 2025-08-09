@@ -23,14 +23,17 @@ public class ProductController {
     }
 
     @GetMapping("/v2/sale-items")
-    public ResponseEntity<ProductPageDTO> getAllProductsV2(@RequestParam int page,
+    public ResponseEntity<ProductPageDTO> getAllProductsV2(
+            @RequestParam int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String sortField,
             @RequestParam(defaultValue = "asc") String sortDirection,
-            @RequestParam(required = false) List<String> filterBrands) {
+            @RequestParam(required = false) List<String> filterBrands,
+            @RequestParam(required = false) List<Integer> filterStorage,
+            @RequestParam(required = false) Integer filterPriceLower,
+            @RequestParam(required = false) Integer filterPriceUpper) {
 
-        ProductPageDTO productPageDTO = productService.getAllProductsV2(page, size, sortField, sortDirection,
-                filterBrands);
+        ProductPageDTO productPageDTO = productService.getAllProductsV2(page, size, sortField, sortDirection, filterBrands, filterStorage, filterPriceLower, filterPriceUpper);
         return ResponseEntity.ok(productPageDTO);
     }
 
@@ -41,7 +44,7 @@ public class ProductController {
 
     @PutMapping("/v1/sale-items/{id}")
     public ResponseEntity<ProductItemResponseDTO> updateProduct(@PathVariable Integer id,
-            @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
+                                                                @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
         return ResponseEntity.ok(productService.updateProduct(id, productItemRequestDTO));
     }
 
