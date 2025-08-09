@@ -11,21 +11,17 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-
-    // แก้ไข: เอา DISTINCT ออกและใช้ custom query แทน
-    @Query("SELECT p FROM Product p JOIN p.brand brand WHERE brand.name IN :brandNames")
-    Page<Product> findByBrandNameIn(List<String> brandNames, Pageable pageable);
-
-    @Query("SELECT p FROM Product p JOIN p.brand brand ORDER BY brand.createdOn ASC, p.id ASC")
-    Page<Product> findAllOrderByBrandCreatedOnAsc(Pageable pageable);
-
-    @Query("SELECT p FROM Product p JOIN p.brand brand ORDER BY brand.createdOn DESC, p.id DESC")
-    Page<Product> findAllOrderByBrandCreatedOnDesc(Pageable pageable);
-
-    @Query("SELECT p FROM Product p JOIN p.brand brand WHERE brand.name IN :brandNames ORDER BY brand.createdOn ASC, p.id ASC")
-    Page<Product> findAllByBrandNameInOrderByBrandCreatedOnAsc(List<String> brandNames, Pageable pageable);
-
-    @Query("SELECT p FROM Product p JOIN p.brand brand WHERE brand.name IN :brandNames ORDER BY brand.createdOn DESC, p.id DESC")
-    Page<Product> findAllByBrandNameInOrderByBrandCreatedOnDesc(List<String> brandNames, Pageable pageable);
-
+    @Query("SELECT p FROM Product p JOIN p.brand brand " +
+            "WHERE " +
+            "(:brandNames IS NULL OR brand.name IN :brandNames) " +
+            "AND (:storages IS NULL OR p.storageGb IN :storages) " +
+            "AND (:priceLower IS NULL OR p.price >= :priceLower) " +
+            "AND (:priceUpper IS NULL OR p.price <= :priceUpper)")
+    Page<Product> findFilteredProducts(
+            List<String> brandNames,
+            List<Integer> storages,
+            Integer priceLower,
+            Integer priceUpper,
+            Pageable pageable
+    );
 }
