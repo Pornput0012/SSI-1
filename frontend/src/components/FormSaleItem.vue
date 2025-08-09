@@ -341,8 +341,10 @@ const uploadImage = (event) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         if (images.value.length < 4) {
+          const fileName = generateUniqueFileName(file.name);
+
           const image = {
-            imageName: file.name,
+            imageName: fileName,
             src: e.target.result,
           };
           images.value.push(image);
@@ -364,6 +366,30 @@ const uploadImage = (event) => {
   });
 
   event.target.value = "";
+};
+
+const generateUniqueFileName = (originalName) => {
+  const isDuplicate = images.value.some(
+    (img) => img.imageName === originalName
+  );
+
+  if (!isDuplicate) {
+    return originalName;
+  }
+
+  const nameParts = originalName.split(".");
+  const baseName = nameParts.slice(0, -1).join(".") || nameParts[0];
+  const ext = nameParts.length > 1 ? "." + nameParts[nameParts.length - 1] : "";
+
+  let suffix = 1;
+  let newName = `${baseName}(${suffix})${ext}`;
+
+  while (images.value.some((img) => img.imageName === newName)) {
+    suffix++;
+    newName = `${baseName}(${suffix})${ext}`;
+  }
+
+  return newName;
 };
 
 const swapUpImage = (i) => {
