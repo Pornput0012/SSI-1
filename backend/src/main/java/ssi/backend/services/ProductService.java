@@ -2,6 +2,7 @@ package ssi.backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,49 +39,42 @@ public class ProductService {
     }
 
     public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
-            List<String> filterBrands) {
+                                           List<String> filterBrands, List<Integer> filterStorage,
+                                           Integer filterPriceLower, Integer filterPriceUpper) {
         ProductPageDTO productPage;
 
-        Pageable pageable;
         boolean hasSortField = sortField != null && !sortField.isBlank();
-        boolean hasFilter = filterBrands != null && !filterBrands.isEmpty();
-
         boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
 
+        Sort sort;
         if (hasSortField) {
-            Sort sort = sortDesc
+            sort = sortDesc
                     ? Sort.by(Sort.Order.desc(sortField))
                     : Sort.by(Sort.Order.asc(sortField));
-            pageable = PageRequest.of(page, size, sort.and(Sort.by(Sort.Order.asc("id"))));
-
-            if (hasFilter) {
-                productPage = modelMapper.map(productRepository.findByBrandNameIn(filterBrands, pageable),
-                        ProductPageDTO.class);
-            } else {
-                productPage = modelMapper.map(productRepository.findAll(pageable), ProductPageDTO.class);
-            }
-
+            sort = sort.and(Sort.by(Sort.Order.asc("id")));
         } else {
-            pageable = PageRequest.of(page, size);
-            if (hasFilter) {
-                productPage = sortDesc
-                        ? modelMapper.map(productRepository.findAllByBrandNameInOrderByBrandCreatedOnDesc(filterBrands,
-                                pageable), ProductPageDTO.class)
-                        : modelMapper.map(productRepository.findAllByBrandNameInOrderByBrandCreatedOnAsc(filterBrands,
-                                pageable), ProductPageDTO.class);
-            } else {
-                productPage = sortDesc
-                        ? modelMapper.map(
-                                productRepository.findAllOrderByBrandCreatedOnDesc(pageable),
-                                ProductPageDTO.class)
-                        : modelMapper.map(productRepository.findAllOrderByBrandCreatedOnAsc(pageable),
-                                ProductPageDTO.class);
-            }
+            sort = sortDesc
+                    ? Sort.by(Sort.Order.desc("brand.createdOn")).and(Sort.by(Sort.Order.desc("id")))
+                    : Sort.by(Sort.Order.asc("brand.createdOn")).and(Sort.by(Sort.Order.asc("id")));
         }
 
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Product> pageResult = productRepository.findFilteredProducts(
+                (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
+                (filterStorage != null && !filterStorage.isEmpty()) ? filterStorage : null,
+                filterPriceLower,
+                filterPriceUpper,
+                pageable
+        );
+
+        productPage = modelMapper.map(pageResult, ProductPageDTO.class);
         productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+
+        productPage.setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
         return productPage;
     }
+
 
     public ProductDetailDTO getProductById(Integer id) {
         Product product = productRepository.findById(id)
