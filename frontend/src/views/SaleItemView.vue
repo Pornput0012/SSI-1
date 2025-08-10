@@ -30,6 +30,9 @@ const {
   setSortField,
   setSortDirection,
   resetCurrentPage,
+  setSelectStorage,
+  removeStorage,
+  clearAllFilters,
 } = filterStore
 
 const { getSaleItemsPage } = saleItemStore
@@ -39,15 +42,16 @@ const sortDirection = computed(() => filterStore.sortDirection)
 const currentPage = computed(() => filterStore.currentPage)
 const pageSize = computed(() => filterStore.pageSize)
 const selectedBrands = computed(() => filterStore.selectedBrands)
-const filterBrands = computed(() => getFilterList())
+const filterBrands = computed(() => getFilterList().brands)
 const saleItems = computed(() => getSaleItemsPage())
+const filterStorages = computed(() => getFilterList().storages)
+const selectedStorages = computed(() => filterStore.selectedStorages)
 
 const hasError = ref('')
 const showFilterDropdown = ref(false)
 const showCreatedModal = ref(false)
 const brandOptions = ref([])
-const priceOptions = ref([])
-const storageOptions = ref([])
+const storageOptions = ref(['Not specified', 32, 64, 128, 256, 512, 1024])
 
 const saveToLocalStorage = () => {
   sessionStorage.setItem(
@@ -90,6 +94,7 @@ const applyFilter = async (closeModal = false) => {
 
     const response = await getAllSaleItems_v2({
       filterBrands: filterBrands.value,
+      filterStorages: filterStorages.value,
       page: currentPage.value,
       size: pageSize.value,
       sortField: sortField.value,
@@ -112,14 +117,32 @@ const selectBrand = async (brand) => {
   await applyFilter(true)
 }
 
-const clearAllBrands = async () => {
-  clearSelectedBrands()
+// const clearAllBrands = async () => {
+//   clearSelectedBrands()
+//   resetCurrentPage()
+//   await applyFilter()
+// }
+
+const removeBrandAndApply = async (brand) => {
+  removeBrand(brand)
   resetCurrentPage()
   await applyFilter()
 }
 
-const removeBrandAndApply = async (brand) => {
-  removeBrand(brand)
+const selectStorage = async (storage) => {
+  setSelectStorage(storage)
+  resetCurrentPage()
+  await applyFilter(true)
+}
+
+const removeStorageAndApply = async (storage) => {
+  removeStorage(storage)
+  resetCurrentPage()
+  await applyFilter()
+}
+
+const clearAll = async () => {
+  clearAllFilters() // จาก FilterStore
   resetCurrentPage()
   await applyFilter()
 }
@@ -176,6 +199,22 @@ const initializeSaleItems = async (pageInfo) => {
     hasError.value = error.message
   }
 }
+
+// const initializeStorages = async () => {
+//   try {
+//     const response = await getAllStorages() // service ใหม่
+//     if (!response.error) {
+//       // sort ตัวเลขและเพิ่ม "Not specified"
+//       const sorted = response.sort((a, b) => a - b)
+//       sorted.unshift("Not specified")
+//       storageOptions.value = sorted
+//     } else {
+//       throw new Error(response?.error)
+//     }
+//   } catch (error) {
+//     hasError.value = error.message
+//   }
+// }
 
 const showSuccessModal = () => {
   if (notiStore.createSuccess) {
@@ -284,7 +323,7 @@ const updateWidth = () => {
           <button
             v-if="selectedBrands?.length"
             class="itbms-brand-filter-clear btn btn-error btn-sm text-white"
-            @click="clearAllBrands"
+            @click="clearAll"
           >
             Clear
           </button>

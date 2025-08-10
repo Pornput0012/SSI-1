@@ -3,7 +3,6 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 
 export const useFilterStore = defineStore("Filter", () => {
   const selectedBrands = ref([]);
-  const selectedPrices = ref({min: null, max: null})
   const selectedStorages = ref([])
 
   const sortField = ref("");
@@ -11,9 +10,12 @@ export const useFilterStore = defineStore("Filter", () => {
   const currentPage = ref(0);
   const pageSize = ref(10);
 
-  const getFilterList = () => {
-    return selectedBrands.value.map((b) => b.name);
-  };
+  const getSelectedBrands = () => selectedBrands.value.map((b) => b.name);
+  const getSelectedStorages = () => selectedStorages.value;
+  const getFilterList = () => ({
+    brands: getSelectedBrands(),
+    storages: getSelectedStorages(),
+  });
 
   const resetCurrentPage = () => {
     currentPage.value = 0;
@@ -38,19 +40,24 @@ export const useFilterStore = defineStore("Filter", () => {
     currentPage.value = page;
   };
 
+  const setSelectStorage = (storage) => {
+    if (!selectedStorages.value.includes(storage)) {
+      selectedStorages.value.push(storage);
+    }
+  };
+  
+  const removeStorage = (storage) => {
+    selectedStorages.value = selectedStorages.value.filter(s => s !== storage);
+  };
+
   const clearAllFilters = () => {
-    selectedBrands.value = [];
-    selectedPrices.value = {min: null, max: null}
-    selectedStorages.value = []
+    clearSelectedBrands()
+    clearSelectedStorages()
   }
 
   const clearSelectedBrands = () => {
     selectedBrands.value = [];
   };
-
-  const clearSelectedPrices = () => {
-    selectedPrices.value = {min: null, max: null}
-  }
 
   const clearSelectedStorages = () => {
     selectedStorages.value = []
@@ -71,6 +78,11 @@ export const useFilterStore = defineStore("Filter", () => {
     sortDirection.value = direction ? direction.toUpperCase() : "";
   };
 
+  const setSortStorage = (direction) => {
+  sortField.value = direction ? "storageGb" : "";
+  sortDirection.value = direction ? direction.toUpperCase() : "";
+};
+
   const setSortField = (field) => {
     sortField.value = field;
   };
@@ -84,10 +96,7 @@ export const useFilterStore = defineStore("Filter", () => {
     sortDirection,
     currentPage,
     pageSize,
-    clearSelectedBrands,
     clearAllFilters,
-    clearSelectedPrices,
-    clearSelectedStorages,
     removeBrand,
     resetCurrentPage,
     getFilterList,
@@ -98,6 +107,10 @@ export const useFilterStore = defineStore("Filter", () => {
     setSelectBrand,
     setSortField,
     setSortDirection,
+    setSelectStorage,
+    removeStorage,
+    selectedStorages,
+    setSortStorage
   };
 });
 
