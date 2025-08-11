@@ -11,6 +11,7 @@ import { computed, onMounted, ref } from 'vue'
 const PAGE_SIZE_OPTIONS = [5, 10, 20]
 const STORAGE_KEYS = {
   SELECTED_BRANDS: 'selectedBrands',
+  SELECTED_STORAGES: 'selectedStorages',
   PAGE_INFO: 'pageInfo',
 }
 
@@ -20,19 +21,24 @@ const notiStore = useNotiStore()
 
 const {
   getFilterList,
+  clearAllFilters,
+
   setSelectBrand,
-  setCurrentPage,
-  clearSelectedBrands,
   removeBrand,
-  setPageSize,
-  setSortBrand,
   setSelectedBrand,
+  clearSelectedBrands,
+
+  setCurrentPage,
+  setPageSize,
+  resetCurrentPage,
+
+  setSortBrand,
   setSortField,
   setSortDirection,
-  resetCurrentPage,
+
   setSelectStorage,
+  setSelectedStorage,
   removeStorage,
-  clearAllFilters,
 } = filterStore
 
 const { getSaleItemsPage } = saleItemStore
@@ -44,8 +50,8 @@ const pageSize = computed(() => filterStore.pageSize)
 const selectedBrands = computed(() => filterStore.selectedBrands)
 const filterBrands = computed(() => getFilterList().brands)
 const saleItems = computed(() => getSaleItemsPage())
-const filterStorages = computed(() => getFilterList().storages)
 const selectedStorages = computed(() => filterStore.selectedStorages)
+const filterStorages = computed(() => getFilterList().storages)
 
 const hasError = ref('')
 const showFilterDropdown = ref(false)
@@ -57,6 +63,10 @@ const saveToLocalStorage = () => {
   sessionStorage.setItem(
     STORAGE_KEYS.SELECTED_BRANDS,
     JSON.stringify(selectedBrands.value)
+  )
+  sessionStorage.setItem(
+    STORAGE_KEYS.SELECTED_STORAGES,
+    JSON.stringify(selectedStorages.value)
   )
   sessionStorage.setItem(
     STORAGE_KEYS.PAGE_INFO,
@@ -73,15 +83,19 @@ const getFromLocalStorage = () => {
   const selectedBrands = JSON.parse(
     sessionStorage.getItem(STORAGE_KEYS.SELECTED_BRANDS)
   )
+  const selectedStorages = JSON.parse(
+    sessionStorage.getItem(STORAGE_KEYS.SELECTED_STORAGES)
+  )
   const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO))
 
-  return { selectedBrands, pageInfo }
+  return { selectedBrands, selectedStorages, pageInfo }
 }
 
 const setDefaultStoreValues = (pageInfo) => {
   const { selectedBrands } = getFromLocalStorage()
 
   setSelectedBrand(Array.isArray(selectedBrands) ? selectedBrands : [])
+  setSelectedStorage(Array.isArray(selectedStorages) ? selectedStorages : [])
   setCurrentPage(pageInfo?.page ?? 0)
   setPageSize(pageInfo?.size ?? 10)
   setSortField(pageInfo?.sortField ?? null)
@@ -185,7 +199,8 @@ const initializeBrands = async () => {
 const initializeSaleItems = async (pageInfo) => {
   try {
     const response = await getAllSaleItems_v2({
-      filterBrands: getFilterList(),
+      filterBrands: getFilterList().brands,
+      filterStorages: getFilterList().storages,
       page: pageInfo?.page ?? 0,
       size: pageInfo?.size ?? 10,
       sortField: pageInfo?.sortField ?? null,
@@ -311,6 +326,19 @@ const updateWidth = () => {
               class="input input-sm w-full border px-3 py-2"
               placeholder="Storage range"
             />
+            <ul
+              v-if="showFilterDropdown"
+              class="absolute bg-white border rounded mt-1 w-full z-10 shadow max-h-40 overflow-y-auto"
+            >
+              <li
+                v-for="(storage, idx) in storageOptions"
+                :key="idx"
+                @mousedown.prevent="selectStorage(storage)"
+                class="itbms-filter-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
+              >
+                {{ storage }} GB
+              </li>
+            </ul>
           </div>
 
           <!-- Filter Actions -->
@@ -321,7 +349,7 @@ const updateWidth = () => {
             Filter
           </button>
           <button
-            v-if="selectedBrands?.length"
+            v-if="selectedBrands?.length || selectedStorages?.length"
             class="itbms-brand-filter-clear btn btn-error btn-sm text-white"
             @click="clearAll"
           >
@@ -390,6 +418,24 @@ const updateWidth = () => {
             class="itbms-filter-item-clear font-bold cursor-pointer"
             @click="removeBrandAndApply(brand)"
             aria-label="Remove brand filter"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
+      <!-- Selected Storages Tags -->
+      <div class="flex flex-wrap gap-2 mt-3">
+        <div
+          v-for="(storage, index) in selectedStorages"
+          :key="index"
+          class="itbms-filter-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
+        >
+          <span class="itbms-brand-filter">{{ storage }} GB</span>
+          <button
+            class="itbms-filter-item-clear font-bold cursor-pointer"
+            @click="removeStorageAndApply(storage)"
+            aria-label="Remove storage filter"
           >
             ×
           </button>

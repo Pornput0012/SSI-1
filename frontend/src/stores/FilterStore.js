@@ -27,6 +27,8 @@ export const useFilterStore = defineStore("Filter", () => {
     sessionStorage.setItem("pageInfo", JSON.stringify(pageInfo));
   };
 
+
+  // ----- BRAND -----
   const setSelectBrand = (brand) => {
     if (!selectedBrands.value.some((b) => b.name === brand.name)) {
       selectedBrands.value.push(brand);
@@ -36,43 +38,51 @@ export const useFilterStore = defineStore("Filter", () => {
     selectedBrands.value = brands;
   };
 
-  const setCurrentPage = (page) => {
-    currentPage.value = page;
-  };
-
-  const setSelectStorage = (storage) => {
-    if (!selectedStorages.value.includes(storage)) {
-      selectedStorages.value.push(storage);
-    }
-  };
-  
-  const removeStorage = (storage) => {
-    selectedStorages.value = selectedStorages.value.filter(s => s !== storage);
-  };
-
-  const clearAllFilters = () => {
-    clearSelectedBrands()
-    clearSelectedStorages()
-  }
-
-  const clearSelectedBrands = () => {
-    selectedBrands.value = [];
-  };
-
-  const clearSelectedStorages = () => {
-    selectedStorages.value = []
-  }
-
   const removeBrand = (brand) => {
     selectedBrands.value = selectedBrands.value.filter(
       (b) => b.name !== brand.name
     );
   };
 
+  // ----- STORAGE -----
+  const setSelectStorage = (storage) => {
+    if (!selectedStorages.value.includes(storage)) {
+      selectedStorages.value.push(storage);
+    }
+  };
+  const setSelectedStorage = (storages) => {
+    selectedStorages.value = storages;
+  };
+  const removeStorage = (storage) => {
+    selectedStorages.value = selectedStorages.value.filter(
+      (s) => s !== storage
+    );
+  };
+
+  // ----- CLEAR -----
+  const clearAllFilters = () => {
+    clearSelectedBrands();
+    clearSelectedStorages();
+  };
+  const clearSelectedBrands = () => {
+    selectedBrands.value = [];
+  };
+  const clearSelectedStorages = () => {
+    selectedStorages.value = [];
+  };
+
+
+  // ----- PAGINATION -----
+  const setCurrentPage = (page) => {
+    currentPage.value = page;
+  };
+
   const setPageSize = (size) => {
     pageSize.value = Number(size);
   };
 
+
+  // ----- SORT -----
   const setSortBrand = (direction) => {
     sortField.value = direction ? "brand.name" : "";
     sortDirection.value = direction ? direction.toUpperCase() : "";
@@ -92,24 +102,32 @@ export const useFilterStore = defineStore("Filter", () => {
 
   return {
     selectedBrands,
+    selectedStorages,
     sortField,
     sortDirection,
     currentPage,
     pageSize,
-    clearAllFilters,
-    removeBrand,
-    resetCurrentPage,
     getFilterList,
-    setCurrentPage,
-    setPageSize,
-    setSortBrand,
+    resetCurrentPage,
+
     setSelectedBrand,
     setSelectBrand,
-    setSortField,
-    setSortDirection,
+    removeBrand,
+
+    setSelectedStorage,
     setSelectStorage,
     removeStorage,
-    selectedStorages,
+
+    clearAllFilters,
+    clearSelectedBrands,
+    clearSelectedStorages,
+
+    setCurrentPage,
+    setPageSize,
+
+    setSortBrand,
+    setSortField,
+    setSortDirection,
     setSortStorage
   };
 });
