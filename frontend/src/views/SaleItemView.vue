@@ -117,7 +117,7 @@ const applyFilter = async (closeModal = false) => {
 
     const response = await getAllSaleItems_v2({
       filterBrands: filterBrands.value,
-      filterStorages: filterStorages.value,
+      filterStorage: filterStorages.value,
       page: currentPage.value,
       size: pageSize.value,
       sortField: sortField.value,
