@@ -12,6 +12,7 @@ const PAGE_SIZE_OPTIONS = [5, 10, 20]
 const STORAGE_KEYS = {
   SELECTED_BRANDS: 'selectedBrands',
   SELECTED_STORAGES: 'selectedStorages',
+  // SELECTED_PRICES: 'selectedPrice',
   PAGE_INFO: 'pageInfo',
 }
 
@@ -26,7 +27,6 @@ const {
   setSelectBrand,
   removeBrand,
   setSelectedBrand,
-  clearSelectedBrands,
 
   setCurrentPage,
   setPageSize,
@@ -52,6 +52,8 @@ const filterBrands = computed(() => getFilterList().brands)
 const saleItems = computed(() => getSaleItemsPage())
 const selectedStorages = computed(() => filterStore.selectedStorages)
 const filterStorages = computed(() => getFilterList().storages)
+// const selectedPrices = computed(() => filterStore.selectedPrices)
+// const filterPrices = computed(() => getFilterList().prices)
 
 const hasError = ref('')
 const showFilterDropdown = ref(false)
@@ -68,6 +70,10 @@ const saveToLocalStorage = () => {
     STORAGE_KEYS.SELECTED_STORAGES,
     JSON.stringify(selectedStorages.value)
   )
+  // sessionStorage.setItem(
+  //   STORAGE_KEYS.SELECTED_PRICES,
+  //   JSON.stringify(selectedPrices.value)
+  // )
   sessionStorage.setItem(
     STORAGE_KEYS.PAGE_INFO,
     JSON.stringify({
@@ -86,6 +92,9 @@ const getFromLocalStorage = () => {
   const selectedStorages = JSON.parse(
     sessionStorage.getItem(STORAGE_KEYS.SELECTED_STORAGES)
   )
+  // const selectedPrices = JSON.parse(
+  //   sessionStorage.getItem(STORAGE_KEYS.SELECTED_PRICES)
+  // )
   const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO))
 
   return { selectedBrands, selectedStorages, pageInfo }
@@ -172,11 +181,11 @@ const handlePageSizeChange = async (event) => {
   await applyFilter()
 }
 
-const handleSortChange = async (sortType) => {
-  if (sortType) {
-    setSortBrand(sortType)
-  } else {
-    setSortBrand('')
+const handleSortChange = async (sortType, fieldType = 'brand') => {
+  if (fieldType === 'brand') {
+    setSortBrand(sortType || '')
+  } else if (fieldType === 'storage') {
+    setSortStorage(sortType || '')
   }
 
   resetCurrentPage()
@@ -303,7 +312,7 @@ const updateWidth = () => {
                 v-for="(brand, idx) in brandOptions"
                 :key="idx"
                 @mousedown.prevent="selectBrand(brand)"
-                class="itbms-filter-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                class="itbms-brand-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
                 {{ brand.name }}
               </li>
@@ -334,7 +343,7 @@ const updateWidth = () => {
                 v-for="(storage, idx) in storageOptions"
                 :key="idx"
                 @mousedown.prevent="selectStorage(storage)"
-                class="itbms-filter-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                class="itbms-storage-size-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
                 {{ storage }} GB
               </li>
@@ -411,11 +420,11 @@ const updateWidth = () => {
         <div
           v-for="(brand, index) in selectedBrands"
           :key="index"
-          class="itbms-filter-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
+          class="itbms-brand-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
-          <span class="itbms-brand-filter">{{ brand.name }}</span>
+          <span class="itbms-brand-item">{{ brand.name }}</span>
           <button
-            class="itbms-filter-item-clear font-bold cursor-pointer"
+            class="itbms-brand-item-clear font-bold cursor-pointer"
             @click="removeBrandAndApply(brand)"
             aria-label="Remove brand filter"
           >
@@ -429,11 +438,11 @@ const updateWidth = () => {
         <div
           v-for="(storage, index) in selectedStorages"
           :key="index"
-          class="itbms-filter-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
+          class="itbms-storage-size-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
-          <span class="itbms-brand-filter">{{ storage }} GB</span>
+          <span class="itbms-storage-size-filter">{{ storage }} GB</span>
           <button
-            class="itbms-filter-item-clear font-bold cursor-pointer"
+            class="itbms-storage-size-item-clear font-bold cursor-pointer"
             @click="removeStorageAndApply(storage)"
             aria-label="Remove storage filter"
           >
