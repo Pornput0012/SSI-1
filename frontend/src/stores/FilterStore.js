@@ -4,7 +4,7 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 export const useFilterStore = defineStore('Filter', () => {
   const selectedBrands = ref([])
   const selectedStorages = ref([])
-  // const selectedPrices = ref({ min: null, max: null })
+  const selectedPrices = ref({ min: null, max: null })
 
   const sortField = ref('')
   const sortDirection = ref('ASC')
@@ -13,11 +13,11 @@ export const useFilterStore = defineStore('Filter', () => {
 
   const getSelectedBrands = () => selectedBrands.value.map((b) => b.name)
   const getSelectedStorages = () => selectedStorages.value
-  // const getSelectedPrices = () => selectedPrices.value
+  const getSelectedPrices = () => selectedPrices.value
   const getFilterList = () => ({
     brands: getSelectedBrands(),
     storages: getSelectedStorages(),
-    // prices: getSelectedPrices(),
+    prices: getSelectedPrices(),
   })
 
   const resetCurrentPage = () => {
@@ -59,12 +59,20 @@ export const useFilterStore = defineStore('Filter', () => {
   }
 
   // ----- PRICE -----
-  // const setSelectedPrices = (min, max) => {
-  //   selectedPrices.value = {
-  //     min: min !== undefined ? min : selectedPrices.value.min,
-  //     max: max !== undefined ? max : selectedPrices.value.max,
-  //   }
-  // }
+  const setSelectPrice = (min, max) => {
+    selectedPrices.value = {
+      min: min !== undefined ? min : selectedPrices.value.min,
+      max: max !== undefined ? max : selectedPrices.value.max,
+    }
+  }
+
+  const setSelectedPrice = (prices) => {
+    selectedPrices.value = prices
+  }
+
+  const removePrice = () => {
+    selectedPrices.value = { min: null, max: null }
+  }
 
   // ----- CLEAR -----
   const clearAllFilters = () => {
@@ -78,9 +86,9 @@ export const useFilterStore = defineStore('Filter', () => {
   const clearSelectedStorages = () => {
     selectedStorages.value = []
   }
-  // const clearSelectedPrices = () => {
-  //   selectedPrices.value = { min: null, max: null }
-  // }
+  const clearSelectedPrices = () => {
+    selectedPrices.value = { min: null, max: null }
+  }
 
   // ----- PAGINATION -----
   const setCurrentPage = (page) => {
@@ -97,11 +105,6 @@ export const useFilterStore = defineStore('Filter', () => {
     sortDirection.value = direction ? direction.toUpperCase() : ''
   }
 
-  const setSortStorage = (direction) => {
-    sortField.value = direction ? 'storageGb' : ''
-    sortDirection.value = direction ? direction.toUpperCase() : ''
-  }
-
   const setSortField = (field) => {
     sortField.value = field
   }
@@ -112,6 +115,7 @@ export const useFilterStore = defineStore('Filter', () => {
   return {
     selectedBrands,
     selectedStorages,
+    selectedPrices,
     sortField,
     sortDirection,
     currentPage,
@@ -127,6 +131,10 @@ export const useFilterStore = defineStore('Filter', () => {
     setSelectStorage,
     removeStorage,
 
+    setSelectedPrice,
+    setSelectPrice,
+    removePrice,
+
     clearAllFilters,
     clearSelectedBrands,
     clearSelectedStorages,
@@ -137,7 +145,6 @@ export const useFilterStore = defineStore('Filter', () => {
     setSortBrand,
     setSortField,
     setSortDirection,
-    setSortStorage,
   }
 })
 
