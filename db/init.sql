@@ -32,6 +32,14 @@ create table if not exists products (
   foreign key (brand_id) references brands(brand_id) on update cascade
 );
 
+CREATE TABLE IF NOT EXISTS sale_item_images (
+    image_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    product_id INTEGER NOT NULL,
+    fileName VARCHAR(255) NOT NULL,
+    imageViewOrder INTEGER,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
 INSERT INTO brands (name, countryOfOrigin, websiteUrl, isActive) VALUES
 ('Samsung', 'South Korea', 'https://www.samsung.com', 1),
 ('Apple', 'United States', 'https://www.apple.com', 1),
@@ -115,3 +123,4 @@ INSERT INTO products (product_id, brand_id, model, description, price, ramGb, sc
 (83, 10, 'Find X5 Lite', 'Previous gen lite', 14850, 8, 6.43, 128, 'Starry Black', 8),
 (84, 10, 'A77', 'Budget friendly', 8250, 6, 6.56, 128, 'Ocean Blue', 20),
 (85, 10, 'Reno6 Pro', 'Classic premium', 16500, 12, 6.55, 256, 'Arctic Blue', 7);
+
