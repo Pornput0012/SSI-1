@@ -47,7 +47,7 @@ public class ProductItemRequestDtoV2 {
     }
 
     public void setColor(String color) {
-        this.color = (color == null || color.trim() == "") ? null : color.trim();
+        this.color = color.trim() == "" ? null : color.trim();
     }
 
     public void setQuantity(Integer quantity) {

@@ -143,7 +143,11 @@ const createSaleItem_v2 = async (saleItem, images) => {
 
     for (const [key, value] of Object.entries(saleItem)) {
       if (value !== null && value !== undefined) {
-        formData.append(key, value);
+        const isBrandKey = key === "brand";
+        formData.append(
+          isBrandKey ? "brandId" : key,
+          isBrandKey ? value.id : value
+        );
       }
     }
 
@@ -156,8 +160,10 @@ const createSaleItem_v2 = async (saleItem, images) => {
 
       const fileName = `${joinFileName}.${index + 1}.${ext}`;
 
-      formData.append("images[]", img.file, fileName);
+      formData.append("images", img.file, fileName);
     });
+
+    
 
     const response = await fetch(`${SALE_ITEM_API_URL_V2}`, {
       method: "POST",
@@ -171,7 +177,6 @@ const createSaleItem_v2 = async (saleItem, images) => {
     }
 
     return await response.json();
-    return;
   } catch (error) {
     return {
       error: `Error creating sale item: ${error.message}`,

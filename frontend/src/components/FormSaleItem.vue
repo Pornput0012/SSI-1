@@ -25,7 +25,7 @@ const formData = ref({
   screenSizeInch: props.saleItemDetail?.screenSizeInch || null,
   storageGb: props.saleItemDetail?.storageGb || null,
   color: props.saleItemDetail?.color || "",
-  quantity: props.saleItemDetail?.quantity || null,
+  quantity: props.saleItemDetail?.quantity || -1,
 });
 
 const validate = ref({

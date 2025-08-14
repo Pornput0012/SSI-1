@@ -16,7 +16,6 @@ const handleCreateSaleItem = async (formData, images) => {
   try {
     isSaving.value = true;
     if (formData) {
-      // const response = await createSaleItem(formData);
       const response = await createSaleItem_v2(formData, images);
       if (!response.error) {
         createSuccess();
