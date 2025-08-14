@@ -42,7 +42,7 @@ const {
 
   setSelectPrice,
   setSelectedPrice,
-  removePrice
+  removePrice,
 } = filterStore
 
 const { getSaleItemsPage } = saleItemStore
@@ -52,25 +52,27 @@ const sortDirection = computed(() => filterStore.sortDirection)
 const currentPage = computed(() => filterStore.currentPage)
 const pageSize = computed(() => filterStore.pageSize)
 const selectedBrands = computed(() => filterStore.selectedBrands)
-const filterBrands = computed(() => getFilterList().brands)
-const saleItems = computed(() => getSaleItemsPage())
 const selectedStorages = computed(() => filterStore.selectedStorages)
-const filterStorages = computed(() => getFilterList().storages)
 const selectedPrices = computed(() => filterStore.selectedPrices)
+
+const filterBrands = computed(() => getFilterList().brands)
+const filterStorages = computed(() => getFilterList().storages)
 const filterPrices = computed(() => getFilterList().prices)
+
+const saleItems = computed(() => getSaleItemsPage())
 
 const hasError = ref('')
 const showFilterDropdown = ref(false)
 const showCreatedModal = ref(false)
 const brandOptions = ref([])
-const storageOptions = ref([ 32, 64, 128, 256, 512, 'Not specified'])
+const storageOptions = ref([32, 64, 128, 256, 512, 'Not specified'])
 const priceRangeOptions = ref([
-  { min: 0, max: 5000 },
-  { min: 5001, max: 10000 },
-  { min: 10001, max: 20000 },
-  { min: 20001, max: 30000 },
-  { min: 30001, max: 40000},
-  { min: 40001, max: 50000}
+  { label: '0 – 5,000', min: 0, max: 5000 },
+  { label: '5,001 – 10,000', min: 5001, max: 10000 },
+  { label: '10,001 – 20,000', min: 10001, max: 20000 },
+  { label: '20,001 – 30,000', min: 20001, max: 30000 },
+  { label: '30,001 – 40,000', min: 30001, max: 40000 },
+  { label: '40,001 – 50,000', min: 40001, max: 50000 },
 ])
 
 const saveToLocalStorage = () => {
@@ -113,14 +115,12 @@ const getFromLocalStorage = () => {
 }
 
 const setDefaultStoreValues = (pageInfo) => {
-  const { selectedBrands } = getFromLocalStorage()
+  const { selectedBrands, selectedStorages, selectedPrices } =
+    getFromLocalStorage()
 
   setSelectedBrand(Array.isArray(selectedBrands) ? selectedBrands : [])
   setSelectedStorage(Array.isArray(selectedStorages) ? selectedStorages : [])
-  setSelectedPrice(
-    selectedPrices?.min ?? null,
-    selectedPrices?.max ?? null
-  )
+  setSelectedPrice(selectedPrices ?? { min: null, max: null })
   setCurrentPage(pageInfo?.page ?? 0)
   setPageSize(pageInfo?.size ?? 10)
   setSortField(pageInfo?.sortField ?? null)
@@ -131,11 +131,16 @@ const applyFilter = async (closeModal = false) => {
   try {
     showFilterDropdown.value = closeModal
 
+    // ไม่ส่ง "Not specified" ไป BE จนกว่าจะมีพารามิเตอร์รองรับ
+    const storagesForApi = (filterStorages.value || []).filter(
+      (s) => typeof s === 'number'
+    )
+
     const response = await getAllSaleItems_v2({
       filterBrands: filterBrands.value,
-      filterStorage: filterStorages.value,
-      priceLower: filterPrices.value.min,
-      priceUpper: filterPrices.value.max,
+      filterStorage: storagesForApi,
+      filterPriceLower: filterPrices.value.min,
+      filterPriceUpper: filterPrices.value.max,
       page: currentPage.value,
       size: pageSize.value,
       sortField: sortField.value,
@@ -176,13 +181,21 @@ const removeStorageAndApply = async (storage) => {
   await applyFilter()
 }
 
-const selectPrice = async (min, max) => {
-  setSelectPrice(min, max)
+const selectPriceRange = async (range) => {
+  setSelectPrice(range.min, range.max)
+  resetCurrentPage()
   await applyFilter(true)
 }
 
+// const applyCustomPrice = async (min, max) => {
+//   // ตาม requirement: ใส่ได้เฉพาะ min ก็ได้ (ตีความฝั่ง FE เป็น "เท่ากับ min")
+//   setSelectPrice(min ?? null, max ?? null)
+//   resetCurrentPage()
+//   await applyFilter(true)
+// }
+
 const removePriceAndApply = async () => {
-  removePrice(null, null)
+  removePrice()
   resetCurrentPage()
   await applyFilter()
 }
@@ -206,14 +219,14 @@ const handlePageSizeChange = async (event) => {
 
 const handleSortChange = async (sortType) => {
   if (sortType) {
-    setSortBrand(sortType);
+    setSortBrand(sortType)
   } else {
-    setSortBrand("");
+    setSortBrand('')
   }
 
-  resetCurrentPage();
-  await applyFilter();
-};
+  resetCurrentPage()
+  await applyFilter()
+}
 
 const initializeBrands = async () => {
   try {
@@ -230,11 +243,14 @@ const initializeBrands = async () => {
 
 const initializeSaleItems = async (pageInfo) => {
   try {
+    const storagesForApi = (getFilterList().storages || []).filter(
+      (s) => typeof s === 'number'
+    )
     const response = await getAllSaleItems_v2({
       filterBrands: getFilterList().brands,
-      filterStorage: getFilterList().storages,
-      priceLower: selectedPrices.value.min,
-      priceUpper: selectedPrices.value.max,
+      filterStorage: storagesForApi,
+      filterPriceLower: selectedPrices.value.min,
+      filterPriceUpper: selectedPrices.value.max,
       page: pageInfo?.page ?? 0,
       size: pageInfo?.size ?? 10,
       sortField: pageInfo?.sortField ?? null,
@@ -342,10 +358,10 @@ const updateWidth = () => {
               <li
                 v-for="(price, idx) in priceRangeOptions"
                 :key="idx"
-                @mousedown.prevent="selectPrice(price)"
+                @mousedown.prevent="selectPriceRange(price)"
                 class="itbms-price-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
-                {{ price }} Baht
+                {{ price.label }}
               </li>
             </ul>
           </div>
@@ -367,7 +383,7 @@ const updateWidth = () => {
                 @mousedown.prevent="selectStorage(storage)"
                 class="itbms-storage-size-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
-                {{ storage }} GB
+                {{ typeof storage === 'number' ? storage + ' GB' : storage }}
               </li>
             </ul>
           </div>
@@ -380,7 +396,12 @@ const updateWidth = () => {
             Filter
           </button>
           <button
-            v-if="selectedBrands?.length || selectedStorages?.length"
+            v-if="
+              selectedBrands?.length ||
+              selectedStorages?.length ||
+              selectedPrices?.min !== null ||
+              selectedPrices?.max !== null
+            "
             class="itbms-brand-filter-clear btn btn-error btn-sm text-white"
             @click="clearAll"
           >
@@ -462,7 +483,9 @@ const updateWidth = () => {
           :key="index"
           class="itbms-storage-size-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
-          <span class="itbms-storage-size-filter">{{ storage }} GB</span>
+          <span class="itbms-storage-size-filter">{{
+            typeof storage === 'number' ? storage + ' GB' : storage
+          }}</span>
           <button
             class="itbms-storage-size-item-clear font-bold cursor-pointer"
             @click="removeStorageAndApply(storage)"
@@ -474,16 +497,21 @@ const updateWidth = () => {
       </div>
 
       <!-- Selected Prices Tags -->
-      <div class="flex flex-wrap gap-2 mt-3">
+      <div
+        class="flex flex-wrap gap-2 mt-3"
+        v-if="selectedPrices?.min || selectedPrices?.max"
+      >
         <div
-          v-for="(price, index) in selectedPrices"
-          :key="index"
           class="itbms-price-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
-          <span class="itbms-storage-size-filter">{{ price }} Baht</span>
+          <span class="itbms-price-filter"
+            >฿{{ selectedPrices.min ?? 0 }} – ฿{{
+              selectedPrices.max ?? '∞'
+            }}</span
+          >
           <button
             class="itbms-price-clear font-bold cursor-pointer"
-            @click="removePriceAndApply(price)"
+            @click="removePriceAndApply"
             aria-label="Remove price filter"
           >
             ×

@@ -49,6 +49,12 @@ export const useFilterStore = defineStore('Filter', () => {
   const setSelectStorage = (storage) => {
     if (!selectedStorages.value.includes(storage)) {
       selectedStorages.value.push(storage)
+
+      selectedStorages.value.sort((a,b) => {
+        const ax = a === 'Not specified' ? Number.MAX_SAFE_INTEGER : a
+        const bx = b === 'Not specified' ? Number.MAX_SAFE_INTEGER : b
+        return ax - bx
+      })
     }
   }
   const setSelectedStorage = (storages) => {
