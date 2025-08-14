@@ -7,9 +7,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.dtos.*;
 import ssi.backend.entities.Brand;
 import ssi.backend.entities.Product;
+import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.ProductRepository;
@@ -27,6 +29,9 @@ public class ProductService {
     private ModelMapper modelMapper;
     @Autowired
     private BrandRepository brandRepository;
+
+    @Autowired
+    private FileService fileService;
 
     public List<ProductItemDTO> getAllProducts() {
         return listMapper.mapList(productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id"))),
@@ -114,5 +119,24 @@ public class ProductService {
         creatingProduct.setId(null);
 
         return modelMapper.map(productRepository.save(creatingProduct), ProductItemResponseDTO.class);
+    }
+
+    public ProductItemResponseDTO createProduct(ProductItemRequestDtoV2 product,List<MultipartFile> images) {
+
+        if (images.size() > 4) {
+            throw new BadRequestException("Images Size Exceeded");
+        }
+        Brand existingBrand = brandRepository.findById(product.getBrandId())
+                .orElseThrow(
+                        () -> new ItemNotFoundException("Brand id " + product.getBrandId() + " does not exist"));
+
+
+        Product creatingProduct = modelMapper.map(product, Product.class);
+        creatingProduct.setBrand(existingBrand);
+        creatingProduct.setId(null);
+
+        Product prodRes = productRepository.save(creatingProduct);
+        fileService.saveFile(images,prodRes);
+        return modelMapper.map(prodRes, ProductItemResponseDTO.class);
     }
 }

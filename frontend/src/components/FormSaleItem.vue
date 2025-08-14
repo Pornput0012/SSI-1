@@ -3,6 +3,7 @@ import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watch, watchEffect } from "vue";
 import MessageModal from "./MessageModal.vue";
+import noPhoto from "@/assets/No_image_available.png";
 
 const emit = defineEmits(["onSubmit"]);
 const { getBrands } = useBrandStore();
@@ -24,7 +25,7 @@ const formData = ref({
   screenSizeInch: props.saleItemDetail?.screenSizeInch || null,
   storageGb: props.saleItemDetail?.storageGb || null,
   color: props.saleItemDetail?.color || "",
-  quantity: props.saleItemDetail?.quantity || null,
+  quantity: props.saleItemDetail?.quantity || -1,
 });
 
 const validate = ref({
@@ -116,7 +117,7 @@ const handleSubmit = () => {
   for (const field of requireField) {
     if (
       (!formData.value[field] && formData.value[field] !== 0) ||
-      formData.value[field] === "" || 
+      formData.value[field] === "" ||
       formData.value[field].id === 0
     ) {
       errorTitle.value = "Missing Required Field";
@@ -126,7 +127,7 @@ const handleSubmit = () => {
     }
   }
 
-  emit("onSubmit", formData.value);
+  emit("onSubmit", formData.value, images.value);
 };
 
 const allValid = computed(() => {
@@ -135,7 +136,6 @@ const allValid = computed(() => {
       !validate.value[field]?.showError && !validate.value[field]?.invalid
   );
 });
-
 
 function maximumLength(field, blur) {
   if (
@@ -290,7 +290,6 @@ watchEffect(() => {
     }
   }
 
-
   let hasChanges = false;
 
   if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
@@ -312,25 +311,238 @@ watchEffect(() => {
 
   isSave.value = !hasChanges;
 });
+
+const images = ref([]);
+
+const showImage = ref(noPhoto);
+const showImageIndex = ref(-1);
+
+const uploadInput = ref(null);
+const uploadImage = (event) => {
+  const MAX_SIZE_BYTES = 2 * 1024 * 1024;
+  const files = Array.from(event.target.files);
+
+  // เช็คว่าจำนวนไฟล์ที่มีอยู่แล้ว + ไฟล์ใหม่ เกิน 4 หรือไม่
+  if (images.value.length + files.length > 4) {
+    errorTitle.value = "File Length Too much";
+    errorMessage.value = `You can only select ${
+      4 - images.value.length
+    } more picture(s). Maximum 4 pictures are allowed.`;
+    showModal.value = true;
+    event.target.value = "";
+  }
+
+  const checkSizeAndUploadFile = (file, i) => {
+    if (file && file.size > MAX_SIZE_BYTES) {
+      console.log("เกิน 2MB");
+      errorTitle.value = "File Size Too Large";
+      errorMessage.value = `File "${file.name}" exceeds the 2MB limit.`;
+      showModal.value = true;
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (images.value.length < 4) {
+          const fileName = generateUniqueFileName(file.name);
+
+          const image = {
+            imageName: fileName,
+            src: e.target.result,
+            file,
+          };
+          images.value.push(image);
+
+          if (images.value.length === 1) {
+            showImageIndex.value = 0;
+            showImage.value = e.target.result;
+          }
+
+          console.log("สามารถ upload ได้");
+          console.log("จำนวนรูปปัจจุบัน:", images.value.length);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  files.forEach((file, i) => {
+    checkSizeAndUploadFile(file, i);
+  });
+
+  event.target.value = "";
+};
+
+const generateUniqueFileName = (originalName) => {
+  const isDuplicate = images.value.some(
+    (img) => img.imageName === originalName
+  );
+
+  if (!isDuplicate) {
+    return originalName;
+  }
+
+  const nameParts = originalName.split(".");
+  const baseName = nameParts.slice(0, -1).join(".") || nameParts[0];
+  const ext = nameParts.length > 1 ? "." + nameParts[nameParts.length - 1] : "";
+
+  let suffix = 1;
+  let newName = `${baseName}(${suffix})${ext}`;
+
+  while (images.value.some((img) => img.imageName === newName)) {
+    suffix++;
+    newName = `${baseName}(${suffix})${ext}`;
+  }
+
+  return newName;
+};
+
+const swapUpImage = (i) => {
+  if (i > 0) {
+    let temp = images.value[i];
+    images.value[i] = images.value[i - 1];
+    images.value[i - 1] = temp;
+
+    if (i - 1 == 0) {
+      showImage.value = images.value[0].src;
+    }
+  }
+};
+
+const swapDownImage = (i) => {
+  if (i < images.value.length - 1) {
+    if (i + 1 == 1) {
+      showImage.value = images.value[1].src;
+    }
+    let temp = images.value[i];
+    images.value[i] = images.value[i + 1];
+    images.value[i + 1] = temp;
+  }
+};
+
+const removeImage = (index) => {
+  images.value.splice(index, 1);
+
+  if (index === 0 && images.value.length > 0) {
+    showImage.value = images.value[0].src;
+  } else if (images.value.length === 0) {
+    showImage.value = noPhoto;
+  }
+};
 </script>
 
 <template>
   <div class="mt-10 lg:mt-0 lg:mx-16 mb-14">
     <div class="flex flex-col lg:flex-row">
-      <div class="w-full lg:w-2/4 mx-auto overflow-auto mb-10 lg:mb-10">
-        <div class="border-2 rounded-2xl w-4/5 md:w-2/3 mx-auto">
-          <img src="/pictures/iPhone15Pro.png" alt="" />
+      <div
+        class="w-full lg:w-2/4 mx-auto mb-10 lg:mb-10 flex flex-col items-center gap-4"
+      >
+        <div
+          class="border-2 rounded-2xl w-4/5 md:w-2/5 lg:w-2/3 max-h-[450px] mx-auto p-8"
+        >
+          <img
+            :src="showImage"
+            :class="images.length != 0 ? 'object-cover' : 'object-contain'"
+            class="w-full h-full rounded-2xl"
+            alt=""
+          />
         </div>
         <div
           class="flex gap-4 mt-10 w-full justify-center items-center overflow-auto"
         >
           <img
+            v-if="images.length != 0"
+            v-for="(image, index) in images"
+            class="max-h-[60px] lg:max-h-[80px] h-[60px] lg:h-[80px] w-14 lg:w-18 border object-cover rounded-2xl cursor-pointer"
+            :key="index"
+            :src="image.src"
+            alt=""
+            :class="
+              showImageIndex == index
+                ? 'border-2 hover:border-black'
+                : 'hover:border-blue-500'
+            "
+            @click="
+              showImage = image.src;
+              showImageIndex = index;
+            "
+          />
+          <img
+            v-else
             v-for="i in 4"
-            class="h-full w-14 lg:w-18 border rounded-2xl"
-            :key="i"
-            src="/pictures/iPhone15Pro.png"
+            class="max-h-[60px] lg:max-h-[80px] h-full w-14 lg:w-18 border object-cover rounded-2xl cursor-pointer hover:border-blue-500"
+            :src="noPhoto"
             alt=""
           />
+        </div>
+        <!-- upload -->
+        <div>
+          <label
+            for="file-upload"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
+          >
+            Upload File
+          </label>
+          <input
+            id="file-upload"
+            type="file"
+            class="hidden"
+            ref="uploadInput"
+            multiple
+            accept="image/*"
+            @change="uploadImage"
+          />
+        </div>
+        <div class="flex flex-col gap-2 items-center justify-center">
+          <div v-for="(image, i) in images" :class="'itbms-picture-file' + i">
+            <div class="flex items-center gap-2" v-if="image.imageName != ''">
+              <div
+                class="w-48 flex justify-between gap-2 border border-blue-500 text-blue-500 text-xs py-2 px-4 rounded"
+              >
+                <p class="mt-0.5 truncate">{{ image.imageName }}</p>
+                <button
+                  class="text-red-400 cursor-pointer"
+                  :class="'itbms-picture-file' + i + '-clear'"
+                  @click="removeImage(i)"
+                >
+                  x
+                </button>
+              </div>
+              <div
+                class="flex flex-col gap-1"
+                :class="
+                  i == 0
+                    ? 'self-end mb-2'
+                    : i == images.length - 1
+                    ? 'self-start mt-2'
+                    : ''
+                "
+              >
+                <button
+                  class="cursor-pointer"
+                  :class="'itbms-picture-file' + i + '-up'"
+                  v-if="i != 0"
+                  @click="swapUpImage(i)"
+                >
+                  <img
+                    class="w-2 h-2"
+                    src="../assets/icons/bxs--up-arrow.svg"
+                    alt=""
+                  />
+                </button>
+                <button
+                  class="cursor-pointer"
+                  :class="'itbms-picture-file' + i + '-down'"
+                  v-if="i < images.length - 1"
+                  @click="swapDownImage(i)"
+                >
+                  <img
+                    class="w-2 h-2"
+                    src="../assets/icons/bxs--down-arrow.svg"
+                    alt=""
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div

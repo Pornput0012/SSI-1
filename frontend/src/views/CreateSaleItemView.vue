@@ -3,31 +3,30 @@ import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
 import MessageModal from "@/components/MessageModal.vue";
 import router from "@/router";
-import { createSaleItem } from "@/services/SaleItemService";
+import { createSaleItem, createSaleItem_v2 } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/์NotiStore";
 import { ref } from "vue";
 
-const errorTitle = ref('')
-const errorMessage = ref('')
-const showModal = ref(false)
+const errorTitle = ref("");
+const errorMessage = ref("");
+const showModal = ref(false);
 const isSaving = ref(false);
-const handleCreateSaleItem = async (formData) => {
+const handleCreateSaleItem = async (formData, images) => {
   try {
     isSaving.value = true;
     if (formData) {
-      const response = await createSaleItem(formData);
+      const response = await createSaleItem_v2(formData, images);
       if (!response.error) {
         createSuccess();
       } else {
-        
         throw new Error(response.error);
       }
     }
   } catch (error) {
-    errorTitle.value = 'Failed to add sale item'
-    errorMessage.value = error.message
-    showModal.value = true
+    errorTitle.value = "Failed to add sale item";
+    errorMessage.value = error.message;
+    showModal.value = true;
     isSaving.value = false;
   }
 };
