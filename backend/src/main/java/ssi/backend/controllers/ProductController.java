@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.dtos.*;
 import ssi.backend.services.ProductService;
 
@@ -54,5 +55,12 @@ public class ProductController {
     @PostMapping("/v1/sale-items")
     public ResponseEntity<ProductItemResponseDTO> createProduct(@Valid @RequestBody ProductItemRequestDTO product) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product));
+    }
+
+    @PostMapping("/v2/sale-items")
+    public ResponseEntity<ProductItemResponseDTO> createProduct(@Valid @ModelAttribute ProductItemRequestDtoV2 product,
+                                                                @RequestParam List<MultipartFile> images) {
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product,images));
     }
 }
