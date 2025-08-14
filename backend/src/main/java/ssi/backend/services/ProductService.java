@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.dtos.*;
 import ssi.backend.entities.Brand;
@@ -82,6 +83,12 @@ public class ProductService {
         return modelMapper.map(product, ProductDetailDTO.class);
     }
 
+    public ProductItemResponseDtoV2 getProductByIdV2(Integer id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException("SaleItem not found for this id :: " + id));
+        return modelMapper.map(product, ProductItemResponseDtoV2.class);
+    }
+
     public ProductItemResponseDTO updateProduct(Integer id, ProductItemRequestDTO productItemRequestDTO) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
@@ -121,7 +128,8 @@ public class ProductService {
         return modelMapper.map(productRepository.save(creatingProduct), ProductItemResponseDTO.class);
     }
 
-    public ProductItemResponseDTO createProduct(ProductItemRequestDtoV2 product,List<MultipartFile> images) {
+    @Transactional
+    public ProductItemResponseDtoV2 createProduct(ProductItemRequestDtoV2 product,List<MultipartFile> images) {
 
         if (images.size() > 4) {
             throw new BadRequestException("Images Size Exceeded");
@@ -137,6 +145,11 @@ public class ProductService {
 
         Product prodRes = productRepository.save(creatingProduct);
         fileService.saveFile(images,prodRes);
-        return modelMapper.map(prodRes, ProductItemResponseDTO.class);
+//        Product test = productRepository.findById(prodRes.getId()).orElseThrow(null);
+//        System.out.println(test.getSaleItemImages());
+
+        SaleItemImageDtoResponse saleItemImageDtoResponse = new SaleItemImageDtoResponse();
+
+        return modelMapper.map(productRepository.findById(prodRes.getId()), ProductItemResponseDtoV2.class);
     }
 }
