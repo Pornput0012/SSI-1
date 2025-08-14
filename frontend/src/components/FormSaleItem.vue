@@ -325,9 +325,7 @@ const uploadImage = (event) => {
   // เช็คว่าจำนวนไฟล์ที่มีอยู่แล้ว + ไฟล์ใหม่ เกิน 4 หรือไม่
   if (images.value.length + files.length > 4) {
     errorTitle.value = "File Length Too much";
-    errorMessage.value = `You can only select ${
-      4 - images.value.length
-    } more picture(s). Maximum 4 pictures are allowed.`;
+    errorMessage.value = `Maximum 4 pictures are allowed.`;
     showModal.value = true;
     event.target.value = "";
   }
@@ -479,7 +477,7 @@ const removeImage = (index) => {
             for="file-upload"
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
           >
-            Upload File
+            Upload Pictures
           </label>
           <input
             id="file-upload"
