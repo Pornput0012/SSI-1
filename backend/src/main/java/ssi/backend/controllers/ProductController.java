@@ -40,6 +40,11 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
+    @GetMapping("/v2/sale-items/{id}")
+    public ResponseEntity<ProductItemResponseDtoV2> getProductByIdV2(@PathVariable Integer id) {
+        return ResponseEntity.ok(productService.getProductByIdV2(id));
+    }
+
     @PutMapping("/v1/sale-items/{id}")
     public ResponseEntity<ProductItemResponseDTO> updateProduct(@PathVariable Integer id,
             @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
@@ -58,7 +63,7 @@ public class ProductController {
     }
 
     @PostMapping("/v2/sale-items")
-    public ResponseEntity<ProductItemResponseDTO> createProduct(@Valid @ModelAttribute ProductItemRequestDtoV2 product,
+    public ResponseEntity<ProductItemResponseDtoV2> createProduct(@Valid @ModelAttribute ProductItemRequestDtoV2 product,
                                                                 @RequestParam List<MultipartFile> images) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product,images));
