@@ -127,7 +127,7 @@ const handleSubmit = () => {
     }
   }
 
-  emit("onSubmit", formData.value);
+  emit("onSubmit", formData.value, images.value);
 };
 
 const allValid = computed(() => {
@@ -315,6 +315,7 @@ watchEffect(() => {
 const images = ref([]);
 
 const showImage = ref(noPhoto);
+const showImageIndex = ref(-1);
 
 const uploadInput = ref(null);
 const uploadImage = (event) => {
@@ -346,10 +347,12 @@ const uploadImage = (event) => {
           const image = {
             imageName: fileName,
             src: e.target.result,
+            file,
           };
           images.value.push(image);
 
           if (images.value.length === 1) {
+            showImageIndex.value = 0;
             showImage.value = e.target.result;
           }
 
@@ -432,8 +435,15 @@ const removeImage = (index) => {
       <div
         class="w-full lg:w-2/4 mx-auto mb-10 lg:mb-10 flex flex-col items-center gap-4"
       >
-        <div class="border-2 rounded-2xl w-4/5 md:w-2/3 mx-auto">
-          <img :src="showImage" alt="" />
+        <div
+          class="border-2 rounded-2xl w-4/5 md:w-2/5 lg:w-2/3 max-h-[450px] mx-auto p-8"
+        >
+          <img
+            :src="showImage"
+            :class="images.length != 0 ? 'object-cover' : 'object-contain'"
+            class="w-full h-full rounded-2xl"
+            alt=""
+          />
         </div>
         <div
           class="flex gap-4 mt-10 w-full justify-center items-center overflow-auto"
@@ -441,16 +451,24 @@ const removeImage = (index) => {
           <img
             v-if="images.length != 0"
             v-for="(image, index) in images"
-            class="h-full w-14 lg:w-18 border rounded-2xl cursor-pointer hover:border-blue-500"
+            class="max-h-[60px] lg:max-h-[80px] h-[60px] lg:h-[80px] w-14 lg:w-18 border object-cover rounded-2xl cursor-pointer"
             :key="index"
             :src="image.src"
             alt=""
-            @click="showImage = image.src"
+            :class="
+              showImageIndex == index
+                ? 'border-2 hover:border-black'
+                : 'hover:border-blue-500'
+            "
+            @click="
+              showImage = image.src;
+              showImageIndex = index;
+            "
           />
           <img
             v-else
             v-for="i in 4"
-            class="h-full w-14 lg:w-18 border rounded-2xl cursor-pointer hover:border-blue-500"
+            class="max-h-[60px] lg:max-h-[80px] h-full w-14 lg:w-18 border object-cover rounded-2xl cursor-pointer hover:border-blue-500"
             :src="noPhoto"
             alt=""
           />

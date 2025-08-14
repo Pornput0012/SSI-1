@@ -1,8 +1,12 @@
 import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 
-const SALE_ITEM_API_URL_V1 = `${import.meta.env.VITE_URL_API || '/ssi1'}/itb-mshop/v1/sale-items`
-const SALE_ITEM_API_URL_V2 = `${import.meta.env.VITE_URL_API || '/ssi1'}/itb-mshop/v2/sale-items`
+const SALE_ITEM_API_URL_V1 = `${
+  import.meta.env.VITE_URL_API || "/ssi1"
+}/itb-mshop/v1/sale-items`;
+const SALE_ITEM_API_URL_V2 = `${
+  import.meta.env.VITE_URL_API || "/ssi1"
+}/itb-mshop/v2/sale-items`;
 
 // GET all sale-items
 const getAllSaleItems = async () => {
@@ -133,6 +137,48 @@ const createSaleItem = async (saleItem) => {
   }
 };
 
+const createSaleItem_v2 = async (saleItem, images) => {
+  try {
+    const formData = new FormData();
+
+    for (const [key, value] of Object.entries(saleItem)) {
+      if (value !== null && value !== undefined) {
+        formData.append(key, value);
+      }
+    }
+
+    images.forEach((img, index) => {
+      const splitFileName = img.imageName.split(".");
+
+      const ext = splitFileName.pop();
+
+      const joinFileName = splitFileName.join(".");
+
+      const fileName = `${joinFileName}.${index + 1}.${ext}`;
+
+      formData.append("images[]", img.file, fileName);
+    });
+
+    const response = await fetch(`${SALE_ITEM_API_URL_V2}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to create sale item. Server responded with status ${response.status}`
+      );
+    }
+
+    return await response.json();
+    return;
+  } catch (error) {
+    return {
+      error: `Error creating sale item: ${error.message}`,
+    };
+  }
+};
+
 const updateSaleItemById = async (id, saleItem) => {
   try {
     const { resetCurrentPage } = useFilterStore();
@@ -170,4 +216,5 @@ export {
   updateSaleItemById,
   createSaleItem,
   getAllSaleItems_v2,
+  createSaleItem_v2,
 };
