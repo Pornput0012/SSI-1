@@ -2,13 +2,19 @@ package ssi.backend.controllers;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.dtos.*;
+import ssi.backend.services.FileService;
 import ssi.backend.services.ProductService;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 @RestController
@@ -17,6 +23,8 @@ import java.util.List;
 public class ProductController {
     @Autowired
     private ProductService productService;
+    @Autowired
+    private FileService fileService;
 
     @GetMapping("/v1/sale-items")
     public ResponseEntity<List<ProductItemDTO>> getAllProducts() {
@@ -64,6 +72,25 @@ public class ProductController {
     public ResponseEntity<ProductItemResponseDTO> createProduct(@Valid @ModelAttribute ProductItemRequestDtoV2 product,
                                                                 @RequestParam List<MultipartFile> images) {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product,images));
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product, images));
+    }
+
+    @GetMapping("/sale-items/{fileName:.+}")
+    public ResponseEntity<Resource> getFile(@PathVariable String fileName) {
+        Resource resource = fileService.loadFileAsResource(fileName);
+
+        String contentType;
+        try {
+            Path filePath = resource.getFile().toPath();
+            contentType = Files.probeContentType(filePath); // ตรวจ MIME type
+        } catch (Exception e) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + resource.getFilename() + "\"") // inline = แสดงใน browser
+                .body(resource);
     }
 }
