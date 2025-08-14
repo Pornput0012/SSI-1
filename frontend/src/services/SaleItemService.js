@@ -85,6 +85,49 @@ const getSaleItemById = async (id) => {
   }
 };
 
+const getSaleItemById_v2 = async (id) => {
+  try {
+    if (!id) throw new Error("Sale Item ID is required.");
+    const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}`);
+
+    const data = await response.json();
+
+    if (!data.id || !response.ok) {
+      throw new Error(`(${data.status || response.status}) ${data.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    return { error };
+  }
+};
+
+const getImageByFileName = async (fileName) => {
+  try {
+    if (!fileName) throw new Error("fileName is required.");
+    const response = await fetch(
+      `${
+        import.meta.env.VITE_URL_API || "/ssi1"
+      }/itb-mshop/sale-items/${fileName}`,
+      {
+        mode: "cors",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP Error: ${response.status} - Failed to fetch image ${fileName}`);
+    }
+
+    const data = await response.blob();
+    const url = URL.createObjectURL(data);
+
+    return url;
+  } catch (error) {
+    console.error(`Error fetching image ${fileName}:`, error);
+    return { error: error.message };
+  }
+};
+
 // DELETE sale-item by ID
 const deleteSaleItemById = async (id) => {
   try {
@@ -163,8 +206,6 @@ const createSaleItem_v2 = async (saleItem, images) => {
       formData.append("images", img.file, fileName);
     });
 
-    
-
     const response = await fetch(`${SALE_ITEM_API_URL_V2}`, {
       method: "POST",
       body: formData,
@@ -222,4 +263,6 @@ export {
   createSaleItem,
   getAllSaleItems_v2,
   createSaleItem_v2,
+  getSaleItemById_v2,
+  getImageByFileName,
 };

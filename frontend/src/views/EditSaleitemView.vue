@@ -4,6 +4,7 @@ import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { onMounted, ref } from "vue";
 import {
   getSaleItemById,
+  getSaleItemById_v2,
   updateSaleItemById,
 } from "@/services/SaleItemService";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
@@ -32,7 +33,7 @@ const fetchSaleItemById = async () => {
       throw new Error("Invalid ID");
     }
 
-    const response = await getSaleItemById(saleItemId);
+    const response = await getSaleItemById_v2(saleItemId);
 
     if (!response.error) {
       selectSaleItem.value = response;

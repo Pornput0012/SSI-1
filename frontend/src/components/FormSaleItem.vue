@@ -4,6 +4,7 @@ import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watch, watchEffect } from "vue";
 import MessageModal from "./MessageModal.vue";
 import noPhoto from "@/assets/No_image_available.png";
+import { getImageByFileName } from "@/services/SaleItemService";
 
 const emit = defineEmits(["onSubmit"]);
 const { getBrands } = useBrandStore();
@@ -93,6 +94,38 @@ onMounted(async () => {
     const response = await getAllBrands();
     if (response.error) {
       throw new Error(response.error);
+    }
+
+    if (props.saleItemDetail?.saleItemImages?.length > 0) {
+      console.log(props.saleItemDetail?.saleItemImages);
+      props.saleItemDetail.saleItemImages?.sort(
+        (a, b) => a.imageViewOrder - b.imageViewOrder
+      );
+      for (const ele of props.saleItemDetail?.saleItemImages) {
+        try {
+          const response = await getImageByFileName(ele.fileName);
+          if (response.error) {
+            console.error(
+              `Failed to load image ${ele.fileName}:`,
+              response.error
+            );
+            continue;
+          }
+
+          images.value.push({
+            imageName: ele.fileName,
+            src: response,
+          });
+
+          if(images.value?.length == 1){
+            showImage.value = response
+            showImageIndex.value = 0
+          }
+
+        } catch (error) {
+          console.error(`Failed to load image ${ele.fileName}:`, error.message);
+        }
+      }
     }
   } catch (e) {
     errorTitle.value = "Something Wrong!";
