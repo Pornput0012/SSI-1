@@ -1,5 +1,6 @@
 package ssi.backend.services;
 
+import jakarta.persistence.EntityManager;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +30,9 @@ public class ProductService {
     private ModelMapper modelMapper;
     @Autowired
     private BrandRepository brandRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private FileService fileService;
@@ -134,6 +138,7 @@ public class ProductService {
         return modelMapper.map(productRepository.save(creatingProduct), ProductItemResponseDTO.class);
     }
 
+
     @Transactional
     public ProductItemResponseDtoV2 createProduct(ProductItemRequestDtoV2 product,List<MultipartFile> images) {
 
@@ -151,11 +156,12 @@ public class ProductService {
 
         Product prodRes = productRepository.save(creatingProduct);
         fileService.saveFile(images,prodRes);
-//        Product test = productRepository.findById(prodRes.getId()).orElseThrow(null);
-//        System.out.println(test.getSaleItemImages());
 
-        SaleItemImageDtoResponse saleItemImageDtoResponse = new SaleItemImageDtoResponse();
 
-        return modelMapper.map(productRepository.findById(prodRes.getId()), ProductItemResponseDtoV2.class);
+        productRepository.flush();
+
+
+        entityManager.refresh(prodRes);
+        return modelMapper.map(prodRes, ProductItemResponseDtoV2.class);
     }
 }

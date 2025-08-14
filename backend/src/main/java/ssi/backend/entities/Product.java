@@ -71,7 +71,7 @@ public class Product {
     @Generated(GenerationTime.ALWAYS)
     private Instant updatedOn;
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product",fetch = FetchType.EAGER)
     private List<SaleItemImage> saleItemImages = new ArrayList<>();
 
 }
