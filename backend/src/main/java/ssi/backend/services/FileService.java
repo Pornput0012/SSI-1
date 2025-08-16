@@ -108,16 +108,33 @@ public class FileService {
         }
     }
 
-    public void removeFile(String fileName) {
+    public void removeFile(Product product, String fileName) {
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
             if (Files.exists(filePath)) {
                 Files.delete(filePath);
+                saleItemImageRepository.deleteByFileNameAndProductId(fileName, product.getId());
             } else {
                 throw new ResourceNotFoundException("File not found " + fileName);
             }
         } catch (IOException ex) {
             throw new RuntimeException("File operation (DELETE) error: " + fileName, ex);
+        }
+    }
+
+    public void removeFiles(Product product, List<String> fileNames) {
+        List<String> failedFiles = new ArrayList<>();
+
+        for (String fileName : fileNames) {
+            try {
+                removeFile(product, fileName);
+            } catch (Exception ex) {
+                failedFiles.add(fileName);
+            }
+        }
+
+        if (!failedFiles.isEmpty()) {
+            throw new RuntimeException("Failed to delete files: " + String.join(", ", failedFiles));
         }
     }
 }

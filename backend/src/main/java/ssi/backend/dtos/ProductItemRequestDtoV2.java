@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -37,6 +38,8 @@ public class ProductItemRequestDtoV2 {
     private String color;
 
     private Integer quantity;
+
+    private String fileNames;
 
     public void setModel(String model) {
         this.model = model.trim();

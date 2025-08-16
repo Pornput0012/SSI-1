@@ -115,7 +115,9 @@ const getImageByFileName = async (fileName) => {
     );
 
     if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status} - Failed to fetch image ${fileName}`);
+      throw new Error(
+        `HTTP Error: ${response.status} - Failed to fetch image ${fileName}`
+      );
     }
 
     const data = await response.blob();
@@ -193,18 +195,23 @@ const createSaleItem_v2 = async (saleItem, images) => {
         );
       }
     }
+    console.log(images);
 
-    images.forEach((img, index) => {
-      const splitFileName = img.imageName.split(".");
+    if (images) {
+      images.newImages.forEach((img, index) => {
+        console.log(img);
 
-      const ext = splitFileName.pop();
+        const splitFileName = img.imageName.split(".");
 
-      const joinFileName = splitFileName.join(".");
+        const ext = splitFileName.pop();
 
-      const fileName = `${joinFileName}.${index + 1}.${ext}`;
+        const joinFileName = splitFileName.join(".");
 
-      formData.append("images", img.file, fileName);
-    });
+        const fileName = `${joinFileName}.${index + 1}.${ext}`;
+
+        formData.append("images", img.file, fileName);
+      });
+    }
 
     const response = await fetch(`${SALE_ITEM_API_URL_V2}`, {
       method: "POST",
@@ -255,6 +262,57 @@ const updateSaleItemById = async (id, saleItem) => {
   }
 };
 
+const updateSaleItemById_v2 = async (id, saleItem, images) => {
+  try {
+    const formData = new FormData();
+
+    for (const [key, value] of Object.entries(saleItem)) {
+      if (value !== null && value !== undefined) {
+        const isBrandKey = key === "brand";
+        formData.append(
+          isBrandKey ? "brandId" : key,
+          isBrandKey ? value.id : value
+        );
+      }
+    }
+
+    console.log(images);
+
+    if (images) {
+      images.newImages.forEach((img, index) => {
+        const splitFileName = img.imageName.split(".");
+
+        const ext = splitFileName.pop();
+
+        const joinFileName = splitFileName.join(".");
+
+        const fileName = `${joinFileName}.${index + 1}.${ext}`;
+
+        formData.append("newImages", img.file, fileName);
+      });
+
+      formData.append("fileNames", images.deletedImageFileNames.join(","));
+    }
+
+    const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to create sale item. Server responded with status ${response.status}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    return {
+      error: `Error creating sale item: ${error.message}`,
+    };
+  }
+};
+
 export {
   getAllSaleItems,
   getSaleItemById,
@@ -265,4 +323,5 @@ export {
   createSaleItem_v2,
   getSaleItemById_v2,
   getImageByFileName,
+  updateSaleItemById_v2,
 };

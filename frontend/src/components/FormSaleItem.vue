@@ -94,7 +94,7 @@ const showModal = ref(false);
 // สำหรับเก็บข้อมูลรูปภาพเดิม
 const originalImages = ref([]);
 const images = ref([]);
-const deletedImageIds = ref([]); // เก็บ ID หรือ fileName ของรูปที่ถูกลบ
+const deletedImageFileNames = ref([]); // เก็บ fileName ของรูปที่ถูกลบ
 
 const showImage = ref(noPhoto);
 const showImageIndex = ref(-1);
@@ -111,7 +111,7 @@ onMounted(async () => {
       props.saleItemDetail.saleItemImages?.sort(
         (a, b) => a.imageViewOrder - b.imageViewOrder
       );
-      
+
       for (const ele of props.saleItemDetail?.saleItemImages) {
         try {
           const response = await getImageByFileName(ele.fileName);
@@ -128,7 +128,7 @@ onMounted(async () => {
             imageName: ele.fileName,
             src: response,
             isOriginal: true, // มาร์คว่าเป็นรูปเดิม
-            imageViewOrder: ele.imageViewOrder
+            imageViewOrder: ele.imageViewOrder,
           };
 
           images.value.push(imageData);
@@ -180,15 +180,16 @@ const handleSubmit = () => {
     }
   }
 
-  // เตรียมข้อมูลรูปภาพสำหรับส่งไป Backend
   const imageData = {
-    newImages: images.value.filter(img => !img.isOriginal), // รูปใหม่ที่อัปโหลด
-    deletedImageIds: deletedImageIds.value, // ID ของรูปที่ถูกลบ
-    reorderedImages: images.value.filter(img => img.isOriginal).map((img, index) => ({
-      id: img.id,
-      fileName: img.imageName,
-      newOrder: index + 1 // ลำดับใหม่
-    })) // รูปเดิมที่มีการเปลี่ยนลำดับ
+    newImages: images.value.filter((img) => !img.isOriginal), // รูปใหม่ที่อัปโหลด
+    deletedImageFileNames: deletedImageFileNames.value, // fileName ของรูปที่ถูกลบ
+    reorderedImages: images.value
+      .filter((img) => img.isOriginal)
+      .map((img, index) => ({
+        id: img.id,
+        fileName: img.imageName,
+        newOrder: index + 1,
+      })),
   };
 
   emit("onSubmit", formData.value, imageData);
@@ -342,42 +343,53 @@ watch(
 // ฟังก์ชันตรวจสอบการเปลี่ยนแปลงของรูปภาพ
 const checkImageChanges = () => {
   // ตรวจสอบว่ามีรูปใหม่หรือไม่
-  const hasNewImages = images.value.some(img => !img.isOriginal);
-  
+  const hasNewImages = images.value.some((img) => !img.isOriginal);
+
   // ตรวจสอบว่ามีรูปถูกลบหรือไม่
-  const hasDeletedImages = deletedImageIds.value.length > 0;
-  
+  const hasDeletedImages = deletedImageFileNames.value.length > 0;
+
   // ตรวจสอบการเปลี่ยนลำดับรูปเดิม
-  const originalImagesInCurrentOrder = images.value.filter(img => img.isOriginal);
-  
+  const originalImagesInCurrentOrder = images.value.filter(
+    (img) => img.isOriginal
+  );
+
   // เช็คการเปลี่ยนลำดับ - ต้องเปรียบเทียบกับลำดับเดิม
-  const hasReorderedImages = originalImagesInCurrentOrder.some((img, currentIndex) => {
-    const originalImg = originalImages.value.find(orig => orig.id === img.id);
-    if (!originalImg) return false;
-    
-    // หาตำแหน่งเดิมของรูปนี้ในรายการเดิม (เรียงตาม imageViewOrder)
-    const originalIndex = originalImages.value
-      .sort((a, b) => a.imageViewOrder - b.imageViewOrder)
-      .findIndex(orig => orig.id === img.id);
-    
-    return originalIndex !== currentIndex;
-  });
+  const hasReorderedImages = originalImagesInCurrentOrder.some(
+    (img, currentIndex) => {
+      const originalImg = originalImages.value.find(
+        (orig) => orig.id === img.id
+      );
+      if (!originalImg) return false;
+
+      // หาตำแหน่งเดิมของรูปนี้ในรายการเดิม (เรียงตาม imageViewOrder)
+      const originalIndex = originalImages.value
+        .sort((a, b) => a.imageViewOrder - b.imageViewOrder)
+        .findIndex((orig) => orig.id === img.id);
+
+      return originalIndex !== currentIndex;
+    }
+  );
 
   // ตรวจสอบจำนวนรูปเปลี่ยนหรือไม่
   const totalOriginalImages = originalImages.value.length;
   const totalCurrentImages = images.value.length;
   const hasImageCountChanged = totalOriginalImages !== totalCurrentImages;
 
-  console.log('Image Change Detection:', {
+  console.log("Image Change Detection:", {
     hasNewImages,
     hasDeletedImages,
     hasReorderedImages,
     hasImageCountChanged,
     originalCount: totalOriginalImages,
-    currentCount: totalCurrentImages
+    currentCount: totalCurrentImages,
   });
 
-  return hasNewImages || hasDeletedImages || hasReorderedImages || hasImageCountChanged;
+  return (
+    hasNewImages ||
+    hasDeletedImages ||
+    hasReorderedImages ||
+    hasImageCountChanged
+  );
 };
 
 watchEffect(() => {
@@ -393,7 +405,8 @@ watchEffect(() => {
     if (
       (!formData.value[field] && formData.value[field] !== 0) ||
       formData.value[field] === "" ||
-      (typeof formData.value[field] === 'object' && formData.value[field]?.id === 0)
+      (typeof formData.value[field] === "object" &&
+        formData.value[field]?.id === 0)
     ) {
       console.log("Button disabled: required field missing -", field);
       isSave.value = true;
@@ -406,10 +419,15 @@ watchEffect(() => {
   // ตรวจสอบการเปลี่ยนแปลงของ brand
   const currentBrandName = formData.value.brand?.name || formData.value.brand;
   const originalBrandName = props.saleItemDetail?.brandName;
-  
+
   if (currentBrandName !== originalBrandName) {
     hasFormChanges = true;
-    console.log("Form change detected: brand", currentBrandName, "vs", originalBrandName);
+    console.log(
+      "Form change detected: brand",
+      currentBrandName,
+      "vs",
+      originalBrandName
+    );
   }
 
   // ตรวจสอบการเปลี่ยนแปลงของฟิลด์อื่นๆ
@@ -417,10 +435,16 @@ watchEffect(() => {
     for (const field of fieldCheckOldData) {
       const currentValue = formData.value[field];
       const originalValue = props.saleItemDetail?.[field];
-      
+
       if (currentValue !== originalValue) {
         hasFormChanges = true;
-        console.log("Form change detected:", field, currentValue, "vs", originalValue);
+        console.log(
+          "Form change detected:",
+          field,
+          currentValue,
+          "vs",
+          originalValue
+        );
         break;
       }
     }
@@ -429,10 +453,15 @@ watchEffect(() => {
     if (!hasFormChanges) {
       const currentColor = normalize(formData.value.color);
       const originalColor = normalize(props.saleItemDetail?.color);
-      
+
       if (currentColor !== originalColor) {
         hasFormChanges = true;
-        console.log("Form change detected: color", currentColor, "vs", originalColor);
+        console.log(
+          "Form change detected: color",
+          currentColor,
+          "vs",
+          originalColor
+        );
       }
     }
   }
@@ -444,12 +473,12 @@ watchEffect(() => {
   const hasAnyChanges = hasFormChanges || hasImageChanges;
 
   isSave.value = !hasAnyChanges;
-  
+
   console.log("Save button state:", {
     isSave: isSave.value,
     hasFormChanges,
     hasImageChanges,
-    hasAnyChanges
+    hasAnyChanges,
   });
 });
 
@@ -495,7 +524,10 @@ const uploadImage = (event) => {
           }
 
           console.log("Upload successful, total images:", images.value.length);
-          console.log("New images count:", images.value.filter(img => !img.isOriginal).length);
+          console.log(
+            "New images count:",
+            images.value.filter((img) => !img.isOriginal).length
+          );
         }
       };
       reader.readAsDataURL(file);
@@ -582,18 +614,24 @@ const swapDownImage = (i) => {
 // ปรับปรุงฟังก์ชัน removeImage
 const removeImage = (index) => {
   const imageToRemove = images.value[index];
+
+  console.log("remove active");
+  console.log("imageToRemove:", imageToRemove);
   
-  // ถ้าเป็นรูปเดิม ให้เก็บ ID ไว้ใน deletedImageIds
-  if (imageToRemove.isOriginal && imageToRemove.id) {
-    deletedImageIds.value.push(imageToRemove.id);
+  // ถ้าเป็นรูปเดิม ให้เก็บ fileName ไว้ใน deletedImageFileNames
+  if (imageToRemove.isOriginal && imageToRemove.imageName) {
+    console.log("Adding to deletedImageFileNames:", imageToRemove.imageName);
+    deletedImageFileNames.value.push(imageToRemove.imageName);
+  } else {
+    console.log("Not adding to deletedImageFileNames - isOriginal:", imageToRemove.isOriginal, "imageName:", imageToRemove.imageName);
   }
-  
+
   // ลบรูปออกจาก array
   images.value.splice(index, 1);
   // ไม่ต้องเซ็ต hasImageChanges.value ที่นี่ เพราะ watchEffect จะจัดการให้
 
   console.log("Removed image at index:", index);
-  console.log("Deleted image IDs:", deletedImageIds.value);
+  console.log("Deleted image fileNames:", deletedImageFileNames.value);
   console.log("Remaining images:", images.value.length);
 
   // อัปเดต showImage และ index
@@ -687,10 +725,14 @@ const removeImage = (index) => {
             @change="uploadImage"
           />
         </div>
-        
+
         <!-- แสดงรายชื่อไฟล์และปุ่มจัดการ -->
         <div class="flex flex-col gap-2 items-center justify-center">
-          <div v-for="(image, i) in images" :class="'itbms-picture-file' + i" :key="image.imageName || i">
+          <div
+            v-for="(image, i) in images"
+            :class="'itbms-picture-file' + i"
+            :key="image.imageName || i"
+          >
             <div class="flex items-center gap-2" v-if="image.imageName != ''">
               <div
                 class="w-48 flex justify-between gap-2 border border-blue-500 text-blue-500 text-xs py-2 px-4 rounded"
@@ -698,7 +740,9 @@ const removeImage = (index) => {
               >
                 <p class="mt-0.5 truncate" :title="image.imageName">
                   {{ image.imageName }}
-                  <span v-if="image.isOriginal" class="text-green-600 text-xs">(Original)</span>
+                  <span v-if="image.isOriginal" class="text-green-600 text-xs"
+                    >(Original)</span
+                  >
                 </p>
                 <button
                   class="text-red-400 cursor-pointer hover:text-red-600"
@@ -745,11 +789,9 @@ const removeImage = (index) => {
               </div>
             </div>
           </div>
-          
-        
         </div>
       </div>
-      
+
       <!-- ฟอร์มข้อมูลสินค้า (เหมือนเดิม) -->
       <div
         class="flex flex-col items-center lg:items-start justify-center lg:justify-start xl:w-2/4"
@@ -997,9 +1039,7 @@ const removeImage = (index) => {
             <button
               @click="handleSubmit"
               class="itbms-save-button btn"
-              :class="
-                isSave || disableSaveBtn ? '' : 'btn-primary'
-              "
+              :class="isSave || disableSaveBtn ? '' : 'btn-primary'"
               :disabled="isSave || disableSaveBtn"
             >
               Save
