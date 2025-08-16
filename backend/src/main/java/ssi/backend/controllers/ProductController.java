@@ -81,7 +81,7 @@ public class ProductController {
     }
 
     @GetMapping("/sale-items/{fileName:.+}")
-    public ResponseEntity<Resource> getFile(@PathVariable String fileName) {
+    public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
         Resource resource = fileService.loadFileAsResource(fileName);
 
         String contentType;
@@ -97,5 +97,11 @@ public class ProductController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "inline; filename=\"" + resource.getFilename() + "\"") // inline = แสดงใน browser
                 .body(resource);
+    }
+
+    @DeleteMapping("/sale-items/{id}/{fileName:.+}")
+    public ResponseEntity<Void> deleteImage(@PathVariable String fileName, @PathVariable Integer id) {
+        productService.deleteImage(id,fileName);
+        return ResponseEntity.noContent().build();
     }
 }

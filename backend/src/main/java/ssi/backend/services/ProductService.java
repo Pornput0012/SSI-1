@@ -17,6 +17,7 @@ import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.ProductRepository;
+import ssi.backend.repositories.SaleItemImageRepository;
 import ssi.backend.utils.ListMapper;
 
 import java.util.List;
@@ -37,6 +38,8 @@ public class ProductService {
 
     @Autowired
     private FileService fileService;
+    @Autowired
+    private SaleItemImageRepository saleItemImageRepository;
 
     public List<ProductItemDTO> getAllProducts() {
         return listMapper.mapList(productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id"))),
@@ -113,6 +116,7 @@ public class ProductService {
         return modelMapper.map(productRepository.save(existingProduct), ProductItemResponseDTO.class);
     }
 
+    @Transactional
     public void deleteProductById(Integer id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
@@ -132,9 +136,16 @@ public class ProductService {
         return modelMapper.map(productRepository.save(creatingProduct), ProductItemResponseDTO.class);
     }
 
+    @Transactional
+    public void deleteImage(Integer id, String fileName) {
+        if (productRepository.existsById(id) && saleItemImageRepository.existsByFileName(fileName)) {
+            saleItemImageRepository.deleteByFileNameAndProductId(fileName, id);
+            fileService.removeFile(fileName);
+        }
+    }
 
     @Transactional
-    public ProductItemResponseDtoV2 createProduct(ProductItemRequestDtoV2 product,List<MultipartFile> images) {
+    public ProductItemResponseDtoV2 createProduct(ProductItemRequestDtoV2 product, List<MultipartFile> images) {
 
         if (images.size() > 4) {
             throw new BadRequestException("Images Size Exceeded");
@@ -149,7 +160,7 @@ public class ProductService {
         creatingProduct.setId(null);
 
         Product prodRes = productRepository.save(creatingProduct);
-        fileService.saveFile(images,prodRes);
+        fileService.saveFile(images, prodRes);
 
 
         productRepository.flush();
