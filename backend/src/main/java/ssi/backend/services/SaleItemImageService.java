@@ -2,17 +2,31 @@ package ssi.backend.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ssi.backend.entities.Product;
 import ssi.backend.entities.SaleItemImage;
+import ssi.backend.repositories.ProductRepository;
 import ssi.backend.repositories.SaleItemImageRepository;
+
+import java.util.List;
 
 @Service
 public class SaleItemImageService {
 
     @Autowired
     private SaleItemImageRepository saleItemImageRepository;
+    @Autowired
+    private ProductRepository productRepository;
 
 
     public SaleItemImage saveInfoImage(SaleItemImage saleItemImage) {
         return saleItemImageRepository.save(saleItemImage);
+    }
+
+    public List<SaleItemImage> findAllByProduct(Integer productId) {
+        return saleItemImageRepository.findAllByProduct(productRepository.findById(productId).orElse(null));
+    }
+
+    public void deleteImage(Integer imageId) {
+         saleItemImageRepository.deleteById(imageId);
     }
 }
