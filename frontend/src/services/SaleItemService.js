@@ -198,10 +198,12 @@ const createSaleItem_v2 = async (saleItem, images) => {
     console.log(images);
 
     if (images) {
+      console.log(images);
+      
       images.newImages.forEach((img, index) => {
         console.log(img);
 
-        const splitFileName = img.imageName.split(".");
+        const splitFileName = img.fileName.split(".");
 
         const ext = splitFileName.pop();
 
@@ -280,7 +282,7 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
 
     if (images) {
       images.newImages.forEach((img, index) => {
-        const splitFileName = img.imageName.split(".");
+        const splitFileName = img.fileName.split(".");
 
         const ext = splitFileName.pop();
 

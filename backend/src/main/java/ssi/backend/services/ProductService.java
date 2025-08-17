@@ -156,8 +156,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product,
-            String fileNames  ) {
+    public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product, String fileNames  ) {
         List<String> fileNamesList = Arrays.asList(fileNames.split(","));
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));

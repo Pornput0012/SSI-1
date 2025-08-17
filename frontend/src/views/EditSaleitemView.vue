@@ -99,6 +99,7 @@ const updateSuccess = () => {
   <div>
     <FormSaleItem
       v-if="selectSaleItem"
+      mode="edit"
       :saleItemDetail="selectSaleItem"
       @on-submit="editSaleItem"
       :disable-save-btn="isSaving"

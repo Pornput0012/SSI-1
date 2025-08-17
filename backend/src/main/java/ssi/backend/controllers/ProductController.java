@@ -67,6 +67,7 @@ public class ProductController {
     public ResponseEntity<ProductItemRequestDtoV2> updateProductV2(
             @PathVariable Integer id,
             @Valid @ModelAttribute ProductItemRequestDtoV2 product) {
+        // getFileNames -> ไฟล์สำหรับจะลบ
         return ResponseEntity.ok(productService.updateProductV2(id, product, product.getFileNames()));
     }
 
