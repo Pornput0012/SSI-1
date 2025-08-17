@@ -38,6 +38,8 @@ public class ProductService {
 
     @Autowired
     private FileService fileService;
+    @Autowired
+    private SaleItemImageService saleItemImageService;
 
     public List<ProductItemDTO> getAllProducts() {
         return listMapper.mapList(productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id"))),
@@ -116,6 +118,17 @@ public class ProductService {
     public void deleteProductById(Integer id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+        productRepository.delete(product);
+    }
+
+    public void deleteProductByIdV2(Integer id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+        saleItemImageService.findAllByProduct(id).forEach(saleItemImage -> {
+            saleItemImageService.deleteImage(saleItemImage.getId());
+            fileService.removeFile(saleItemImage.getFileName());
+        });
+
         productRepository.delete(product);
     }
 

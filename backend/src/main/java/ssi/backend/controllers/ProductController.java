@@ -77,6 +77,12 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/v2/sale-items/{id}")
+    public ResponseEntity<Void> deleteProductByIdV2(@PathVariable Integer id) {
+        productService.deleteProductByIdV2(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/v1/sale-items")
     public ResponseEntity<ProductItemResponseDTO> createProduct(@Valid @RequestBody ProductItemRequestDTO product) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product));

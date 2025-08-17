@@ -31,6 +31,8 @@ public class FileService {
     private final Path fileStorageLocation;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private SaleItemImageService saleItemImageService;
 
 
     @Autowired
@@ -135,6 +137,20 @@ public class FileService {
 
         if (!failedFiles.isEmpty()) {
             throw new RuntimeException("Failed to delete files: " + String.join(", ", failedFiles));
+
+    public void removeFile(String fileName) {
+        try {
+            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+
+            if (Files.exists(filePath)) {
+                if (!saleItemImageService.imageExists(fileName)) {
+                 Files.delete(filePath);
+                }
+            } else  {
+                throw new RuntimeException("File not found " + fileName);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("File operation error: " + fileName, ex);
         }
     }
 }
