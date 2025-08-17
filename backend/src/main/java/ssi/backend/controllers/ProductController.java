@@ -42,7 +42,8 @@ public class ProductController {
             @RequestParam(required = false) Integer filterPriceLower,
             @RequestParam(required = false) Integer filterPriceUpper) {
 
-        ProductPageDTO productPageDTO = productService.getAllProductsV2(page, size, sortField, sortDirection, filterBrands, filterStorage, filterPriceLower, filterPriceUpper);
+        ProductPageDTO productPageDTO = productService.getAllProductsV2(page, size, sortField, sortDirection,
+                filterBrands, filterStorage, filterPriceLower, filterPriceUpper);
         return ResponseEntity.ok(productPageDTO);
     }
 
@@ -58,8 +59,16 @@ public class ProductController {
 
     @PutMapping("/v1/sale-items/{id}")
     public ResponseEntity<ProductItemResponseDTO> updateProduct(@PathVariable Integer id,
-                                                                @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
+            @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
         return ResponseEntity.ok(productService.updateProduct(id, productItemRequestDTO));
+    }
+
+    @PutMapping("/v2/sale-items/{id}")
+    public ResponseEntity<ProductItemRequestDtoV2> updateProductV2(
+            @PathVariable Integer id,
+            @Valid @ModelAttribute ProductItemRequestDtoV2 product) {
+        // getFileNames -> ไฟล์สำหรับจะลบ
+        return ResponseEntity.ok(productService.updateProductV2(id, product, product.getFileNames()));
     }
 
     @DeleteMapping("/v1/sale-items/{id}")
@@ -80,14 +89,15 @@ public class ProductController {
     }
 
     @PostMapping("/v2/sale-items")
-    public ResponseEntity<ProductItemResponseDtoV2> createProduct(@Valid @ModelAttribute ProductItemRequestDtoV2 product,
-                                                                @RequestParam List<MultipartFile> images) {
+    public ResponseEntity<ProductItemResponseDtoV2> createProduct(
+            @Valid @ModelAttribute ProductItemRequestDtoV2 product,
+            @RequestParam List<MultipartFile> images) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product, images));
     }
 
     @GetMapping("/sale-items/{fileName:.+}")
-    public ResponseEntity<Resource> getFile(@PathVariable String fileName) {
+    public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
         Resource resource = fileService.loadFileAsResource(fileName);
 
         String contentType;
@@ -104,4 +114,5 @@ public class ProductController {
                         "inline; filename=\"" + resource.getFilename() + "\"") // inline = แสดงใน browser
                 .body(resource);
     }
+
 }

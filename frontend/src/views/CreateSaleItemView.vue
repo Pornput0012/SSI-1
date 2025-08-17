@@ -47,6 +47,7 @@ const createSuccess = () => {
     <FormSaleItem
       @on-submit="handleCreateSaleItem"
       :disableSaveBtn="isSaving"
+      mode="create"
     />
   </div>
   <MessageModal

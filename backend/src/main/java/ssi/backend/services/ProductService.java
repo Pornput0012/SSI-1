@@ -19,6 +19,7 @@ import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.ProductRepository;
 import ssi.backend.utils.ListMapper;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -46,8 +47,8 @@ public class ProductService {
     }
 
     public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
-                                           List<String> filterBrands, List<Integer> filterStorage,
-                                           Integer filterPriceLower, Integer filterPriceUpper) {
+            List<String> filterBrands, List<Integer> filterStorage,
+            Integer filterPriceLower, Integer filterPriceUpper) {
         ProductPageDTO productPage;
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
@@ -72,8 +73,7 @@ public class ProductService {
                 (filterStorage != null && !filterStorage.isEmpty()) ? filterStorage : null,
                 filterPriceLower,
                 filterPriceUpper,
-                pageable
-        );
+                pageable);
 
         productPage = modelMapper.map(pageResult, ProductPageDTO.class);
         productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
@@ -81,7 +81,6 @@ public class ProductService {
         productPage.setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
         return productPage;
     }
-
 
     public ProductDetailDTO getProductById(Integer id) {
         Product product = productRepository.findById(id)
@@ -115,6 +114,7 @@ public class ProductService {
         return modelMapper.map(productRepository.save(existingProduct), ProductItemResponseDTO.class);
     }
 
+    @Transactional
     public void deleteProductById(Integer id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
@@ -145,9 +145,8 @@ public class ProductService {
         return modelMapper.map(productRepository.save(creatingProduct), ProductItemResponseDTO.class);
     }
 
-
     @Transactional
-    public ProductItemResponseDtoV2 createProduct(ProductItemRequestDtoV2 product,List<MultipartFile> images) {
+    public ProductItemResponseDtoV2 createProduct(ProductItemRequestDtoV2 product, List<MultipartFile> images) {
 
         if (images.size() > 4) {
             throw new BadRequestException("Images Size Exceeded");
@@ -156,19 +155,48 @@ public class ProductService {
                 .orElseThrow(
                         () -> new ItemNotFoundException("Brand id " + product.getBrandId() + " does not exist"));
 
-
         Product creatingProduct = modelMapper.map(product, Product.class);
         creatingProduct.setBrand(existingBrand);
         creatingProduct.setId(null);
 
         Product prodRes = productRepository.save(creatingProduct);
-        fileService.saveFile(images,prodRes);
-
+        fileService.saveFile(images, prodRes);
 
         productRepository.flush();
 
-
         entityManager.refresh(prodRes);
         return modelMapper.map(prodRes, ProductItemResponseDtoV2.class);
+    }
+
+    @Transactional
+    public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product, String fileNames  ) {
+        List<String> fileNamesList = Arrays.asList(fileNames.split(","));
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+        Brand existingBrand = brandRepository.findById(product.getBrandId())
+                .orElseThrow(() -> new ItemNotFoundException(
+                        "Brand id " + product.getBrandId() + " does not exist"));
+
+        existingProduct.setModel(product.getModel());
+        existingProduct.setDescription(product.getDescription());
+        existingProduct.setPrice(product.getPrice());
+        existingProduct.setRamGb(product.getRamGb());
+        existingProduct.setScreenSizeInch(product.getScreenSizeInch());
+        existingProduct.setStorageGb(product.getStorageGb());
+        existingProduct.setColor(product.getColor());
+        existingProduct.setQuantity(product.getQuantity());
+        existingProduct.setBrand(existingBrand);
+
+
+        if(fileNames != null){
+            fileService.removeFiles(existingProduct,fileNamesList);
+        }
+
+        Product updatedProduct = productRepository.save(existingProduct);
+
+        productRepository.flush();
+        entityManager.refresh(updatedProduct);
+
+        return modelMapper.map(updatedProduct, ProductItemRequestDtoV2.class);
     }
 }
