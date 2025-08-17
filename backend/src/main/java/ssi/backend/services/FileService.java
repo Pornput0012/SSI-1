@@ -30,6 +30,8 @@ public class FileService {
     private final Path fileStorageLocation;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private SaleItemImageService saleItemImageService;
 
 
     @Autowired
@@ -112,7 +114,9 @@ public class FileService {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
 
             if (Files.exists(filePath)) {
-                Files.delete(filePath);
+                if (!saleItemImageService.imageExists(fileName)) {
+                 Files.delete(filePath);
+                }
             } else  {
                 throw new RuntimeException("File not found " + fileName);
             }

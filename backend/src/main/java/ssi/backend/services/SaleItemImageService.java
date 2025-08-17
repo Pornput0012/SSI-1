@@ -29,4 +29,13 @@ public class SaleItemImageService {
     public void deleteImage(Integer imageId) {
          saleItemImageRepository.deleteById(imageId);
     }
+
+    public List<SaleItemImage> findSaleItemImageByName(String saleItemImageName) {
+        return saleItemImageRepository.findSaleItemImageByFileName(saleItemImageName);
+    }
+
+
+    public Boolean imageExists(String fileName) {
+        return findSaleItemImageByName(fileName).size() > 0;
+    }
 }
