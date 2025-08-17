@@ -50,7 +50,7 @@ export const useFilterStore = defineStore('Filter', () => {
     if (!selectedStorages.value.includes(storage)) {
       selectedStorages.value.push(storage)
 
-      selectedStorages.value.sort((a,b) => {
+      selectedStorages.value.sort((a, b) => {
         const ax = a === 'Not specified' ? Number.MAX_SAFE_INTEGER : a
         const bx = b === 'Not specified' ? Number.MAX_SAFE_INTEGER : b
         return ax - bx
@@ -73,7 +73,7 @@ export const useFilterStore = defineStore('Filter', () => {
   }
 
   const setSelectedPrice = (prices) => {
-    selectedPrices.value = prices
+    selectedPrices.value = prices ?? { min: null, max: null }
   }
 
   const removePrice = () => {

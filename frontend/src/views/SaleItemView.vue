@@ -65,7 +65,7 @@ const hasError = ref('')
 const showFilterDropdown = ref(false)
 const showCreatedModal = ref(false)
 const brandOptions = ref([])
-const storageOptions = ref([32, 64, 128, 256, 512, 'Not specified'])
+const storageOptions = ref([32, 64, 128, 256, 512, 1024, 'Not specified'])
 const priceRangeOptions = ref([
   { label: '0 – 5,000', min: 0, max: 5000 },
   { label: '5,001 – 10,000', min: 5001, max: 10000 },
@@ -187,12 +187,24 @@ const selectPriceRange = async (range) => {
   await applyFilter(true)
 }
 
-// const applyCustomPrice = async (min, max) => {
-//   // ตาม requirement: ใส่ได้เฉพาะ min ก็ได้ (ตีความฝั่ง FE เป็น "เท่ากับ min")
-//   setSelectPrice(min ?? null, max ?? null)
-//   resetCurrentPage()
-//   await applyFilter(true)
-// }
+const customMin = ref(null)
+const customMax = ref(null)
+
+const applyCustomPrice = async () => {
+  // validate input
+  if (customMin.value === null && customMax.value === null) return
+
+  setSelectPrice(
+    customMin.value !== null ? customMin.value : null,
+    customMax.value !== null ? customMax.value : null
+  )
+  resetCurrentPage()
+  await applyFilter(true)
+
+  // เคลียร์ input หลัง apply
+  customMin.value = null
+  customMax.value = null
+}
 
 const removePriceAndApply = async () => {
   removePrice()
@@ -344,7 +356,7 @@ const updateWidth = () => {
             </ul>
           </div>
           <!-- Price Dropdown -->
-          <div class="itbms-price-filter relative flex-1">
+          <div class="itbms-price-filter relative flex-[2]">
             <input
               type="number"
               readonly
@@ -355,14 +367,44 @@ const updateWidth = () => {
               v-if="showFilterDropdown"
               class="absolute bg-white border rounded mt-1 w-full z-10 shadow max-h-40 overflow-y-auto"
             >
+              <li class="font-semibold px-2 py-1">Preset ranges</li>
               <li
                 v-for="(price, idx) in priceRangeOptions"
                 :key="idx"
                 @mousedown.prevent="selectPriceRange(price)"
                 class="itbms-price-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
-                {{ price.label }}
+                {{ price.label }} Baht
               </li>
+              <li class="font-semibold px-2 py-1">Custom</li>
+              <div class="flex gap-2 px-2 pb-2">
+                <input
+                  class="itbms-price-item-min input input-sm w-1/2 border px-2 py-1"
+                  type="number"
+                  min="0"
+                  placeholder="Min Price"
+                  v-model.number="customMin"
+                />
+                <input
+                  class="itbms-price-item-max input input-sm w-1/2 border px-2 py-1"
+                  type="number"
+                  min="0"
+                  placeholder="Max Price"
+                  v-model.number="customMax"
+                />
+                <button
+                  class="btn btn-sm btn-primary"
+                  @mousedown.prevent="applyCustomPrice"
+                >
+                  Apply
+                </button>
+                <button
+                  class="btn btn-sm"
+                  @mousedown.prevent="removePriceAndApply"
+                >
+                  Clear
+                </button>
+              </div>
             </ul>
           </div>
           <!-- Storage Size Dropdown -->
@@ -476,6 +518,27 @@ const updateWidth = () => {
         </div>
       </div>
 
+      <!-- Selected Prices Tags -->
+      <div
+        class="flex flex-wrap gap-2 mt-3"
+        v-if="selectedPrices.min !== null || selectedPrices.max !== null"
+      >
+        <div
+          class="itbms-price-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
+        >
+          <span>
+            {{ selectedPrices.min ?? 0 }} – {{ selectedPrices.max ?? '∞' }} Baht
+          </span>
+          <button
+            class="itbms-price-clear font-bold cursor-pointer"
+            @click="removePriceAndApply"
+            aria-label="Remove price filter"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
       <!-- Selected Storages Tags -->
       <div class="flex flex-wrap gap-2 mt-3">
         <div
@@ -490,29 +553,6 @@ const updateWidth = () => {
             class="itbms-storage-size-item-clear font-bold cursor-pointer"
             @click="removeStorageAndApply(storage)"
             aria-label="Remove storage size filter"
-          >
-            ×
-          </button>
-        </div>
-      </div>
-
-      <!-- Selected Prices Tags -->
-      <div
-        class="flex flex-wrap gap-2 mt-3"
-        v-if="selectedPrices?.min || selectedPrices?.max"
-      >
-        <div
-          class="itbms-price-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
-        >
-          <span class="itbms-price-filter"
-            >฿{{ selectedPrices.min ?? 0 }} – ฿{{
-              selectedPrices.max ?? '∞'
-            }}</span
-          >
-          <button
-            class="itbms-price-clear font-bold cursor-pointer"
-            @click="removePriceAndApply"
-            aria-label="Remove price filter"
           >
             ×
           </button>
