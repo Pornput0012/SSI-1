@@ -256,9 +256,7 @@ const initializeBrands = async () => {
 
 const initializeSaleItems = async (pageInfo) => {
   try {
-    const storagesForApi = (filterStorages.value || []).filter(
-      (s) => typeof s === 'number'
-    )
+    const storagesForApi = (getFilterList().storages || []).filter(s => typeof s === 'number')
     const response = await getAllSaleItems_v2({
       filterBrands: getFilterList().brands,
       filterStorages: storagesForApi,
