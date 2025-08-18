@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.dtos.*;
 import ssi.backend.entities.Brand;
 import ssi.backend.entities.Product;
+import ssi.backend.entities.SaleItemImage;
 import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.repositories.BrandRepository;
@@ -47,8 +48,8 @@ public class ProductService {
     }
 
     public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
-            List<String> filterBrands, List<Integer> filterStorage,
-            Integer filterPriceLower, Integer filterPriceUpper) {
+                                           List<String> filterBrands, List<Integer> filterStorage,
+                                           Integer filterPriceLower, Integer filterPriceUpper) {
         ProductPageDTO productPage;
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
@@ -169,14 +170,14 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product, String fileNames  ) {
-        List<String> fileNamesList = Arrays.asList(fileNames.split(","));
+    public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product, String removeImage, String orderImages, List<MultipartFile> newImages) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
         Brand existingBrand = brandRepository.findById(product.getBrandId())
                 .orElseThrow(() -> new ItemNotFoundException(
                         "Brand id " + product.getBrandId() + " does not exist"));
 
+        // อัปเดตข้อมูลพื้นฐานของสินค้า
         existingProduct.setModel(product.getModel());
         existingProduct.setDescription(product.getDescription());
         existingProduct.setPrice(product.getPrice());
@@ -187,9 +188,54 @@ public class ProductService {
         existingProduct.setQuantity(product.getQuantity());
         existingProduct.setBrand(existingBrand);
 
+        // ลบรูปภาพที่ระบุ
+        if (removeImage != null && !removeImage.trim().isEmpty()) {
+            List<String> removeImageList = Arrays.asList(removeImage.split(","));
+            fileService.removeFiles(existingProduct, removeImageList);
+        }
 
-        if(fileNames != null){
-            fileService.removeFiles(existingProduct,fileNamesList);
+        // เพิ่มรูปภาพใหม่ที่ส่งมา
+        if (newImages != null && !newImages.isEmpty()) {
+            if (newImages.size() > 4) {
+                throw new BadRequestException("Images Size Exceeded");
+            }
+            fileService.saveFile(newImages, existingProduct);
+        }
+
+        // จัดการ order ของรูปภาพ
+        if (orderImages != null && !orderImages.trim().isEmpty()) {
+            // รูปแบบ: fileName_1,orderImage_1|fileName_2,orderImage_2|fileName_3,orderImage_3
+            String[] imageOrderPairs = orderImages.split("\\|");
+            
+            for (String pair : imageOrderPairs) {
+                if (pair.trim().isEmpty()) continue;
+                
+                String[] parts = pair.split(",");
+                if (parts.length != 2) continue;
+                
+                String fileName = parts[0].trim();
+                try {
+                    Integer newOrder = Integer.parseInt(parts[1].trim());
+                    
+                    // ตรวจสอบว่ามีไฟล์นี้ในฐานข้อมูลหรือไม่
+                    SaleItemImage existingImage = saleItemImageService.findByProductAndFileName(existingProduct, fileName);
+                    
+                    if (existingImage != null) {
+                        // ตรวจสอบว่า order ตรงกันหรือไม่
+                        if (!newOrder.equals(existingImage.getImageViewOrder())) {
+                            // อัปเดต order ใหม่
+                            saleItemImageService.updateImageOrder(existingImage.getId(), newOrder);
+                        }
+                    } else {
+                        // ไฟล์ไม่มีในฐานข้อมูล แสดงว่าถูกลบไปแล้ว
+                        // ไม่ต้องทำอะไร เพราะไฟล์ถูกลบไปแล้ว
+                    }
+                    
+                } catch (NumberFormatException e) {
+                    // ถ้า order ไม่ใช่ตัวเลข ข้ามไป
+                    continue;
+                }
+            }
         }
 
         Product updatedProduct = productRepository.save(existingProduct);

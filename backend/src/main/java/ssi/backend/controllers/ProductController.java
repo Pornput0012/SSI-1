@@ -59,16 +59,16 @@ public class ProductController {
 
     @PutMapping("/v1/sale-items/{id}")
     public ResponseEntity<ProductItemResponseDTO> updateProduct(@PathVariable Integer id,
-            @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
+                                                                @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
         return ResponseEntity.ok(productService.updateProduct(id, productItemRequestDTO));
     }
 
     @PutMapping("/v2/sale-items/{id}")
     public ResponseEntity<ProductItemRequestDtoV2> updateProductV2(
             @PathVariable Integer id,
-            @Valid @ModelAttribute ProductItemRequestDtoV2 product) {
-        // getFileNames -> ไฟล์สำหรับจะลบ
-        return ResponseEntity.ok(productService.updateProductV2(id, product, product.getFileNames()));
+            @Valid @ModelAttribute ProductItemRequestDtoV2 product,
+            @RequestParam List<MultipartFile> newImages) {
+        return ResponseEntity.ok(productService.updateProductV2(id, product, product.getRemoveFileNames(), product.getOrderImages(), newImages));
     }
 
     @DeleteMapping("/v1/sale-items/{id}")
