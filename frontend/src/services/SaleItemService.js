@@ -199,7 +199,7 @@ const createSaleItem_v2 = async (saleItem, images) => {
 
     if (images) {
       console.log(images);
-      
+
       images.newImages.forEach((img, index) => {
         console.log(img);
 
@@ -293,7 +293,17 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
         formData.append("newImages", img.file, fileName);
       });
 
-      formData.append("fileNames", images.deletedImageFileNames.join(","));
+      formData.append(
+        "removeFileNames",
+        images.deletedImageFileNames.join(",")
+      );
+
+      let orderImage = "";
+      images.reorderedImages.forEach((ele, i) => {
+        orderImage += `${i != 0 && "|"}${ele.fileName},${ele.newOrder}`;
+      });
+      console.log(orderImage);
+      
     }
 
     const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}`, {

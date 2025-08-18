@@ -187,6 +187,7 @@ const handleSubmit = () => {
   const activeImages = images.value.filter((img) => !img.isDeleted);
 
   const reorderedImages = [];
+  const newImages = [];
   let currentOrder = 1;
 
   // เรียงลำดับรูปที่ยังเหลืออยู่ให้ต่อเนื่องกัน
@@ -200,10 +201,14 @@ const handleSubmit = () => {
         originalOrder: img.imageViewOrder,
       });
     } else {
-      // รูปใหม่ - ให้ลำดับตามตำแหน่งปัจจุบัน
+      // รูปใหม่ - แยกไปยัง newImages (ไม่มีลำดับ) และ reorderedImages (มีลำดับ)
+      newImages.push({
+        fileName: img.imageName,
+        file: img.file
+      });
+      
       reorderedImages.push({
         fileName: img.imageName,
-        file: img.file,
         newOrder: currentOrder,
         isNew: true,
       });
@@ -212,12 +217,12 @@ const handleSubmit = () => {
   });
 
   const imageData = {
-    // รูปใหม่ที่อัปโหลด พร้อมลำดับที่ถูกต้อง
-    newImages: reorderedImages.filter((img) => img.isNew),
+    // รูปใหม่ที่อัปโหลด (ไม่มีลำดับ)
+    newImages: newImages, 
     // fileName ของรูปที่ถูกลบ
-    deletedImageFileNames: deletedImageFileNames.value,
-    // รูปเดิมที่ยังอยู่ พร้อมลำดับใหม่
-    reorderedImages: reorderedImages.filter((img) => !img.isNew),
+    deletedImageFileNames: deletedImageFileNames.value, 
+    // รูปทั้งเดิมและใหม่ พร้อมลำดับ
+    reorderedImages: reorderedImages,
   };
 
   emit("onSubmit", formData.value, imageData);

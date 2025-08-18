@@ -9,6 +9,7 @@ import ssi.backend.entities.Product;
 import ssi.backend.entities.SaleItemImage;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SaleItemImageRepository extends JpaRepository<SaleItemImage, Integer> {
@@ -23,4 +24,6 @@ public interface SaleItemImageRepository extends JpaRepository<SaleItemImage, In
     List<SaleItemImage> findAllByProduct(Product product);
 
     List<SaleItemImage>  findSaleItemImageByFileName(String saleItemImageName);
+    
+    Optional<SaleItemImage> findByProductAndFileName(Product product, String fileName);
 }

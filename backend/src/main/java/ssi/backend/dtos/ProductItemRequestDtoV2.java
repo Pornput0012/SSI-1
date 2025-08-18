@@ -39,7 +39,9 @@ public class ProductItemRequestDtoV2 {
 
     private Integer quantity;
 
-    private String fileNames;
+    private String removeFileNames;
+
+    private String orderImages;
 
     public void setModel(String model) {
         this.model = model.trim();
