@@ -127,18 +127,13 @@ const setDefaultStoreValues = (pageInfo) => {
   setSortDirection(pageInfo?.sortDirection ?? null)
 }
 
-const applyFilter = async (closeModal = false) => {
+const applyFilter = async () => {
   try {
-    showFilterDropdown.value = closeModal
-
-    // ไม่ส่ง "Not specified" ไป BE จนกว่าจะมีพารามิเตอร์รองรับ
-    const storagesForApi = (filterStorages.value || []).filter(
-      (s) => typeof s === 'number'
-    )
+    const storagesForApi = filterStorages.value || []
 
     const response = await getAllSaleItems_v2({
       filterBrands: filterBrands.value,
-      filterStorage: storagesForApi,
+      filterStorages: storagesForApi,
       filterPriceLower: filterPrices.value.min,
       filterPriceUpper: filterPrices.value.max,
       page: currentPage.value,
@@ -159,6 +154,7 @@ const applyFilter = async (closeModal = false) => {
 
 const selectBrand = async (brand) => {
   setSelectBrand(brand)
+  showFilterDropdown.value = false
   resetCurrentPage()
   await applyFilter(true)
 }
@@ -170,7 +166,9 @@ const removeBrandAndApply = async (brand) => {
 }
 
 const selectStorage = async (storage) => {
-  setSelectStorage(storage)
+  const normalized = storage === 'Not specified' ? '' : storage
+  setSelectStorage(normalized)
+  showFilterDropdown.value = false
   resetCurrentPage()
   await applyFilter(true)
 }
@@ -183,6 +181,7 @@ const removeStorageAndApply = async (storage) => {
 
 const selectPriceRange = async (range) => {
   setSelectPrice(range.min, range.max)
+  showFilterDropdown.value = false
   resetCurrentPage()
   await applyFilter(true)
 }
@@ -198,6 +197,7 @@ const applyCustomPrice = async () => {
     customMin.value !== null ? customMin.value : null,
     customMax.value !== null ? customMax.value : null
   )
+  showFilterDropdown.value = false
   resetCurrentPage()
   await applyFilter(true)
 
@@ -255,14 +255,12 @@ const initializeBrands = async () => {
 
 const initializeSaleItems = async (pageInfo) => {
   try {
-    const storagesForApi = (getFilterList().storages || []).filter(
-      (s) => typeof s === 'number'
-    )
+    const storagesForApi = filterStorages.value || []
     const response = await getAllSaleItems_v2({
       filterBrands: getFilterList().brands,
-      filterStorage: storagesForApi,
-      filterPriceLower: selectedPrices.value.min,
-      filterPriceUpper: selectedPrices.value.max,
+      filterStorages: storagesForApi,
+      filterPriceLower: getFilterList().prices.min,
+      filterPriceUpper: getFilterList().prices.max,
       page: pageInfo?.page ?? 0,
       size: pageInfo?.size ?? 10,
       sortField: pageInfo?.sortField ?? null,
@@ -356,7 +354,7 @@ const updateWidth = () => {
             </ul>
           </div>
           <!-- Price Dropdown -->
-          <div class="itbms-price-filter relative flex-[2]">
+          <div class="itbms-price-filter relative flex-2">
             <input
               type="number"
               readonly
@@ -379,14 +377,14 @@ const updateWidth = () => {
               <li class="font-semibold px-2 py-1">Custom</li>
               <div class="flex gap-2 px-2 pb-2">
                 <input
-                  class="itbms-price-item-min input input-sm w-1/2 border px-2 py-1"
+                  class="itbms-price-item-min input input-sm w-20 border px-2 py-1"
                   type="number"
                   min="0"
                   placeholder="Min Price"
                   v-model.number="customMin"
                 />
                 <input
-                  class="itbms-price-item-max input input-sm w-1/2 border px-2 py-1"
+                  class="itbms-price-item-max input input-sm w-20 border px-2 py-1"
                   type="number"
                   min="0"
                   placeholder="Max Price"
@@ -425,7 +423,7 @@ const updateWidth = () => {
                 @mousedown.prevent="selectStorage(storage)"
                 class="itbms-storage-size-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
-                {{ typeof storage === 'number' ? storage + ' GB' : storage }}
+                {{ storage === '' ? 'Not specified' : storage + ' GB' }}
               </li>
             </ul>
           </div>
@@ -547,7 +545,7 @@ const updateWidth = () => {
           class="itbms-storage-size-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
           <span class="itbms-storage-size-filter">{{
-            typeof storage === 'number' ? storage + ' GB' : storage
+            storage === '' ? 'Not specified' : storage + ' GB'
           }}</span>
           <button
             class="itbms-storage-size-item-clear font-bold cursor-pointer"
@@ -561,7 +559,7 @@ const updateWidth = () => {
 
       <!-- Sort and Page Size Controls -->
       <div class="block" v-if="windowWidth < 768">
-        <div class="flex gap-3 items-center">
+        <div class="flex gap-3 items-center mt-4">
           <label>Show</label>
           <select class="itbms-page-size select" @input="handlePageSizeChange">
             <option

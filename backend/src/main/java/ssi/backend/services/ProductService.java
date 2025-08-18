@@ -48,7 +48,7 @@ public class ProductService {
     }
 
     public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
-            List<String> filterBrands, List<Integer> filterStorage,
+            List<String> filterBrands, List<Integer> filterStorages,
             Integer filterPriceLower, Integer filterPriceUpper) {
         ProductPageDTO productPage;
 
@@ -71,7 +71,7 @@ public class ProductService {
 
         Page<Product> pageResult = productRepository.findFilteredProducts(
                 (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
-                (filterStorage != null && !filterStorage.isEmpty()) ? filterStorage : null,
+                (filterStorages != null && !filterStorages.isEmpty()) ? filterStorages : null,
                 filterPriceLower,
                 filterPriceUpper,
                 pageable);

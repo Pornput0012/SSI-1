@@ -38,12 +38,12 @@ public class ProductController {
             @RequestParam(required = false) String sortField,
             @RequestParam(defaultValue = "asc") String sortDirection,
             @RequestParam(required = false) List<String> filterBrands,
-            @RequestParam(required = false) List<Integer> filterStorage,
+            @RequestParam(required = false) List<Integer> filterStorages,
             @RequestParam(required = false) Integer filterPriceLower,
             @RequestParam(required = false) Integer filterPriceUpper) {
 
         ProductPageDTO productPageDTO = productService.getAllProductsV2(page, size, sortField, sortDirection,
-                filterBrands, filterStorage, filterPriceLower, filterPriceUpper);
+                filterBrands, filterStorages, filterPriceLower, filterPriceUpper);
         return ResponseEntity.ok(productPageDTO);
     }
 
