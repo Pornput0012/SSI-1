@@ -47,9 +47,9 @@ public class ProductService {
                 ProductItemDTO.class, modelMapper);
     }
 
-    public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
-            List<String> filterBrands, List<Integer> filterStorages,
-            Integer filterPriceLower, Integer filterPriceUpper) {
+   public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
+                                           List<String> filterBrands, List<Integer> filterStorages,
+                                           Integer filterPriceLower, Integer filterPriceUpper) {
         ProductPageDTO productPage;
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
@@ -68,6 +68,7 @@ public class ProductService {
         }
 
         Pageable pageable = PageRequest.of(page, size, sort);
+        System.out.println((filterStorages != null && !filterStorages.isEmpty()) ? filterStorages : null);
 
         Page<Product> pageResult = productRepository.findFilteredProducts(
                 (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
@@ -173,7 +174,7 @@ public class ProductService {
 
     @Transactional
     public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product, String removeImage,
-            String orderImages, List<MultipartFile> newImages) {
+                                                   String orderImages, List<MultipartFile> newImages) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
         Brand existingBrand = brandRepository.findById(product.getBrandId())
@@ -264,7 +265,7 @@ public class ProductService {
 
     @Transactional
     public ProductItemRequestDtoV2 updateProductV2(Integer id, String removeImage, String orderImages,
-            List<MultipartFile> newImages) {
+                                                   List<MultipartFile> newImages) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
 

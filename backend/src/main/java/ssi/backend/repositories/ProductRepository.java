@@ -14,7 +14,10 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT p FROM Product p JOIN p.brand brand " +
             "WHERE " +
             "(:brandNames IS NULL OR brand.name IN :brandNames) " +
-            "AND (:storages IS NULL OR p.storageGb IN :storages) " +
+            "AND ( " +
+            "      (:storages IS NULL AND p.storageGb IS NULL) " +
+            "   OR (:storages IS NOT NULL AND p.storageGb IN :storages) " +
+            ") " +
             "AND (:priceLower IS NULL OR p.price >= :priceLower) " +
             "AND (:priceUpper IS NULL OR p.price <= :priceUpper)")
     Page<Product> findFilteredProducts(
