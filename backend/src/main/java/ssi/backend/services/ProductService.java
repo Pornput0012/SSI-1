@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,6 +21,7 @@ import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.ProductRepository;
 import ssi.backend.utils.ListMapper;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,8 +50,8 @@ public class ProductService {
     }
 
     public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
-                                           List<String> filterBrands, List<Integer> filterStorages,
-                                           Integer filterPriceLower, Integer filterPriceUpper) {
+            List<String> filterBrands, List<Integer> filterStorages,
+            Integer filterPriceLower, Integer filterPriceUpper) {
         ProductPageDTO productPage;
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
@@ -68,36 +70,89 @@ public class ProductService {
         }
 
         Pageable pageable = PageRequest.of(page, size, sort);
-        System.out.println((filterStorages != null && !filterStorages.isEmpty()) ? filterStorages : null);
 
-        List<Integer> storageParam = null;
-        boolean hasZero = filterStorages != null && filterStorages.stream().anyMatch(ele -> ele == 0);
-        if (filterStorages != null && !filterStorages.isEmpty() && hasZero) {
-            storageParam = null;
-        } else if (filterStorages == null) {
-            storageParam = new java.util.ArrayList<>();
-            storageParam.add(32);
-            storageParam.add(64);
-            storageParam.add(128);
-            storageParam.add(256);
-            storageParam.add(512);
-            storageParam.add(1024);
+        // Logic สำหรับกรณี filterStorages
+        if (filterStorages != null && !filterStorages.isEmpty()) {
+            boolean hasZero = filterStorages.stream().anyMatch(ele -> ele == 0);
+            List<Integer> nonZeroStorages = filterStorages.stream().filter(ele -> ele != 0).toList();
+
+            if (hasZero && !nonZeroStorages.isEmpty()) {
+                // กรณีมี 0 และเลขอื่น
+                // Query รอบแรกด้วย nonZeroStorages
+                Page<Product> pageResult1 = productRepository.findFilteredProducts(
+                        (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
+                        nonZeroStorages,
+                        filterPriceLower,
+                        filterPriceUpper,
+                        pageable);
+                // Query รอบสองด้วย [0]
+                Page<Product> pageResult2 = productRepository.findFilteredProducts(
+                        (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
+                        null,
+                        filterPriceLower,
+                        filterPriceUpper,
+                        pageable);
+                // รวมผลลัพธ์
+                List<Product> combinedList = new ArrayList<>();
+                combinedList.addAll(pageResult1.getContent());
+                combinedList.addAll(pageResult2.getContent());
+
+                Page<Product> combinedPage = new PageImpl<>(combinedList, pageable,
+                        combinedList.size());
+                productPage = modelMapper.map(combinedPage, ProductPageDTO.class);
+                productPage
+                        .setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+                productPage.setSort(
+                        (sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
+                return productPage;
+            } else if (hasZero) {
+                // มีแต่ 0 อย่างเดียว
+                Page<Product> pageResult = productRepository.findFilteredProducts(
+                        (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
+                        null,
+                        filterPriceLower,
+                        filterPriceUpper,
+                        pageable);
+                productPage = modelMapper.map(pageResult, ProductPageDTO.class);
+                productPage
+                        .setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+                productPage.setSort(
+                        (sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
+                return productPage;
+            } else {
+                Page<Product> pageResult = productRepository.findFilteredProducts(
+                        (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
+                        filterStorages,
+                        filterPriceLower,
+                        filterPriceUpper,
+                        pageable);
+                productPage = modelMapper.map(pageResult, ProductPageDTO.class);
+                productPage
+                        .setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+                productPage.setSort(
+                        (sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
+                return productPage;
+            }
         } else {
-            storageParam = filterStorages;
+            List<Integer> defaultStorages = new ArrayList<>();
+            defaultStorages.add(32);
+            defaultStorages.add(64);
+            defaultStorages.add(128);
+            defaultStorages.add(256);
+            defaultStorages.add(512);
+            defaultStorages.add(1024);
+            Page<Product> pageResult = productRepository.findFilteredProducts(
+                    (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
+                    defaultStorages,
+                    filterPriceLower,
+                    filterPriceUpper,
+                    pageable);
+            productPage = modelMapper.map(pageResult, ProductPageDTO.class);
+            productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+            productPage
+                    .setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
+            return productPage;
         }
-
-        Page<Product> pageResult = productRepository.findFilteredProducts(
-                (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
-                storageParam,
-                filterPriceLower,
-                filterPriceUpper,
-                pageable);
-
-        productPage = modelMapper.map(pageResult, ProductPageDTO.class);
-        productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
-
-        productPage.setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
-        return productPage;
     }
 
     public ProductDetailDTO getProductById(Integer id) {
@@ -190,7 +245,7 @@ public class ProductService {
 
     @Transactional
     public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product, String removeImage,
-                                                   String orderImages, List<MultipartFile> newImages) {
+            String orderImages, List<MultipartFile> newImages) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
         Brand existingBrand = brandRepository.findById(product.getBrandId())
@@ -281,7 +336,7 @@ public class ProductService {
 
     @Transactional
     public ProductItemRequestDtoV2 updateProductV2(Integer id, String removeImage, String orderImages,
-                                                   List<MultipartFile> newImages) {
+            List<MultipartFile> newImages) {
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
 
