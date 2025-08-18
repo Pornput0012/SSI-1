@@ -91,7 +91,7 @@ public class ProductController {
     @PostMapping("/v2/sale-items")
     public ResponseEntity<ProductItemResponseDtoV2> createProduct(
             @Valid @ModelAttribute ProductItemRequestDtoV2 product,
-            @RequestParam List<MultipartFile> images) {
+            @RequestParam(required = false) List<MultipartFile> images) {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product, images));
     }

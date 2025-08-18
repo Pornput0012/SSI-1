@@ -127,7 +127,7 @@ public class ProductService {
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
         saleItemImageService.findAllByProduct(id).forEach(saleItemImage -> {
             saleItemImageService.deleteImage(saleItemImage.getId());
-            fileService.removeFile(saleItemImage.getFileName());
+            fileService.removeFile(product,saleItemImage.getFileName());
         });
 
         productRepository.delete(product);
@@ -149,7 +149,7 @@ public class ProductService {
     @Transactional
     public ProductItemResponseDtoV2 createProduct(ProductItemRequestDtoV2 product, List<MultipartFile> images) {
 
-        if (images.size() > 4) {
+        if (images != null && images.size() > 4) {
             throw new BadRequestException("Images Size Exceeded");
         }
         Brand existingBrand = brandRepository.findById(product.getBrandId())
@@ -161,7 +161,9 @@ public class ProductService {
         creatingProduct.setId(null);
 
         Product prodRes = productRepository.save(creatingProduct);
-        fileService.saveFile(images, prodRes);
+        if (images != null && !images.isEmpty()) {
+         fileService.saveFile(images, prodRes);
+        }
 
         productRepository.flush();
 
