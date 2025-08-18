@@ -7,6 +7,7 @@ import {
   getSaleItemById_v2,
   updateSaleItemById,
   updateSaleItemById_v2,
+  updateSaleItemImageById,
 } from "@/services/SaleItemService";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
@@ -56,6 +57,16 @@ const editSaleItem = async (formData, images) => {
       const response = await updateSaleItemById_v2(
         selectSaleItem.value.id,
         formData,
+        images
+      );
+      if (!response.error) {
+        updateSuccess();
+      } else {
+        throw new Error(response.error);
+      }
+    }else{
+      const response = await updateSaleItemImageById(
+        selectSaleItem.value.id,
         images
       );
       if (!response.error) {

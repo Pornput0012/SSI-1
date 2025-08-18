@@ -323,7 +323,7 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
   }
 };
 
-const updateSaleItemImageById = async (id, saleItem, images) => {
+const updateSaleItemImageById = async (id, images) => {
   try {
     const formData = new FormData();
 
@@ -382,4 +382,5 @@ export {
   getSaleItemById_v2,
   getImageByFileName,
   updateSaleItemById_v2,
+  updateSaleItemImageById,
 };

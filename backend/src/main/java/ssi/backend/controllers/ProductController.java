@@ -67,7 +67,7 @@ public class ProductController {
     public ResponseEntity<ProductItemRequestDtoV2> updateProductV2(
             @PathVariable Integer id,
             @Valid @ModelAttribute ProductItemRequestDtoV2 product,
-            @RequestParam List<MultipartFile> newImages) {
+            @RequestParam(required = false) List<MultipartFile> newImages) {
         return ResponseEntity.ok(productService.updateProductV2(id, product, product.getRemoveFileNames(), product.getOrderImages(), newImages));
     }
 
@@ -75,7 +75,7 @@ public class ProductController {
     public ResponseEntity<ProductItemRequestDtoV2> updateProductImages(
             @PathVariable Integer id,
             @Valid @ModelAttribute ProductRequestImageDTO productImageInfo,
-            @RequestParam List<MultipartFile> newImages) {
+            @RequestParam(required = false) List<MultipartFile> newImages) {
         return ResponseEntity.ok(productService.updateProductV2(id, productImageInfo, productImageInfo.getRemoveFileNames(), productImageInfo.getOrderImages(), newImages));
     }
 
