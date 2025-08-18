@@ -11,6 +11,13 @@ import java.util.List;
 
 @Service
 public class SaleItemImageService {
+    public void updateFileName(Integer imageId, String newFileName) {
+        SaleItemImage image = saleItemImageRepository.findById(imageId).orElse(null);
+        if (image != null) {
+            image.setFileName(newFileName);
+            saleItemImageRepository.save(image);
+        }
+    }
 
     @Autowired
     private SaleItemImageRepository saleItemImageRepository;
@@ -49,5 +56,9 @@ public class SaleItemImageService {
             image.setImageViewOrder(newOrder);
             saleItemImageRepository.save(image);
         }
+    }
+
+    public SaleItemImage saveImage(SaleItemImage image) {
+        return saleItemImageRepository.save(image);
     }
 }

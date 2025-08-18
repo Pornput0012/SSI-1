@@ -76,7 +76,7 @@ public class ProductController {
             @PathVariable Integer id,
             @Valid @ModelAttribute ProductRequestImageDTO productImageInfo,
             @RequestParam(required = false) List<MultipartFile> newImages) {
-        return ResponseEntity.ok(productService.updateProductV2(id, productImageInfo, productImageInfo.getRemoveFileNames(), productImageInfo.getOrderImages(), newImages));
+        return ResponseEntity.ok(productService.updateProductV2(id, productImageInfo.getRemoveFileNames(), productImageInfo.getOrderImages(), newImages));
     }
 
 

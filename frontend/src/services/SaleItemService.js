@@ -282,7 +282,9 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
 
     if (images) {
       images.newImages.forEach((img) => {
-        const reordered = images.reorderedImages.find(r => r.fileName === img.fileName);
+        const reordered = images.reorderedImages.find(
+          (r) => r.fileName === img.fileName
+        );
         const order = reordered ? reordered.newOrder : 1;
         const splitFileName = img.fileName.split(".");
         const ext = splitFileName.pop();
@@ -298,12 +300,14 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
 
       let orderImage = "";
       images.reorderedImages.forEach((ele, i) => {
-        orderImage += `${i != 0 && "|"}${ele.fileName},${ele.newOrder}`;
+        orderImage += `${i != 0 ? "|" : ""}${ele.fileName},${ele.newOrder}`;
       });
       console.log(orderImage);
       
+      formData.append("orderImages", orderImage);
     }
 
+    
     const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}`, {
       method: "PUT",
       body: formData,
@@ -347,9 +351,9 @@ const updateSaleItemImageById = async (id, images) => {
 
       let orderImage = "";
       images.reorderedImages.forEach((ele, i) => {
-        orderImage += `${i != 0 && "|"}${ele.fileName},${ele.newOrder}`;
+        orderImage += `${i != 0 ? "|" : ""}${ele.fileName},${ele.newOrder}`;
       });
-      console.log(orderImage);
+      formData.append("orderImages", orderImage);
     }
 
     const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}/images`, {

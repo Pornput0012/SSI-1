@@ -15,6 +15,7 @@ import ssi.backend.entities.Product;
 import ssi.backend.entities.SaleItemImage;
 import ssi.backend.repositories.SaleItemImageRepository;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
@@ -26,6 +27,19 @@ import java.util.List;
 
 @Service
 public class FileService {
+    public void renameFile(Product product, String oldFileName, String newFileName) {
+        try {
+            Path oldFilePath = this.fileStorageLocation.resolve(oldFileName).normalize();
+            Path newFilePath = this.fileStorageLocation.resolve(newFileName).normalize();
+            if (Files.exists(oldFilePath)) {
+                Files.move(oldFilePath, newFilePath, StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                throw new RuntimeException("File not found " + oldFileName);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("File operation (RENAME) error: " + oldFileName + " to " + newFileName, ex);
+        }
+    }
 
     private final Path fileStorageLocation;
     @Autowired
@@ -147,5 +161,10 @@ public class FileService {
         } catch (IOException ex) {
             throw new RuntimeException("File operation error: " + fileName, ex);
         }
+    }
+    public boolean fileExists(Product product, String fileName) {
+        // สมมติว่าไฟล์อยู่ในโฟลเดอร์ picture/{product.id}/
+        File file = new java.io.File("picture/" + product.getId() + "/" + fileName);
+        return file.exists();
     }
 }

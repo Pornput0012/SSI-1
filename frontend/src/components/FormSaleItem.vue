@@ -214,9 +214,9 @@ const handleSubmit = () => {
       // รูปใหม่ - แยกไปยัง newImages (ไม่มีลำดับ) และ reorderedImages (มีลำดับ)
       newImages.push({
         fileName: img.imageName,
-        file: img.file
+        file: img.file,
       });
-      
+
       reorderedImages.push({
         fileName: img.imageName,
         newOrder: currentOrder,
@@ -228,9 +228,9 @@ const handleSubmit = () => {
 
   const imageData = {
     // รูปใหม่ที่อัปโหลด (ไม่มีลำดับ)
-    newImages: newImages, 
+    newImages: newImages,
     // fileName ของรูปที่ถูกลบ
-    deletedImageFileNames: deletedImageFileNames.value, 
+    deletedImageFileNames: deletedImageFileNames.value,
     // รูปทั้งเดิมและใหม่ พร้อมลำดับ
     reorderedImages: reorderedImages,
   };
@@ -252,7 +252,8 @@ const handleSubmit = () => {
       }
     }
     if (!hasFormChanges) {
-      const normalize = (val) => val === null || val === undefined ? "" : val.trim?.() ?? val;
+      const normalize = (val) =>
+        val === null || val === undefined ? "" : val.trim?.() ?? val;
       const currentColor = normalize(formData.value.color);
       const originalColor = normalize(props.saleItemDetail?.color);
       if (currentColor !== originalColor) {
@@ -409,7 +410,6 @@ watch(
   }
 );
 
-// ฟังก์ชันตรวจสอบการเปลี่ยนแปลงของรูปภาพ (แก้ไขแล้ว)
 const checkImageChanges = () => {
   // Skip การเช็คถ้ายังโหลดข้อมูลเริ่มต้นอยู่
   if (isInitialLoading.value) {
@@ -420,8 +420,7 @@ const checkImageChanges = () => {
   const activeImages = images.value.filter((img) => !img.isDeleted);
 
   // ตรวจสอบว่ามีรูปใหม่ที่ยังไม่ถูกลบหรือไม่
-  const hasNewImages = activeImages.some((img) => !img.isOriginal);
-
+  const hasNewImages = activeImages.some((img) => !img.isOriginal);  
   // ตรวจสอบว่ามีรูปเดิมถูกลบหรือไม่
   const hasDeletedOriginalImages = deletedImageFileNames.value.length > 0;
 
@@ -429,34 +428,36 @@ const checkImageChanges = () => {
   const originalImagesInCurrentOrder = activeImages.filter(
     (img) => img.isOriginal
   );
+  console.log(originalImagesInCurrentOrder);
+  
 
   // สร้าง array ของ ID รูปเดิมตามลำดับปัจจุบัน
-  const currentOriginalIds = originalImagesInCurrentOrder.map(img => img.id);
-  
+  const currentOriginalFilenames = originalImagesInCurrentOrder.map((img) => img.imageName);
+
   // สร้าง array ของ ID รูปเดิมตามลำดับเดิม (ที่ไม่ถูกลบ)
   const originalOrderIds = originalImages.value
     .sort((a, b) => a.imageViewOrder - b.imageViewOrder)
-    .filter(img => !deletedImageFileNames.value.includes(img.imageName))
-    .map(img => img.id);
+    .filter((img) => !deletedImageFileNames.value.includes(img.imageName))
+    .map((img) => img.imageName);
 
   // เปรียบเทียบลำดับ ID
-  const hasReorderedImages = !arraysEqual(currentOriginalIds, originalOrderIds);
-
+  const hasReorderedImages = !arraysEqual(currentOriginalFilenames, originalOrderIds);
+  console.log(currentOriginalFilenames);
+  console.log(originalOrderIds);
+  
   // ตรวจสอบจำนวนรูปเดิมที่ยังเหลือ
-  const expectedOriginalCount = originalImages.value.length - deletedImageFileNames.value.length;
+  const expectedOriginalCount =
+    originalImages.value.length - deletedImageFileNames.value.length;
   const currentOriginalImagesCount = originalImagesInCurrentOrder.length;
-  const hasOriginalImageCountChanged = expectedOriginalCount !== currentOriginalImagesCount;
+  const hasOriginalImageCountChanged =
+    expectedOriginalCount !== currentOriginalImagesCount;
 
-  console.log('Image change check:', {
+  console.table(
     hasNewImages,
-    hasDeletedOriginalImages, 
+    hasDeletedOriginalImages,
     hasReorderedImages,
-    hasOriginalImageCountChanged,
-    currentOriginalIds,
-    originalOrderIds,
-    expectedOriginalCount,
-    currentOriginalImagesCount
-  });
+    hasOriginalImageCountChanged
+  );
 
   return (
     hasNewImages ||
@@ -537,11 +538,11 @@ watchEffect(() => {
   // มีการเปลี่ยนแปลงหรือไม่
   const hasAnyChanges = hasFormChanges || hasImageChanges;
 
-  console.log('Form validation check:', {
+  console.log("Form validation check:", {
     hasFormChanges,
     hasImageChanges,
     hasAnyChanges,
-    isSave: !hasAnyChanges
+    isSave: !hasAnyChanges,
   });
 
   isSave.value = !hasAnyChanges;
@@ -554,14 +555,14 @@ const uploadImage = (event) => {
   const files = Array.from(event.target.files);
 
   // นับรูปที่ยังไม่ถูกลบ
-  const activeImagesCount = images.value.filter(img => !img.isDeleted).length;
+  const activeImagesCount = images.value.filter((img) => !img.isDeleted).length;
   const availableSlots = 4 - activeImagesCount;
-
 
   // ถ้าไม่มีช่องว่าง
   if (availableSlots === 0) {
     errorTitle.value = "No Available Slots";
-    errorMessage.value = "All 4 image slots are occupied. Please remove some images first.";
+    errorMessage.value =
+      "All 4 image slots are occupied. Please remove some images first.";
     showModal.value = true;
     event.target.value = "";
     return;
@@ -570,10 +571,12 @@ const uploadImage = (event) => {
   // ถ้าจำนวนไฟล์เกินช่องว่างที่มี
   let filesToProcess = files;
   let warningMessage = "";
-  
+
   if (files.length > availableSlots) {
     filesToProcess = files.slice(0, availableSlots);
-    warningMessage = `Only ${availableSlots} images can be uploaded. ${files.length - availableSlots} files were skipped.`;
+    warningMessage = `Only ${availableSlots} images can be uploaded. ${
+      files.length - availableSlots
+    } files were skipped.`;
   }
 
   const checkSizeAndUploadFile = (file, i) => {
@@ -606,9 +609,11 @@ const uploadImage = (event) => {
           images.value[insertIndex] = image;
         }
 
-
         // แสดงรูปแรกที่อัปโหลดถ้าไม่มีรูปที่แสดงอยู่
-        if (showImageIndex.value === -1 || images.value[showImageIndex.value]?.isDeleted) {
+        if (
+          showImageIndex.value === -1 ||
+          images.value[showImageIndex.value]?.isDeleted
+        ) {
           showImageIndex.value = insertIndex;
           showImage.value = e.target.result;
         }
@@ -821,7 +826,7 @@ const removeImage = (index) => {
             </div>
           </div>
 
-                    <!-- แสดงช่องว่างสำหรับรูปที่ยังไม่มี (ถ้าไม่ครบ 4 รูป) -->
+          <!-- แสดงช่องว่างสำหรับรูปที่ยังไม่มี (ถ้าไม่ครบ 4 รูป) -->
           <!-- ไม่ต้องกดเพื่อ upload - เป็นแค่ preview เท่านั้น -->
           <div
             v-for="i in Math.max(0, 4 - images.length)"
@@ -847,7 +852,9 @@ const removeImage = (index) => {
             </div>
 
             <!-- แสดงหมายเลขลำดับ -->
-            <span class="text-xs text-gray-400 mt-1">{{ images.length + i }}</span>
+            <span class="text-xs text-gray-400 mt-1">{{
+              images.length + i
+            }}</span>
             <!-- แสดงสถานะ -->
 
             <div class="text-xs mt-1">
@@ -866,10 +873,10 @@ const removeImage = (index) => {
             Upload Images
           </button>
           <p class="text-sm text-gray-500">
-            {{ images.filter(img => !img.isDeleted).length }}/4 images uploaded
+            {{ images.filter((img) => !img.isDeleted).length }}/4 images
+            uploaded
           </p>
         </div>
-
 
         <!-- Hidden file input -->
         <input
@@ -883,31 +890,47 @@ const removeImage = (index) => {
         />
 
         <!-- แสดงข้อมูลสถิติการลบรูป (เฉพาะ edit mode) -->
-        <div v-if="props.mode === 'edit' && deletedImageFileNames.length > 0" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div
+          v-if="props.mode === 'edit' && deletedImageFileNames.length > 0"
+          class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg"
+        >
           <div class="text-sm text-red-700">
-            <span class="font-semibold">Deleted Images ({{ deletedImageFileNames.length }}):</span>
+            <span class="font-semibold"
+              >Deleted Images ({{ deletedImageFileNames.length }}):</span
+            >
             <div class="mt-1">
-              <span v-for="(fileName, index) in deletedImageFileNames" :key="fileName" class="inline-block">
-                {{ fileName }}<span v-if="index < deletedImageFileNames.length - 1">, </span>
+              <span
+                v-for="(fileName, index) in deletedImageFileNames"
+                :key="fileName"
+                class="inline-block"
+              >
+                {{ fileName
+                }}<span v-if="index < deletedImageFileNames.length - 1"
+                  >,
+                </span>
               </span>
             </div>
           </div>
         </div>
 
         <!-- แสดงรายชื่อไฟล์และปุ่มจัดการ -->
-        <div class="flex flex-col gap-2 items-center justify-center w-full max-w-md">
+        <div
+          class="flex flex-col gap-2 items-center justify-center w-full max-w-md"
+        >
           <!-- Header สำหรับรายการรูป -->
           <div v-if="images.length > 0" class="w-full">
             <h3 class="text-lg font-semibold text-gray-700 mb-3 text-center">
-              ({{ images.filter(img => !img.isDeleted).length }}/4)
-              <span v-if="props.mode === 'edit' && deletedImageFileNames.length > 0" class="text-gray-500 text-sm">
+              ({{ images.filter((img) => !img.isDeleted).length }}/4)
+              <span
+                v-if="props.mode === 'edit' && deletedImageFileNames.length > 0"
+                class="text-gray-500 text-sm"
+              >
                 ({{ deletedImageFileNames.length }} deleted)
               </span>
             </h3>
           </div>
 
           <!-- รายการรูปภาพ -->
-
 
           <div
             v-for="(image, i) in images"
@@ -1059,9 +1082,15 @@ const removeImage = (index) => {
                 >
                   {{ images.length + emptySlot }}
                 </div>
-                <div class="flex-1 border-2 border-dashed border-gray-300 text-gray-400 text-xs py-2 px-4 rounded bg-gray-50 max-w-sm">
-                  <p class="truncate max-w-[200px]">Empty slot - Click "Upload Images" to add</p>
-                  <span class="text-gray-400 text-xs whitespace-nowrap">Available position</span>
+                <div
+                  class="flex-1 border-2 border-dashed border-gray-300 text-gray-400 text-xs py-2 px-4 rounded bg-gray-50 max-w-sm"
+                >
+                  <p class="truncate max-w-[200px]">
+                    Empty slot - Click "Upload Images" to add
+                  </p>
+                  <span class="text-gray-400 text-xs whitespace-nowrap"
+                    >Available position</span
+                  >
                 </div>
               </div>
             </div>
@@ -1291,7 +1320,6 @@ const removeImage = (index) => {
               id="quantity"
               class="itbms-quantity input"
               min="1"
-              
               :value="formData.quantity === -1 ? '' : formData.quantity"
               @input="
                 formData.quantity =
