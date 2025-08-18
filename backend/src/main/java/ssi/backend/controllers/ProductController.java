@@ -71,6 +71,15 @@ public class ProductController {
         return ResponseEntity.ok(productService.updateProductV2(id, product, product.getRemoveFileNames(), product.getOrderImages(), newImages));
     }
 
+    @PutMapping("/v2/sale-items/{id}/images")
+    public ResponseEntity<ProductItemRequestDtoV2> updateProductImages(
+            @PathVariable Integer id,
+            @Valid @ModelAttribute ProductRequestImageDTO productImageInfo,
+            @RequestParam List<MultipartFile> newImages) {
+        return ResponseEntity.ok(productService.updateProductV2(id, productImageInfo, productImageInfo.getRemoveFileNames(), productImageInfo.getOrderImages(), newImages));
+    }
+
+
     @DeleteMapping("/v1/sale-items/{id}")
     public ResponseEntity<Void> deleteProductById(@PathVariable Integer id) {
         productService.deleteProductById(id);

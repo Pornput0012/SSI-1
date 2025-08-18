@@ -103,6 +103,9 @@ const deletedImageFileNames = ref([]); // เก็บ fileName ของรู�
 const showImage = ref(noPhoto);
 const showImageIndex = ref(-1);
 
+const isInitialLoading = ref(true);
+
+// แก้ไข onMounted
 onMounted(async () => {
   try {
     const response = await getAllBrands();
@@ -114,6 +117,8 @@ onMounted(async () => {
       props.saleItemDetail.saleItemImages?.sort(
         (a, b) => a.imageViewOrder - b.imageViewOrder
       );
+
+      const loadedImages = [];
 
       for (const ele of props.saleItemDetail?.saleItemImages) {
         try {
@@ -127,28 +132,33 @@ onMounted(async () => {
           }
 
           const imageData = {
-            id: ele.id, // เพิ่ม ID สำหรับ tracking
+            id: ele.id,
             imageName: ele.fileName,
             src: response,
-            isOriginal: true, // มาร์คว่าเป็นรูปเดิม
+            isOriginal: true,
             imageViewOrder: ele.imageViewOrder,
           };
 
-          images.value.push(imageData);
-          originalImages.value.push({ ...imageData }); // เก็บสำเนาข้อมูลเดิม
-
-          if (images.value?.length == 1) {
-            showImage.value = response;
-            showImageIndex.value = 0;
-          }
+          loadedImages.push(imageData);
         } catch (error) {
           console.error(`Failed to load image ${ele.fileName}:`, error.message);
         }
       }
-      // รีเซ็ต hasImageChanges หลังจากโหลดรูปเดิมเสร็จ
-      hasImageChanges.value = false;
+
+      // เซ็ตข้อมูลทีเดียว
+      images.value = loadedImages;
+      originalImages.value = [...loadedImages];
+
+      if (loadedImages.length > 0) {
+        showImage.value = loadedImages[0].src;
+        showImageIndex.value = 0;
+      }
     }
+
+    // เสร็จสิ้นการโหลดข้อมูลเริ่มต้น
+    isInitialLoading.value = false;
   } catch (e) {
+    isInitialLoading.value = false;
     errorTitle.value = "Something Wrong!";
     errorMessage.value = e.message;
     showModal.value = true;
@@ -185,15 +195,11 @@ const handleSubmit = () => {
 
   // กรองเฉพาะรูปที่ยังไม่ถูกลบและจัดเรียงลำดับใหม่ให้ต่อเนื่องกัน
   const activeImages = images.value.filter((img) => !img.isDeleted);
-
   const reorderedImages = [];
   const newImages = [];
   let currentOrder = 1;
-
-  // เรียงลำดับรูปที่ยังเหลืออยู่ให้ต่อเนื่องกัน
   activeImages.forEach((img) => {
     if (img.isOriginal) {
-      // รูปเดิมที่ยังไม่ถูกลบ - ให้ลำดับใหม่
       reorderedImages.push({
         id: img.id,
         fileName: img.imageName,
@@ -201,12 +207,10 @@ const handleSubmit = () => {
         originalOrder: img.imageViewOrder,
       });
     } else {
-      // รูปใหม่ - แยกไปยัง newImages (ไม่มีลำดับ) และ reorderedImages (มีลำดับ)
       newImages.push({
         fileName: img.imageName,
         file: img.file
       });
-      
       reorderedImages.push({
         fileName: img.imageName,
         newOrder: currentOrder,
@@ -215,17 +219,44 @@ const handleSubmit = () => {
     }
     currentOrder++;
   });
-
   const imageData = {
-    // รูปใหม่ที่อัปโหลด (ไม่มีลำดับ)
-    newImages: newImages, 
-    // fileName ของรูปที่ถูกลบ
-    deletedImageFileNames: deletedImageFileNames.value, 
-    // รูปทั้งเดิมและใหม่ พร้อมลำดับ
+    newImages: newImages,
+    deletedImageFileNames: deletedImageFileNames.value,
     reorderedImages: reorderedImages,
   };
 
-  emit("onSubmit", formData.value, imageData);
+  // เช็คว่ามีการแก้ไขเฉพาะรูปภาพ (ไม่มีการแก้ไขข้อมูลฟอร์ม)
+  let hasFormChanges = false;
+  const currentBrandName = formData.value.brand?.name || formData.value.brand;
+  const originalBrandName = props.saleItemDetail?.brandName;
+  if (currentBrandName !== originalBrandName) {
+    hasFormChanges = true;
+  }
+  if (!hasFormChanges) {
+    for (const field of fieldCheckOldData) {
+      const currentValue = formData.value[field];
+      const originalValue = props.saleItemDetail?.[field];
+      if (currentValue !== originalValue) {
+        hasFormChanges = true;
+        break;
+      }
+    }
+    if (!hasFormChanges) {
+      const currentColor = normalize(formData.value.color);
+      const originalColor = normalize(props.saleItemDetail?.color);
+      if (currentColor !== originalColor) {
+        hasFormChanges = true;
+      }
+    }
+  }
+
+  if (!hasFormChanges && (newImages.length > 0 || deletedImageFileNames.value.length > 0 || reorderedImages.length > 0)) {
+    // มีการแก้ไขเฉพาะรูปภาพ
+    emit("onUpdateImageOnly", props.saleItemDetail?.id, imageData);
+  } else {
+    // มีการแก้ไขข้อมูลฟอร์มหรือทั้งสองอย่าง
+    emit("onSubmit", formData.value, imageData);
+  }
 };
 
 const allValid = computed(() => {
@@ -373,53 +404,76 @@ watch(
   }
 );
 
-// ฟังก์ชันตรวจสอบการเปลี่ยนแปลงของรูปภาพ
+// ฟังก์ชันตรวจสอบการเปลี่ยนแปลงของรูปภาพ (แก้ไขแล้ว)
 const checkImageChanges = () => {
+  // Skip การเช็คถ้ายังโหลดข้อมูลเริ่มต้นอยู่
+  if (isInitialLoading.value) {
+    return false;
+  }
+
   // กรองเฉพาะรูปที่ยังไม่ถูกลบ
   const activeImages = images.value.filter((img) => !img.isDeleted);
 
-  // ตรวจสอบว่ามีรูปใหม่หรือไม่
+  // ตรวจสอบว่ามีรูปใหม่ที่ยังไม่ถูกลบหรือไม่
   const hasNewImages = activeImages.some((img) => !img.isOriginal);
 
-  // ตรวจสอบว่ามีรูปถูกลบหรือไม่
-  const hasDeletedImages = deletedImageFileNames.value.length > 0;
+  // ตรวจสอบว่ามีรูปเดิมถูกลบหรือไม่
+  const hasDeletedOriginalImages = deletedImageFileNames.value.length > 0;
 
-  // ตรวจสอบการเปลี่ยนลำดับรูปเดิม
+  // ตรวจสอบการเปลี่ยนลำดับรูปเดิม - เปรียบเทียบเฉพาะรูปเดิมที่ยังเหลือ
   const originalImagesInCurrentOrder = activeImages.filter(
     (img) => img.isOriginal
   );
 
-  // เช็คการเปลี่ยนลำดับ - ต้องเปรียบเทียบกับลำดับเดิม
-  const hasReorderedImages = originalImagesInCurrentOrder.some(
-    (img, currentIndex) => {
-      const originalImg = originalImages.value.find(
-        (orig) => orig.id === img.id
-      );
-      if (!originalImg) return false;
+  // สร้าง array ของ ID รูปเดิมตามลำดับปัจจุบัน
+  const currentOriginalIds = originalImagesInCurrentOrder.map(img => img.id);
+  
+  // สร้าง array ของ ID รูปเดิมตามลำดับเดิม (ที่ไม่ถูกลบ)
+  const originalOrderIds = originalImages.value
+    .sort((a, b) => a.imageViewOrder - b.imageViewOrder)
+    .filter(img => !deletedImageFileNames.value.includes(img.imageName))
+    .map(img => img.id);
 
-      // หาตำแหน่งเดิมของรูปนี้ในรายการเดิม (เรียงตาม imageViewOrder)
-      const originalIndex = originalImages.value
-        .sort((a, b) => a.imageViewOrder - b.imageViewOrder)
-        .findIndex((orig) => orig.id === img.id);
+  // เปรียบเทียบลำดับ ID
+  const hasReorderedImages = !arraysEqual(currentOriginalIds, originalOrderIds);
 
-      return originalIndex !== currentIndex;
-    }
-  );
+  // ตรวจสอบจำนวนรูปเดิมที่ยังเหลือ
+  const expectedOriginalCount = originalImages.value.length - deletedImageFileNames.value.length;
+  const currentOriginalImagesCount = originalImagesInCurrentOrder.length;
+  const hasOriginalImageCountChanged = expectedOriginalCount !== currentOriginalImagesCount;
 
-  // ตรวจสอบจำนวนรูปเปลี่ยนหรือไม่ (เฉพาะรูปที่ยังใช้งานอยู่)
-  const totalOriginalImages = originalImages.value.length;
-  const totalCurrentActiveImages = activeImages.length;
-  const hasImageCountChanged = totalOriginalImages !== totalCurrentActiveImages;
+  console.log('Image change check:', {
+    hasNewImages,
+    hasDeletedOriginalImages, 
+    hasReorderedImages,
+    hasOriginalImageCountChanged,
+    currentOriginalIds,
+    originalOrderIds,
+    expectedOriginalCount,
+    currentOriginalImagesCount
+  });
 
   return (
     hasNewImages ||
-    hasDeletedImages ||
+    hasDeletedOriginalImages ||
     hasReorderedImages ||
-    hasImageCountChanged
+    hasOriginalImageCountChanged
   );
 };
 
+// Helper function เพื่อเปรียบเทียบ arrays
+const arraysEqual = (arr1, arr2) => {
+  if (arr1.length !== arr2.length) return false;
+  return arr1.every((val, index) => val === arr2[index]);
+};
+
 watchEffect(() => {
+  // Skip การเช็คระหว่างโหลดข้อมูลเริ่มต้น
+  if (isInitialLoading.value) {
+    isSave.value = true; // disabled ระหว่างโหลด
+    return;
+  }
+
   // ตรวจสอบ validation ก่อน
   if (!allValid.value) {
     isSave.value = true;
@@ -447,12 +501,6 @@ watchEffect(() => {
 
   if (currentBrandName !== originalBrandName) {
     hasFormChanges = true;
-    console.log(
-      "Form change detected: brand",
-      currentBrandName,
-      "vs",
-      originalBrandName
-    );
   }
 
   // ตรวจสอบการเปลี่ยนแปลงของฟิลด์อื่นๆ
@@ -483,6 +531,13 @@ watchEffect(() => {
 
   // มีการเปลี่ยนแปลงหรือไม่
   const hasAnyChanges = hasFormChanges || hasImageChanges;
+
+  console.log('Form validation check:', {
+    hasFormChanges,
+    hasImageChanges,
+    hasAnyChanges,
+    isSave: !hasAnyChanges
+  });
 
   isSave.value = !hasAnyChanges;
 });
