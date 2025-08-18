@@ -19,7 +19,7 @@ const props = defineProps({
   disableSaveBtn: Boolean,
   mode: {
     type: String,
-    default: 'create', // 'create' หรือ 'edit'
+    default: "create", // 'create' หรือ 'edit'
   },
 });
 
@@ -184,8 +184,8 @@ const handleSubmit = () => {
   }
 
   // กรองเฉพาะรูปที่ยังไม่ถูกลบและจัดเรียงลำดับใหม่ให้ต่อเนื่องกัน
-  const activeImages = images.value.filter(img => !img.isDeleted);
-  
+  const activeImages = images.value.filter((img) => !img.isDeleted);
+
   const reorderedImages = [];
   let currentOrder = 1;
 
@@ -197,7 +197,7 @@ const handleSubmit = () => {
         id: img.id,
         fileName: img.imageName,
         newOrder: currentOrder,
-        originalOrder: img.imageViewOrder
+        originalOrder: img.imageViewOrder,
       });
     } else {
       // รูปใหม่ - ให้ลำดับตามตำแหน่งปัจจุบัน
@@ -205,7 +205,7 @@ const handleSubmit = () => {
         fileName: img.imageName,
         file: img.file,
         newOrder: currentOrder,
-        isNew: true
+        isNew: true,
       });
     }
     currentOrder++;
@@ -213,13 +213,13 @@ const handleSubmit = () => {
 
   const imageData = {
     // รูปใหม่ที่อัปโหลด พร้อมลำดับที่ถูกต้อง
-    newImages: reorderedImages.filter((img) => img.isNew), 
+    newImages: reorderedImages.filter((img) => img.isNew),
     // fileName ของรูปที่ถูกลบ
-    deletedImageFileNames: deletedImageFileNames.value, 
+    deletedImageFileNames: deletedImageFileNames.value,
     // รูปเดิมที่ยังอยู่ พร้อมลำดับใหม่
     reorderedImages: reorderedImages.filter((img) => !img.isNew),
   };
-  
+
   emit("onSubmit", formData.value, imageData);
 };
 
@@ -371,8 +371,8 @@ watch(
 // ฟังก์ชันตรวจสอบการเปลี่ยนแปลงของรูปภาพ
 const checkImageChanges = () => {
   // กรองเฉพาะรูปที่ยังไม่ถูกลบ
-  const activeImages = images.value.filter(img => !img.isDeleted);
-  
+  const activeImages = images.value.filter((img) => !img.isDeleted);
+
   // ตรวจสอบว่ามีรูปใหม่หรือไม่
   const hasNewImages = activeImages.some((img) => !img.isOriginal);
 
@@ -489,7 +489,7 @@ const uploadImage = (event) => {
   const files = Array.from(event.target.files);
 
   // นับรูปที่ยังไม่ถูกลบ
-  const activeImagesCount = images.value.filter(img => !img.isDeleted).length;
+  const activeImagesCount = images.value.filter((img) => !img.isDeleted).length;
 
   // เช็คว่าจำนวนรูปที่ยังใช้งานอยู่ + ไฟล์ใหม่ เกิน 4 หรือไม่
   if (activeImagesCount + files.length > 4) {
@@ -515,12 +515,12 @@ const uploadImage = (event) => {
           src: e.target.result,
           file,
           isOriginal: false, // รูปใหม่
-          isDeleted: false
+          isDeleted: false,
         };
 
         // หาช่องว่างแรกที่ถูกลบหรือเพิ่มที่ท้าย
-        let insertIndex = images.value.findIndex(img => img.isDeleted);
-        
+        let insertIndex = images.value.findIndex((img) => img.isDeleted);
+
         if (insertIndex === -1) {
           // ไม่มีช่องว่างที่ถูกลบ ให้เพิ่มที่ท้าย
           images.value.push(image);
@@ -530,7 +530,7 @@ const uploadImage = (event) => {
           images.value[insertIndex] = image;
         }
 
-        if (images.value.filter(img => !img.isDeleted).length === 1) {
+        if (images.value.filter((img) => !img.isDeleted).length === 1) {
           showImageIndex.value = insertIndex;
           showImage.value = e.target.result;
         }
@@ -614,19 +614,23 @@ const swapDownImage = (i) => {
 // ปรับปรุงฟังก์ชัน removeImage - ไม่ให้รูปเลื่อนขึ้นมา แต่เปลี่ยนเป็นช่องว่าง (ทั้ง create และ edit)
 const removeImage = (index) => {
   const imageToRemove = images.value[index];
-  
+
   // ถ้าเป็น edit mode และเป็นรูปเดิม ให้เก็บ fileName ไว้ใน deletedImageFileNames
-  if (props.mode === 'edit' && imageToRemove.isOriginal && imageToRemove.imageName) {
+  if (
+    props.mode === "edit" &&
+    imageToRemove.isOriginal &&
+    imageToRemove.imageName
+  ) {
     deletedImageFileNames.value.push(imageToRemove.imageName);
   }
 
   // ทั้ง create และ edit mode: แทนที่จะลบออกจาก array ให้เปลี่ยนเป็น placeholder
   images.value[index] = {
-    imageName: '',
+    imageName: "",
     src: null,
     isOriginal: false,
     isDeleted: true, // มาร์คว่าถูกลบแล้ว
-    originalPosition: index + 1 // เก็บตำแหน่งเดิมไว้
+    originalPosition: index + 1, // เก็บตำแหน่งเดิมไว้
   };
 
   // อัปเดต showImage และ index
@@ -680,8 +684,18 @@ const removeImage = (index) => {
               v-if="image.isDeleted"
               class="max-h-[60px] lg:max-h-[80px] h-[60px] lg:h-[80px] w-14 lg:w-18 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center bg-gray-50 opacity-60"
             >
-              <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              <svg
+                class="w-6 h-6 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
               </svg>
             </div>
             <img
@@ -699,17 +713,23 @@ const removeImage = (index) => {
                 showImageIndex = index;
               "
             />
-            <span 
+            <span
               class="text-xs mt-1"
-              :class="image.isDeleted ? 'text-gray-400 line-through' : 'text-gray-600'"
+              :class="
+                image.isDeleted ? 'text-gray-400 line-through' : 'text-gray-600'
+              "
             >
               {{ index + 1 }}
             </span>
             <div class="text-xs mt-1">
               <span v-if="image.isDeleted" class="text-gray-500 font-semibold">
-                {{ props.mode === 'create' ? 'Empty' : 'Deleted' }}
+                {{ props.mode === "create" ? "Empty" : "Deleted" }}
               </span>
-              <span v-else-if="image.isOriginal" class="text-green-600 font-semibold">Original</span>
+              <span
+                v-else-if="image.isOriginal"
+                class="text-green-600 font-semibold"
+                >Original</span
+              >
               <span v-else class="text-blue-600 font-semibold">New</span>
             </div>
           </div>
@@ -723,11 +743,23 @@ const removeImage = (index) => {
               class="max-h-[60px] lg:max-h-[80px] h-[60px] lg:h-[80px] w-14 lg:w-18 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center cursor-pointer hover:border-blue-400 bg-gray-50"
               @click="uploadInput.click()"
             >
-              <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              <svg
+                class="w-6 h-6 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                ></path>
               </svg>
             </div>
-            <span class="text-xs text-gray-400 mt-1">{{ images.length + i }}</span>
+            <span class="text-xs text-gray-400 mt-1">{{
+              images.length + i
+            }}</span>
             <div class="text-xs mt-1">
               <span class="text-gray-400">Empty</span>
             </div>
@@ -745,8 +777,9 @@ const removeImage = (index) => {
           />
         </div>
 
-        <div class="flex flex-col gap-2 items-center justify-center w-full max-w-md">
-
+        <div
+          class="flex flex-col gap-2 items-center justify-center w-full max-w-md"
+        >
           <div
             v-for="(image, i) in images"
             :class="'itbms-picture-file' + i"
@@ -754,48 +787,73 @@ const removeImage = (index) => {
             class="w-full"
           >
             <div v-if="image.isDeleted" class="flex items-center gap-2">
-              <div class="flex-shrink-0 w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold border-2 border-dashed border-gray-300">
+              <div
+                class="flex-shrink-0 w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold border-2 border-dashed border-gray-300"
+              >
                 {{ i + 1 }}
               </div>
-              
-              <div class="flex-1 flex justify-between gap-2 border-2 border-dashed border-gray-300 text-gray-500 text-xs py-2 px-4 rounded bg-gray-50 opacity-60 max-w-sm">
+
+              <div
+                class="flex-1 flex justify-between gap-2 border-2 border-dashed border-gray-300 text-gray-500 text-xs py-2 px-4 rounded bg-gray-50 opacity-60 max-w-sm"
+              >
                 <div class="flex flex-col flex-1 min-w-0">
                   <p class="truncate font-medium line-through max-w-[200px]">
-                    {{ props.mode === 'create' ? '[Empty Slot]' : '[Deleted Slot]' }}
+                    {{
+                      props.mode === "create"
+                        ? "[Empty Slot]"
+                        : "[Deleted Slot]"
+                    }}
                   </p>
                   <div class="flex gap-2 mt-1 flex-wrap">
-                    <span class="text-gray-500 bg-gray-200 px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap">
-                      {{ props.mode === 'create' ? 'Removed' : 'Deleted' }}
+                    <span
+                      class="text-gray-500 bg-gray-200 px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap"
+                    >
+                      {{ props.mode === "create" ? "Removed" : "Deleted" }}
                     </span>
                   </div>
                 </div>
                 <div class="text-gray-400 text-xs self-center">
-                  {{ props.mode === 'create' ? 'Can be filled' : 'Will be removed' }}
+                  {{
+                    props.mode === "create"
+                      ? "Can be filled"
+                      : "Will be removed"
+                  }}
                 </div>
               </div>
             </div>
 
             <div v-else class="flex items-center gap-2">
-              <div class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
+              <div
+                class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold"
+              >
                 {{ i + 1 }}
               </div>
-              
+
               <div
                 class="flex-1 flex justify-between gap-2 border text-xs py-2 px-4 rounded transition-colors max-w-sm"
-                :class="image.isOriginal 
-                  ? 'border-green-500 text-green-700 bg-green-50' 
-                  : 'border-blue-500 text-blue-700 bg-blue-50'"
+                :class="
+                  image.isOriginal
+                    ? 'border-green-500 text-green-700 bg-green-50'
+                    : 'border-blue-500 text-blue-700 bg-blue-50'
+                "
               >
                 <div class="flex flex-col flex-1 min-w-0">
-                  <p class="truncate font-medium max-w-[200px]" :title="image.imageName">
+                  <p
+                    class="truncate font-medium max-w-[200px]"
+                    :title="image.imageName"
+                  >
                     {{ image.imageName }}
                   </p>
                   <div class="flex gap-2 mt-1 flex-wrap">
-                    <span 
-                      :class="image.isOriginal ? 'text-green-600 bg-green-100' : 'text-blue-600 bg-blue-100'"
+                    <span
+                      :class="
+                        image.isOriginal
+                          ? 'text-green-600 bg-green-100'
+                          : 'text-blue-600 bg-blue-100'
+                      "
                       class="px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap"
                     >
-                      {{ image.isOriginal ? 'Original' : 'New' }}
+                      {{ image.isOriginal ? "Original" : "New" }}
                     </span>
                   </div>
                 </div>
@@ -805,12 +863,22 @@ const removeImage = (index) => {
                   @click="removeImage(i)"
                   title="Delete image"
                 >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    ></path>
                   </svg>
                 </button>
               </div>
-              
+
               <div
                 class="flex flex-col gap-1"
                 :class="
@@ -850,7 +918,7 @@ const removeImage = (index) => {
               </div>
             </div>
           </div>
-          
+
           <div v-if="images.length < 4" class="w-full mt-2">
             <div class="flex flex-col gap-2">
               <div
@@ -858,12 +926,20 @@ const removeImage = (index) => {
                 :key="`empty-slot-${emptySlot}`"
                 class="flex items-center gap-2 opacity-50"
               >
-                <div class="flex-shrink-0 w-8 h-8 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-sm border-2 border-dashed">
+                <div
+                  class="flex-shrink-0 w-8 h-8 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-sm border-2 border-dashed"
+                >
                   {{ images.length + emptySlot }}
                 </div>
-                <div class="flex-1 border-2 border-dashed border-gray-300 text-gray-400 text-xs py-2 px-4 rounded bg-gray-50 max-w-sm">
-                  <p class="truncate max-w-[200px]">Empty slot - Click "Upload Pictures" to add</p>
-                  <span class="text-gray-400 text-xs whitespace-nowrap">Available position</span>
+                <div
+                  class="flex-1 border-2 border-dashed border-gray-300 text-gray-400 text-xs py-2 px-4 rounded bg-gray-50 max-w-sm"
+                >
+                  <p class="truncate max-w-[200px]">
+                    Empty slot - Click "Upload Pictures" to add
+                  </p>
+                  <span class="text-gray-400 text-xs whitespace-nowrap"
+                    >Available position</span
+                  >
                 </div>
               </div>
             </div>
@@ -1093,14 +1169,19 @@ const removeImage = (index) => {
               id="quantity"
               class="itbms-quantity input"
               min="1"
-              value="1"
-              v-model="formData.quantity"
+              
+              :value="formData.quantity === -1 ? '' : formData.quantity"
+              @input="
+                formData.quantity =
+                  $event.target.value === '' ? -1 : Number($event.target.value)
+              "
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
                   validate.quantity.showError,
               }"
               @blur="nonNegative('quantity', true)"
             />
+
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.quantity.showError"
