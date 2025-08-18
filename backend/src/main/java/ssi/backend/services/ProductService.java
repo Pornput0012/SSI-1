@@ -47,7 +47,7 @@ public class ProductService {
                 ProductItemDTO.class, modelMapper);
     }
 
-    public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
+   public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
                                            List<String> filterBrands, List<Integer> filterStorages,
                                            Integer filterPriceLower, Integer filterPriceUpper) {
         ProductPageDTO productPage;
