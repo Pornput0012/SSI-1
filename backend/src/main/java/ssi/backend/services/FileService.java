@@ -43,9 +43,8 @@ public class FileService {
             if (!Files.exists(this.fileStorageLocation)) {
                 Files.createDirectories(this.fileStorageLocation);
             }
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Unable to create directory storage location: " ,e);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to create directory storage location: ", e);
 
         }
     }
@@ -54,15 +53,15 @@ public class FileService {
     private SaleItemImageRepository saleItemImageRepository;
 
 
-    public String saveFile(MultipartFile image,Product product){
+    public String saveFile(MultipartFile image, Product product) {
         String fileName = StringUtils.cleanPath(image.getOriginalFilename());
 
         try {
-            if(fileName.contains("..")){
+            if (fileName.contains("..")) {
                 throw new RuntimeException("Cannot upload file outside current directory: " + fileName);
             }
-        Path targetLocation = this.fileStorageLocation.resolve(fileName);
-            Files.copy(image.getInputStream(),targetLocation, StandardCopyOption.REPLACE_EXISTING);
+            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+            Files.copy(image.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             SaleItemImageDto saleItemImageDto = new SaleItemImageDto();
             saleItemImageDto.setFileName(fileName);
             String[] parts = fileName.split("\\.");
@@ -80,17 +79,15 @@ public class FileService {
             saleItemImageDto.setProduct(product);
             saleItemImageRepository.save(modelMapper.map(saleItemImageDto, SaleItemImage.class));
             return fileName;
-        }
-
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Unable to save file: " + fileName, e);
         }
 
     }
 
-    public List<String> saveFile(List<MultipartFile> images, Product product){
+    public List<String> saveFile(List<MultipartFile> images, Product product) {
         List<String> fileNames = new ArrayList<>(images.size());
-        images.forEach(image -> fileNames.add(saveFile(image,product)));
+        images.forEach(image -> fileNames.add(saveFile(image, product)));
         return fileNames;
     }
 
@@ -138,6 +135,8 @@ public class FileService {
         if (!failedFiles.isEmpty()) {
             throw new RuntimeException("Failed to delete files: " + String.join(", ", failedFiles));
         }}
+        }
+    }
 
     public void removeFile(String fileName) {
         try {
@@ -145,9 +144,9 @@ public class FileService {
 
             if (Files.exists(filePath)) {
                 if (!saleItemImageService.imageExists(fileName)) {
-                 Files.delete(filePath);
+                    Files.delete(filePath);
                 }
-            } else  {
+            } else {
                 throw new RuntimeException("File not found " + fileName);
             }
         } catch (IOException ex) {
