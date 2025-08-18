@@ -129,7 +129,9 @@ const setDefaultStoreValues = (pageInfo) => {
 
 const applyFilter = async () => {
   try {
-    const storagesForApi = filterStorages.value || []
+    const storagesForApi = (filterStorages.value || []).filter(
+      (s) => typeof s === 'number'
+    )
 
     const response = await getAllSaleItems_v2({
       filterBrands: filterBrands.value,
@@ -166,8 +168,7 @@ const removeBrandAndApply = async (brand) => {
 }
 
 const selectStorage = async (storage) => {
-  const normalized = storage === 'Not specified' ? '' : storage
-  setSelectStorage(normalized)
+  setSelectStorage(storage)
   showFilterDropdown.value = false
   resetCurrentPage()
   await applyFilter(true)
@@ -255,7 +256,9 @@ const initializeBrands = async () => {
 
 const initializeSaleItems = async (pageInfo) => {
   try {
-    const storagesForApi = filterStorages.value || []
+    const storagesForApi = (filterStorages.value || []).filter(
+      (s) => typeof s === 'number'
+    )
     const response = await getAllSaleItems_v2({
       filterBrands: getFilterList().brands,
       filterStorages: storagesForApi,
@@ -423,7 +426,7 @@ const updateWidth = () => {
                 @mousedown.prevent="selectStorage(storage)"
                 class="itbms-storage-size-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
-                {{ storage === '' ? 'Not specified' : storage + ' GB' }}
+                {{ typeof storage === 'number' ? storage + ' GB' : storage }}
               </li>
             </ul>
           </div>
@@ -545,7 +548,7 @@ const updateWidth = () => {
           class="itbms-storage-size-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
           <span class="itbms-storage-size-filter">{{
-            storage === '' ? 'Not specified' : storage + ' GB'
+            typeof storage === 'number' ? storage + ' GB' : storage
           }}</span>
           <button
             class="itbms-storage-size-item-clear font-bold cursor-pointer"
