@@ -195,11 +195,15 @@ const handleSubmit = () => {
 
   // กรองเฉพาะรูปที่ยังไม่ถูกลบและจัดเรียงลำดับใหม่ให้ต่อเนื่องกัน
   const activeImages = images.value.filter((img) => !img.isDeleted);
+
   const reorderedImages = [];
   const newImages = [];
   let currentOrder = 1;
+
+  // เรียงลำดับรูปที่ยังเหลืออยู่ให้ต่อเนื่องกัน
   activeImages.forEach((img) => {
     if (img.isOriginal) {
+      // รูปเดิมที่ยังไม่ถูกลบ - ให้ลำดับใหม่
       reorderedImages.push({
         id: img.id,
         fileName: img.imageName,
@@ -207,10 +211,12 @@ const handleSubmit = () => {
         originalOrder: img.imageViewOrder,
       });
     } else {
+      // รูปใหม่ - แยกไปยัง newImages (ไม่มีลำดับ) และ reorderedImages (มีลำดับ)
       newImages.push({
         fileName: img.imageName,
         file: img.file
       });
+      
       reorderedImages.push({
         fileName: img.imageName,
         newOrder: currentOrder,
@@ -219,13 +225,17 @@ const handleSubmit = () => {
     }
     currentOrder++;
   });
+
   const imageData = {
-    newImages: newImages,
-    deletedImageFileNames: deletedImageFileNames.value,
+    // รูปใหม่ที่อัปโหลด (ไม่มีลำดับ)
+    newImages: newImages, 
+    // fileName ของรูปที่ถูกลบ
+    deletedImageFileNames: deletedImageFileNames.value, 
+    // รูปทั้งเดิมและใหม่ พร้อมลำดับ
     reorderedImages: reorderedImages,
   };
 
-  // เช็คว่ามีการแก้ไขเฉพาะรูปภาพ (ไม่มีการแก้ไขข้อมูลฟอร์ม)
+  // เช็คว่ามีการเปลี่ยนแปลงใน formData หรือไม่
   let hasFormChanges = false;
   const currentBrandName = formData.value.brand?.name || formData.value.brand;
   const originalBrandName = props.saleItemDetail?.brandName;
@@ -242,6 +252,7 @@ const handleSubmit = () => {
       }
     }
     if (!hasFormChanges) {
+      const normalize = (val) => val === null || val === undefined ? "" : val.trim?.() ?? val;
       const currentColor = normalize(formData.value.color);
       const originalColor = normalize(props.saleItemDetail?.color);
       if (currentColor !== originalColor) {
@@ -250,13 +261,7 @@ const handleSubmit = () => {
     }
   }
 
-  if (!hasFormChanges && (newImages.length > 0 || deletedImageFileNames.value.length > 0 || reorderedImages.length > 0)) {
-    // มีการแก้ไขเฉพาะรูปภาพ
-    emit("onUpdateImageOnly", props.saleItemDetail?.id, imageData);
-  } else {
-    // มีการแก้ไขข้อมูลฟอร์มหรือทั้งสองอย่าง
-    emit("onSubmit", formData.value, imageData);
-  }
+  emit("onSubmit", hasFormChanges ? formData.value : null, imageData);
 };
 
 const allValid = computed(() => {
