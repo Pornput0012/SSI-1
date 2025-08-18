@@ -69,7 +69,7 @@ public class FileService {
 
             if (parts.length >= 2) {
                 try {
-                    int orderNo = Integer.parseInt(parts[1]);
+                    int orderNo = Integer.parseInt(parts[parts.length-2]);
                     saleItemImageDto.setImageViewOrder(orderNo);
                 } catch (NumberFormatException e) {
                     saleItemImageDto.setImageViewOrder(null);
@@ -137,6 +137,7 @@ public class FileService {
 
         if (!failedFiles.isEmpty()) {
             throw new RuntimeException("Failed to delete files: " + String.join(", ", failedFiles));
+        }}
 
     public void removeFile(String fileName) {
         try {
@@ -154,3 +155,4 @@ public class FileService {
         }
     }
 }
+
