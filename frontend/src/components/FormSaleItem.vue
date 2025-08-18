@@ -489,15 +489,26 @@ const uploadImage = (event) => {
   const files = Array.from(event.target.files);
 
   // นับรูปที่ยังไม่ถูกลบ
-  const activeImagesCount = images.value.filter((img) => !img.isDeleted).length;
+  const activeImagesCount = images.value.filter(img => !img.isDeleted).length;
+  const availableSlots = 4 - activeImagesCount;
 
-  // เช็คว่าจำนวนรูปที่ยังใช้งานอยู่ + ไฟล์ใหม่ เกิน 4 หรือไม่
-  if (activeImagesCount + files.length > 4) {
-    errorTitle.value = "File Length Too much";
-    errorMessage.value = `Maximum 4 pictures are allowed. You currently have ${activeImagesCount} active images.`;
+
+  // ถ้าไม่มีช่องว่าง
+  if (availableSlots === 0) {
+    errorTitle.value = "No Available Slots";
+    errorMessage.value = "All 4 image slots are occupied. Please remove some images first.";
     showModal.value = true;
     event.target.value = "";
     return;
+  }
+
+  // ถ้าจำนวนไฟล์เกินช่องว่างที่มี
+  let filesToProcess = files;
+  let warningMessage = "";
+  
+  if (files.length > availableSlots) {
+    filesToProcess = files.slice(0, availableSlots);
+    warningMessage = `Only ${availableSlots} images can be uploaded. ${files.length - availableSlots} files were skipped.`;
   }
 
   const checkSizeAndUploadFile = (file, i) => {
@@ -530,7 +541,9 @@ const uploadImage = (event) => {
           images.value[insertIndex] = image;
         }
 
-        if (images.value.filter((img) => !img.isDeleted).length === 1) {
+
+        // แสดงรูปแรกที่อัปโหลดถ้าไม่มีรูปที่แสดงอยู่
+        if (showImageIndex.value === -1 || images.value[showImageIndex.value]?.isDeleted) {
           showImageIndex.value = insertIndex;
           showImage.value = e.target.result;
         }
@@ -539,9 +552,18 @@ const uploadImage = (event) => {
     }
   };
 
-  files.forEach((file, i) => {
+  filesToProcess.forEach((file, i) => {
     checkSizeAndUploadFile(file, i);
   });
+
+  // แสดงคำเตือนถ้ามีไฟล์ถูก skip
+  if (warningMessage) {
+    setTimeout(() => {
+      errorTitle.value = "Upload Limited";
+      errorMessage.value = warningMessage;
+      showModal.value = true;
+    }, 100);
+  }
 
   event.target.value = "";
 };
@@ -734,14 +756,15 @@ const removeImage = (index) => {
             </div>
           </div>
 
+                    <!-- แสดงช่องว่างสำหรับรูปที่ยังไม่มี (ถ้าไม่ครบ 4 รูป) -->
+          <!-- ไม่ต้องกดเพื่อ upload - เป็นแค่ preview เท่านั้น -->
           <div
             v-for="i in Math.max(0, 4 - images.length)"
             :key="`empty-${i}`"
             class="relative flex flex-col items-center"
           >
             <div
-              class="max-h-[60px] lg:max-h-[80px] h-[60px] lg:h-[80px] w-14 lg:w-18 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center cursor-pointer hover:border-blue-400 bg-gray-50"
-              @click="uploadInput.click()"
+              class="max-h-[60px] lg:max-h-[80px] h-[60px] lg:h-[80px] w-14 lg:w-18 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center bg-gray-50"
             >
               <svg
                 class="w-6 h-6 text-gray-400"
@@ -757,29 +780,70 @@ const removeImage = (index) => {
                 ></path>
               </svg>
             </div>
-            <span class="text-xs text-gray-400 mt-1">{{
-              images.length + i
-            }}</span>
+
+            <!-- แสดงหมายเลขลำดับ -->
+            <span class="text-xs text-gray-400 mt-1">{{ images.length + i }}</span>
+            <!-- แสดงสถานะ -->
+
             <div class="text-xs mt-1">
               <span class="text-gray-400">Empty</span>
             </div>
           </div>
         </div>
-        <div>
-          <input
-            id="file-upload"
-            type="file"
-            class="hidden"
-            ref="uploadInput"
-            multiple
-            accept="image/*"
-            @change="uploadImage"
-          />
+
+        <!-- ปุ่ม Upload Image -->
+        <div class="flex flex-col items-center gap-2">
+          <button
+            type="button"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer transition-colors duration-200"
+            @click="uploadInput.click()"
+          >
+            Upload Images
+          </button>
+          <p class="text-sm text-gray-500">
+            {{ images.filter(img => !img.isDeleted).length }}/4 images uploaded
+          </p>
         </div>
 
-        <div
-          class="flex flex-col gap-2 items-center justify-center w-full max-w-md"
-        >
+
+        <!-- Hidden file input -->
+        <input
+          id="file-upload"
+          type="file"
+          class="hidden"
+          ref="uploadInput"
+          multiple
+          accept="image/*"
+          @change="uploadImage"
+        />
+
+        <!-- แสดงข้อมูลสถิติการลบรูป (เฉพาะ edit mode) -->
+        <div v-if="props.mode === 'edit' && deletedImageFileNames.length > 0" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div class="text-sm text-red-700">
+            <span class="font-semibold">Deleted Images ({{ deletedImageFileNames.length }}):</span>
+            <div class="mt-1">
+              <span v-for="(fileName, index) in deletedImageFileNames" :key="fileName" class="inline-block">
+                {{ fileName }}<span v-if="index < deletedImageFileNames.length - 1">, </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- แสดงรายชื่อไฟล์และปุ่มจัดการ -->
+        <div class="flex flex-col gap-2 items-center justify-center w-full max-w-md">
+          <!-- Header สำหรับรายการรูป -->
+          <div v-if="images.length > 0" class="w-full">
+            <h3 class="text-lg font-semibold text-gray-700 mb-3 text-center">
+              ({{ images.filter(img => !img.isDeleted).length }}/4)
+              <span v-if="props.mode === 'edit' && deletedImageFileNames.length > 0" class="text-gray-500 text-sm">
+                ({{ deletedImageFileNames.length }} deleted)
+              </span>
+            </h3>
+          </div>
+
+          <!-- รายการรูปภาพ -->
+
+
           <div
             v-for="(image, i) in images"
             :class="'itbms-picture-file' + i"
@@ -918,7 +982,6 @@ const removeImage = (index) => {
               </div>
             </div>
           </div>
-
           <div v-if="images.length < 4" class="w-full mt-2">
             <div class="flex flex-col gap-2">
               <div
@@ -931,15 +994,9 @@ const removeImage = (index) => {
                 >
                   {{ images.length + emptySlot }}
                 </div>
-                <div
-                  class="flex-1 border-2 border-dashed border-gray-300 text-gray-400 text-xs py-2 px-4 rounded bg-gray-50 max-w-sm"
-                >
-                  <p class="truncate max-w-[200px]">
-                    Empty slot - Click "Upload Pictures" to add
-                  </p>
-                  <span class="text-gray-400 text-xs whitespace-nowrap"
-                    >Available position</span
-                  >
+                <div class="flex-1 border-2 border-dashed border-gray-300 text-gray-400 text-xs py-2 px-4 rounded bg-gray-50 max-w-sm">
+                  <p class="truncate max-w-[200px]">Empty slot - Click "Upload Images" to add</p>
+                  <span class="text-gray-400 text-xs whitespace-nowrap">Available position</span>
                 </div>
               </div>
             </div>
