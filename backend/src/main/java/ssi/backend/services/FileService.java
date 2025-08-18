@@ -135,9 +135,6 @@ public class FileService {
         if (!failedFiles.isEmpty()) {
             throw new RuntimeException("Failed to delete files: " + String.join(", ", failedFiles));
         }}
-        }
-    }
-
     public void removeFile(String fileName) {
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
