@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@Getter
 public class FileService {
 
     private final Path fileStorageLocation;
@@ -33,7 +32,8 @@ public class FileService {
     private ModelMapper modelMapper;
     @Autowired
     private SaleItemImageService saleItemImageService;
-
+    @Autowired
+    private SaleItemImageRepository saleItemImageRepository;
 
     @Autowired
     public FileService(FileStorageProperties fileStorageProperties) {
@@ -48,10 +48,6 @@ public class FileService {
 
         }
     }
-
-    @Autowired
-    private SaleItemImageRepository saleItemImageRepository;
-
 
     public String saveFile(MultipartFile image, Product product) {
         String fileName = StringUtils.cleanPath(image.getOriginalFilename());
@@ -68,7 +64,7 @@ public class FileService {
 
             if (parts.length >= 2) {
                 try {
-                    int orderNo = Integer.parseInt(parts[parts.length-2]);
+                    int orderNo = Integer.parseInt(parts[parts.length - 2]);
                     saleItemImageDto.setImageViewOrder(orderNo);
                 } catch (NumberFormatException e) {
                     saleItemImageDto.setImageViewOrder(null);
@@ -134,7 +130,9 @@ public class FileService {
 
         if (!failedFiles.isEmpty()) {
             throw new RuntimeException("Failed to delete files: " + String.join(", ", failedFiles));
-        }}
+        }
+    }
+
     public void removeFile(String fileName) {
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
@@ -151,4 +149,3 @@ public class FileService {
         }
     }
 }
-
