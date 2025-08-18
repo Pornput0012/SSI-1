@@ -47,7 +47,7 @@ public class ProductService {
                 ProductItemDTO.class, modelMapper);
     }
 
-   public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
+    public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
                                            List<String> filterBrands, List<Integer> filterStorages,
                                            Integer filterPriceLower, Integer filterPriceUpper) {
         ProductPageDTO productPage;
@@ -70,9 +70,25 @@ public class ProductService {
         Pageable pageable = PageRequest.of(page, size, sort);
         System.out.println((filterStorages != null && !filterStorages.isEmpty()) ? filterStorages : null);
 
+        List<Integer> storageParam = null;
+        boolean hasZero = filterStorages != null && filterStorages.stream().anyMatch(ele -> ele == 0);
+        if (filterStorages != null && !filterStorages.isEmpty() && hasZero) {
+            storageParam = null;
+        } else if (filterStorages == null) {
+            storageParam = new java.util.ArrayList<>();
+            storageParam.add(32);
+            storageParam.add(64);
+            storageParam.add(128);
+            storageParam.add(256);
+            storageParam.add(512);
+            storageParam.add(1024);
+        } else {
+            storageParam = filterStorages;
+        }
+
         Page<Product> pageResult = productRepository.findFilteredProducts(
                 (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
-                (filterStorages != null && !filterStorages.isEmpty()) ? filterStorages : null,
+                storageParam,
                 filterPriceLower,
                 filterPriceUpper,
                 pageable);
@@ -311,11 +327,13 @@ public class ProductService {
                     String oldOrder = fileNameSplit[1];
                     String fileNameForDb = baseName + "." + oldOrder + "." + extension;
                     String newFileName = baseName + "." + newOrder + "." + extension;
-                    SaleItemImage existingImage = saleItemImageService.findByProductAndFileName(existingProduct, fileNameForDb);
+                    SaleItemImage existingImage = saleItemImageService.findByProductAndFileName(existingProduct,
+                            fileNameForDb);
                     if (existingImage != null) {
                         System.out.println("[DEBUG] Found image in DB: " + fileNameForDb);
                         if (!existingImage.getFileName().equals(newFileName)) {
-                            System.out.println("[DEBUG] Rename file " + existingImage.getFileName() + " -> " + newFileName);
+                            System.out.println(
+                                    "[DEBUG] Rename file " + existingImage.getFileName() + " -> " + newFileName);
                             fileService.renameFile(existingProduct, existingImage.getFileName(), newFileName);
                             saleItemImageService.updateFileName(existingImage.getId(), newFileName);
                         }

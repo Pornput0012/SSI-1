@@ -39,6 +39,13 @@ const getAllSaleItems_v2 = async (
       for (const key in pageInfo) {
         if (Object.prototype.hasOwnProperty.call(pageInfo, key)) {
           const element = pageInfo[key];
+          // เงื่อนไขพิเศษสำหรับ filterStorages
+          if (
+            key === "filterStorages" &&
+            (!element || (Array.isArray(element) && element.length === 0))
+          ) {
+            continue; // ข้ามถ้าไม่ได้เลือก storage
+          }
           if (element || element === 0) {
             requestParameter.push(
               `${key}=${Array.isArray(element) ? element.join(",") : element}`

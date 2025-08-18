@@ -65,7 +65,7 @@ const hasError = ref('')
 const showFilterDropdown = ref(false)
 const showCreatedModal = ref(false)
 const brandOptions = ref([])
-const storageOptions = ref([32, 64, 128, 256, 512, 1024, 'Not specified'])
+const storageOptions = ref([32, 64, 128, 256, 512, 1024, 0])
 const priceRangeOptions = ref([
   { label: '0 – 5,000', min: 0, max: 5000 },
   { label: '5,001 – 10,000', min: 5001, max: 10000 },
@@ -424,7 +424,7 @@ const updateWidth = () => {
                 @mousedown.prevent="selectStorage(storage)"
                 class="itbms-storage-size-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
-                {{ typeof storage === 'number' ? storage + ' GB' : storage }}
+                {{ typeof storage === 'number' && storage != 0 ? storage + ' GB' : "no storage" }}
               </li>
             </ul>
           </div>
