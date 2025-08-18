@@ -281,15 +281,13 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
     console.log(images);
 
     if (images) {
-      images.newImages.forEach((img, index) => {
+      images.newImages.forEach((img) => {
+        const reordered = images.reorderedImages.find(r => r.fileName === img.fileName);
+        const order = reordered ? reordered.newOrder : 1;
         const splitFileName = img.fileName.split(".");
-
         const ext = splitFileName.pop();
-
         const joinFileName = splitFileName.join(".");
-
-        const fileName = `${joinFileName}.${index + 1}.${ext}`;
-
+        const fileName = `${joinFileName}.${order}.${ext}`;
         formData.append("newImages", img.file, fileName);
       });
 
@@ -307,6 +305,54 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
     }
 
     const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to create sale item. Server responded with status ${response.status}`
+      );
+    }
+
+    return await response.json();
+  } catch (error) {
+    return {
+      error: `Error creating sale item: ${error.message}`,
+    };
+  }
+};
+
+const updateSaleItemImageById = async (id, saleItem, images) => {
+  try {
+    const formData = new FormData();
+
+    if (images) {
+      images.newImages.forEach((img) => {
+        const reordered = images.reorderedImages.find(
+          (r) => r.fileName === img.fileName
+        );
+        const order = reordered ? reordered.newOrder : 1;
+        const splitFileName = img.fileName.split(".");
+        const ext = splitFileName.pop();
+        const joinFileName = splitFileName.join(".");
+        const fileName = `${joinFileName}.${order}.${ext}`;
+        formData.append("newImages", img.file, fileName);
+      });
+
+      formData.append(
+        "removeFileNames",
+        images.deletedImageFileNames.join(",")
+      );
+
+      let orderImage = "";
+      images.reorderedImages.forEach((ele, i) => {
+        orderImage += `${i != 0 && "|"}${ele.fileName},${ele.newOrder}`;
+      });
+      console.log(orderImage);
+    }
+
+    const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}/images`, {
       method: "PUT",
       body: formData,
     });

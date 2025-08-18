@@ -247,4 +247,68 @@ public class ProductService {
 
         return modelMapper.map(updatedProduct, ProductItemRequestDtoV2.class);
     }
+
+    @Transactional
+    public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductRequestImageDTO product, String removeImage, String orderImages, List<MultipartFile> newImages) {
+        Product existingProduct = productRepository.findById(id)
+                .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        // ลบรูปภาพที่ระบุ
+        if (removeImage != null && !removeImage.trim().isEmpty()) {
+            List<String> removeImageList = Arrays.asList(removeImage.split(","));
+            fileService.removeFiles(existingProduct, removeImageList);
+        }
+
+        // เพิ่มรูปภาพใหม่ที่ส่งมา
+        if (newImages != null && !newImages.isEmpty()) {
+            if (newImages.size() > 4) {
+                throw new BadRequestException("Images Size Exceeded");
+            }
+            fileService.saveFile(newImages, existingProduct);
+        }
+
+        // จัดการ order ของรูปภาพ
+        if (orderImages != null && !orderImages.trim().isEmpty()) {
+            // รูปแบบ: fileName_1,orderImage_1|fileName_2,orderImage_2|fileName_3,orderImage_3
+            String[] imageOrderPairs = orderImages.split("\\|");
+
+            for (String pair : imageOrderPairs) {
+                if (pair.trim().isEmpty()) continue;
+
+                String[] parts = pair.split(",");
+                if (parts.length != 2) continue;
+
+                String fileName = parts[0].trim();
+                try {
+                    Integer newOrder = Integer.parseInt(parts[1].trim());
+
+                    // ตรวจสอบว่ามีไฟล์นี้ในฐานข้อมูลหรือไม่
+                    SaleItemImage existingImage = saleItemImageService.findByProductAndFileName(existingProduct, fileName);
+
+                    if (existingImage != null) {
+                        // ตรวจสอบว่า order ตรงกันหรือไม่
+                        if (!newOrder.equals(existingImage.getImageViewOrder())) {
+                            // อัปเดต order ใหม่
+                            saleItemImageService.updateImageOrder(existingImage.getId(), newOrder);
+                        }
+                    } else {
+                        // ไฟล์ไม่มีในฐานข้อมูล แสดงว่าถูกลบไปแล้ว
+                        // ไม่ต้องทำอะไร เพราะไฟล์ถูกลบไปแล้ว
+                    }
+
+                } catch (NumberFormatException e) {
+                    // ถ้า order ไม่ใช่ตัวเลข ข้ามไป
+                    continue;
+                }
+            }
+        }
+
+        Product updatedProduct = productRepository.save(existingProduct);
+
+        productRepository.flush();
+        entityManager.refresh(updatedProduct);
+
+        return modelMapper.map(updatedProduct, ProductItemRequestDtoV2.class);
+    }
+
 }
