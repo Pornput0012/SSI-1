@@ -12,6 +12,8 @@ import org.hibernate.annotations.GenerationTime;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -68,5 +70,8 @@ public class Product {
     @Column(name = "updatedOn", insertable = false, updatable = false)
     @Generated(GenerationTime.ALWAYS)
     private Instant updatedOn;
+
+    @OneToMany(mappedBy = "product",fetch = FetchType.EAGER)
+    private List<SaleItemImage> saleItemImages = new ArrayList<>();
 
 }

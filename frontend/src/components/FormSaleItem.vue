@@ -3,18 +3,26 @@ import { getAllBrands } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { computed, onMounted, ref, watch, watchEffect } from "vue";
 import MessageModal from "./MessageModal.vue";
+import noPhoto from "@/assets/No_image_available.png";
+import { getImageByFileName } from "@/services/SaleItemService";
 
 const emit = defineEmits(["onSubmit"]);
 const { getBrands } = useBrandStore();
 const brands = computed(() => getBrands());
 const isSave = ref(true);
+const hasImageChanges = ref(false);
 
 const props = defineProps({
   saleItemDetail: {
     type: Object,
   },
   disableSaveBtn: Boolean,
+  mode: {
+    type: String,
+    default: "create", // 'create' หรือ 'edit'
+  },
 });
+
 const formData = ref({
   brand: props.saleItemDetail?.brandName || "",
   model: props.saleItemDetail?.model || "",
@@ -24,7 +32,7 @@ const formData = ref({
   screenSizeInch: props.saleItemDetail?.screenSizeInch || null,
   storageGb: props.saleItemDetail?.storageGb || null,
   color: props.saleItemDetail?.color || "",
-  quantity: props.saleItemDetail?.quantity || null,
+  quantity: props.saleItemDetail?.quantity || -1,
 });
 
 const validate = ref({
@@ -87,13 +95,70 @@ const errorTitle = ref("");
 const errorMessage = ref("");
 const showModal = ref(false);
 
+// สำหรับเก็บข้อมูลรูปภาพเดิม
+const originalImages = ref([]);
+const images = ref([]);
+const deletedImageFileNames = ref([]); // เก็บ fileName ของรูปที่ถูกลบ
+
+const showImage = ref(noPhoto);
+const showImageIndex = ref(-1);
+
+const isInitialLoading = ref(true);
+
+// แก้ไข onMounted
 onMounted(async () => {
   try {
     const response = await getAllBrands();
     if (response.error) {
       throw new Error(response.error);
     }
+
+    if (props.saleItemDetail?.saleItemImages?.length > 0) {
+      props.saleItemDetail.saleItemImages?.sort(
+        (a, b) => a.imageViewOrder - b.imageViewOrder
+      );
+
+      const loadedImages = [];
+
+      for (const ele of props.saleItemDetail?.saleItemImages) {
+        try {
+          const response = await getImageByFileName(ele.fileName);
+          if (response.error) {
+            console.error(
+              `Failed to load image ${ele.fileName}:`,
+              response.error
+            );
+            continue;
+          }
+
+          const imageData = {
+            id: ele.id,
+            imageName: ele.fileName,
+            src: response,
+            isOriginal: true,
+            imageViewOrder: ele.imageViewOrder,
+          };
+
+          loadedImages.push(imageData);
+        } catch (error) {
+          console.error(`Failed to load image ${ele.fileName}:`, error.message);
+        }
+      }
+
+      // เซ็ตข้อมูลทีเดียว
+      images.value = loadedImages;
+      originalImages.value = [...loadedImages];
+
+      if (loadedImages.length > 0) {
+        showImage.value = loadedImages[0].src;
+        showImageIndex.value = 0;
+      }
+    }
+
+    // เสร็จสิ้นการโหลดข้อมูลเริ่มต้น
+    isInitialLoading.value = false;
   } catch (e) {
+    isInitialLoading.value = false;
     errorTitle.value = "Something Wrong!";
     errorMessage.value = e.message;
     showModal.value = true;
@@ -112,11 +177,13 @@ const fieldCheckOldData = [
 ];
 
 const validateField = [...fieldCheckOldData, "brand", "color"];
+
+// ปรับปรุงฟังก์ชัน handleSubmit เพื่อส่งข้อมูลรูปที่ถูกแก้ไข
 const handleSubmit = () => {
   for (const field of requireField) {
     if (
       (!formData.value[field] && formData.value[field] !== 0) ||
-      formData.value[field] === "" || 
+      formData.value[field] === "" ||
       formData.value[field].id === 0
     ) {
       errorTitle.value = "Missing Required Field";
@@ -126,7 +193,76 @@ const handleSubmit = () => {
     }
   }
 
-  emit("onSubmit", formData.value);
+  // กรองเฉพาะรูปที่ยังไม่ถูกลบและจัดเรียงลำดับใหม่ให้ต่อเนื่องกัน
+  const activeImages = images.value.filter((img) => !img.isDeleted);
+
+  const reorderedImages = [];
+  const newImages = [];
+  let currentOrder = 1;
+
+  // เรียงลำดับรูปที่ยังเหลืออยู่ให้ต่อเนื่องกัน
+  activeImages.forEach((img) => {
+    if (img.isOriginal) {
+      // รูปเดิมที่ยังไม่ถูกลบ - ให้ลำดับใหม่
+      reorderedImages.push({
+        id: img.id,
+        fileName: img.imageName,
+        newOrder: currentOrder,
+        originalOrder: img.imageViewOrder,
+      });
+    } else {
+      // รูปใหม่ - แยกไปยัง newImages (ไม่มีลำดับ) และ reorderedImages (มีลำดับ)
+      newImages.push({
+        fileName: img.imageName,
+        file: img.file,
+      });
+
+      reorderedImages.push({
+        fileName: img.imageName,
+        newOrder: currentOrder,
+        isNew: true,
+      });
+    }
+    currentOrder++;
+  });
+
+  const imageData = {
+    // รูปใหม่ที่อัปโหลด (ไม่มีลำดับ)
+    newImages: newImages,
+    // fileName ของรูปที่ถูกลบ
+    deletedImageFileNames: deletedImageFileNames.value,
+    // รูปทั้งเดิมและใหม่ พร้อมลำดับ
+    reorderedImages: reorderedImages,
+  };
+
+  // เช็คว่ามีการเปลี่ยนแปลงใน formData หรือไม่
+  let hasFormChanges = false;
+  const currentBrandName = formData.value.brand?.name || formData.value.brand;
+  const originalBrandName = props.saleItemDetail?.brandName;
+  if (currentBrandName !== originalBrandName) {
+    hasFormChanges = true;
+  }
+  if (!hasFormChanges) {
+    for (const field of fieldCheckOldData) {
+      const currentValue = formData.value[field];
+      const originalValue = props.saleItemDetail?.[field];
+      if (currentValue !== originalValue) {
+        hasFormChanges = true;
+        break;
+      }
+    }
+    if (!hasFormChanges) {
+      const normalize = (val) =>
+        val === null || val === undefined ? "" : val.trim?.() ?? val;
+      const currentColor = normalize(formData.value.color);
+      const originalColor = normalize(props.saleItemDetail?.color);
+      if (currentColor !== originalColor) {
+        hasFormChanges = true;
+      }
+    }
+  }
+
+  emit("onSubmit", hasFormChanges ? formData.value : null, imageData);
 };
 
 const allValid = computed(() => {
@@ -135,7 +271,6 @@ const allValid = computed(() => {
       !validate.value[field]?.showError && !validate.value[field]?.invalid
   );
 });
-
 
 function maximumLength(field, blur) {
   if (
@@ -146,13 +281,11 @@ function maximumLength(field, blur) {
     validate.value[field].invalid = true;
 
     if (blur) {
-      // เช็คตอน blur แล้วผิดให้แสดง error
       validate.value[field].showError = true;
     }
   } else {
     validate.value[field].invalid = false;
     validate.value[field].showError = false;
-    // ถ้าข้อมูลถูกลบ error ทิ้งไม่ว่าจะ blur ไหม
   }
 }
 
@@ -172,6 +305,7 @@ function brandSelected(blur) {
     validate.value.brand.showError = false;
   }
 }
+
 function nonNegative(field, blur) {
   if (
     (!formData.value[field] && formData.value[field] !== 0) ||
@@ -224,7 +358,6 @@ function isValidPositiveField(field, blur) {
     return;
   }
 
-  // ถ้าผ่านทุกเงื่อนไขแล้ว ลบ error ทิ้ง
   validate.value[field].showError = false;
   validate.value[field].invalid = false;
 }
@@ -239,6 +372,7 @@ watchEffect(() => {
     }
   }
 });
+
 const normalize = (val) =>
   val === null || val === undefined ? "" : val.trim?.() ?? val;
 
@@ -248,12 +382,14 @@ const normalize = (val) =>
     () => nonNegative(field, false)
   );
 });
+
 ["model", "description"].forEach((field) => {
   watch(
     () => formData.value[field],
     () => maximumLength(field, false)
   );
 });
+
 ["ramGb", "screenSizeInch", "storageGb"].forEach((field) => {
   watch(
     () => formData.value[field],
@@ -274,65 +410,694 @@ watch(
   }
 );
 
+const checkImageChanges = () => {
+  // Skip การเช็คถ้ายังโหลดข้อมูลเริ่มต้นอยู่
+  if (isInitialLoading.value) {
+    return false;
+  }
+
+  // กรองเฉพาะรูปที่ยังไม่ถูกลบ
+  const activeImages = images.value.filter((img) => !img.isDeleted);
+
+  // ตรวจสอบว่ามีรูปใหม่ที่ยังไม่ถูกลบหรือไม่
+  const hasNewImages = activeImages.some((img) => !img.isOriginal);  
+  // ตรวจสอบว่ามีรูปเดิมถูกลบหรือไม่
+  const hasDeletedOriginalImages = deletedImageFileNames.value.length > 0;
+
+  // ตรวจสอบการเปลี่ยนลำดับรูปเดิม - เปรียบเทียบเฉพาะรูปเดิมที่ยังเหลือ
+  const originalImagesInCurrentOrder = activeImages.filter(
+    (img) => img.isOriginal
+  );
+  console.log(originalImagesInCurrentOrder);
+  
+
+  // สร้าง array ของ ID รูปเดิมตามลำดับปัจจุบัน
+  const currentOriginalFilenames = originalImagesInCurrentOrder.map((img) => img.imageName);
+
+  // สร้าง array ของ ID รูปเดิมตามลำดับเดิม (ที่ไม่ถูกลบ)
+  const originalOrderIds = originalImages.value
+    .sort((a, b) => a.imageViewOrder - b.imageViewOrder)
+    .filter((img) => !deletedImageFileNames.value.includes(img.imageName))
+    .map((img) => img.imageName);
+
+  // เปรียบเทียบลำดับ ID
+  const hasReorderedImages = !arraysEqual(currentOriginalFilenames, originalOrderIds);
+  console.log(currentOriginalFilenames);
+  console.log(originalOrderIds);
+  
+  // ตรวจสอบจำนวนรูปเดิมที่ยังเหลือ
+  const expectedOriginalCount =
+    originalImages.value.length - deletedImageFileNames.value.length;
+  const currentOriginalImagesCount = originalImagesInCurrentOrder.length;
+  const hasOriginalImageCountChanged =
+    expectedOriginalCount !== currentOriginalImagesCount;
+
+  console.table(
+    hasNewImages,
+    hasDeletedOriginalImages,
+    hasReorderedImages,
+    hasOriginalImageCountChanged
+  );
+
+  return (
+    hasNewImages ||
+    hasDeletedOriginalImages ||
+    hasReorderedImages ||
+    hasOriginalImageCountChanged
+  );
+};
+
+// Helper function เพื่อเปรียบเทียบ arrays
+const arraysEqual = (arr1, arr2) => {
+  if (arr1.length !== arr2.length) return false;
+  return arr1.every((val, index) => val === arr2[index]);
+};
+
 watchEffect(() => {
+  // Skip การเช็คระหว่างโหลดข้อมูลเริ่มต้น
+  if (isInitialLoading.value) {
+    isSave.value = true; // disabled ระหว่างโหลด
+    return;
+  }
+
+  // ตรวจสอบ validation ก่อน
   if (!allValid.value) {
     isSave.value = true;
     return;
   }
 
+  // ตรวจสอบ required fields
   for (const field of requireField) {
     if (
       (!formData.value[field] && formData.value[field] !== 0) ||
-      formData.value[field].id == 0
+      formData.value[field] === "" ||
+      (typeof formData.value[field] === "object" &&
+        formData.value[field]?.id === 0)
     ) {
       isSave.value = true;
       return;
     }
   }
 
+  let hasFormChanges = false;
 
-  let hasChanges = false;
+  // ตรวจสอบการเปลี่ยนแปลงของ brand
+  const currentBrandName = formData.value.brand?.name || formData.value.brand;
+  const originalBrandName = props.saleItemDetail?.brandName;
 
-  if (formData.value.brand.name !== props.saleItemDetail?.brandName) {
-    hasChanges = true;
+  if (currentBrandName !== originalBrandName) {
+    hasFormChanges = true;
   }
 
-  if (!hasChanges) {
+  // ตรวจสอบการเปลี่ยนแปลงของฟิลด์อื่นๆ
+  if (!hasFormChanges) {
     for (const field of fieldCheckOldData) {
-      if (formData.value[field] !== props.saleItemDetail[field]) {
-        hasChanges = true;
+      const currentValue = formData.value[field];
+      const originalValue = props.saleItemDetail?.[field];
+
+      if (currentValue !== originalValue) {
+        hasFormChanges = true;
         break;
       }
     }
 
-    if (formData.value.color !== normalize(props.saleItemDetail.color)) {
-      hasChanges = true;
+    // ตรวจสอบ color field แยกต่างหาก (มี normalize)
+    if (!hasFormChanges) {
+      const currentColor = normalize(formData.value.color);
+      const originalColor = normalize(props.saleItemDetail?.color);
+
+      if (currentColor !== originalColor) {
+        hasFormChanges = true;
+      }
     }
   }
 
-  isSave.value = !hasChanges;
+  // ตรวจสอบการเปลี่ยนแปลงของรูปภาพ
+  const hasImageChanges = checkImageChanges();
+
+  // มีการเปลี่ยนแปลงหรือไม่
+  const hasAnyChanges = hasFormChanges || hasImageChanges;
+
+  console.log("Form validation check:", {
+    hasFormChanges,
+    hasImageChanges,
+    hasAnyChanges,
+    isSave: !hasAnyChanges,
+  });
+
+  isSave.value = !hasAnyChanges;
 });
+
+const uploadInput = ref(null);
+
+const uploadImage = (event) => {
+  const MAX_SIZE_BYTES = 2 * 1024 * 1024;
+  const files = Array.from(event.target.files);
+
+  // นับรูปที่ยังไม่ถูกลบ
+  const activeImagesCount = images.value.filter((img) => !img.isDeleted).length;
+  const availableSlots = 4 - activeImagesCount;
+
+  // ถ้าไม่มีช่องว่าง
+  if (availableSlots === 0) {
+    errorTitle.value = "No Available Slots";
+    errorMessage.value =
+      "All 4 image slots are occupied. Please remove some images first.";
+    showModal.value = true;
+    event.target.value = "";
+    return;
+  }
+
+  // ถ้าจำนวนไฟล์เกินช่องว่างที่มี
+  let filesToProcess = files;
+  let warningMessage = "";
+
+  if (files.length > availableSlots) {
+    filesToProcess = files.slice(0, availableSlots);
+    warningMessage = `Only ${availableSlots} images can be uploaded. ${
+      files.length - availableSlots
+    } files were skipped.`;
+  }
+
+  const checkSizeAndUploadFile = (file, i) => {
+    if (file && file.size > MAX_SIZE_BYTES) {
+      errorTitle.value = "File Size Too Large";
+      errorMessage.value = `File "${file.name}" exceeds the 2MB limit.`;
+      showModal.value = true;
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const fileName = generateUniqueFileName(file.name);
+
+        const image = {
+          imageName: fileName,
+          src: e.target.result,
+          file,
+          isOriginal: false, // รูปใหม่
+          isDeleted: false,
+        };
+
+        // หาช่องว่างแรกที่ถูกลบหรือเพิ่มที่ท้าย
+        let insertIndex = images.value.findIndex((img) => img.isDeleted);
+
+        if (insertIndex === -1) {
+          // ไม่มีช่องว่างที่ถูกลบ ให้เพิ่มที่ท้าย
+          images.value.push(image);
+          insertIndex = images.value.length - 1;
+        } else {
+          // มีช่องว่างที่ถูกลบ ให้แทนที่ช่องนั้น
+          images.value[insertIndex] = image;
+        }
+
+        // แสดงรูปแรกที่อัปโหลดถ้าไม่มีรูปที่แสดงอยู่
+        if (
+          showImageIndex.value === -1 ||
+          images.value[showImageIndex.value]?.isDeleted
+        ) {
+          showImageIndex.value = insertIndex;
+          showImage.value = e.target.result;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  filesToProcess.forEach((file, i) => {
+    checkSizeAndUploadFile(file, i);
+  });
+
+  // แสดงคำเตือนถ้ามีไฟล์ถูก skip
+  if (warningMessage) {
+    setTimeout(() => {
+      errorTitle.value = "Upload Limited";
+      errorMessage.value = warningMessage;
+      showModal.value = true;
+    }, 100);
+  }
+
+  event.target.value = "";
+};
+
+const generateUniqueFileName = (originalName) => {
+  const isDuplicate = images.value.some(
+    (img) => img.imageName === originalName
+  );
+
+  if (!isDuplicate) {
+    return originalName;
+  }
+
+  const nameParts = originalName.split(".");
+  const baseName = nameParts.slice(0, -1).join(".") || nameParts[0];
+  const ext = nameParts.length > 1 ? "." + nameParts[nameParts.length - 1] : "";
+
+  let suffix = 1;
+  let newName = `${baseName}(${suffix})${ext}`;
+
+  while (images.value.some((img) => img.imageName === newName)) {
+    suffix++;
+    newName = `${baseName}(${suffix})${ext}`;
+  }
+
+  return newName;
+};
+
+const swapUpImage = (i) => {
+  if (i > 0) {
+    let temp = images.value[i];
+    images.value[i] = images.value[i - 1];
+    images.value[i - 1] = temp;
+    // ไม่ต้องเซ็ต hasImageChanges.value ที่นี่ เพราะ watchEffect จะจัดการให้
+
+    // อัปเดต showImage ถ้าจำเป็น
+    if (showImageIndex.value === i) {
+      showImageIndex.value = i - 1;
+    } else if (showImageIndex.value === i - 1) {
+      showImageIndex.value = i;
+    }
+
+    // อัปเดต showImage ถ้าตำแหน่งแรกเปลี่ยน
+    if (i - 1 === 0) {
+      showImage.value = images.value[0].src;
+    }
+  }
+};
+
+const swapDownImage = (i) => {
+  if (i < images.value.length - 1) {
+    // อัปเดต showImage ถ้าจำเป็น
+    if (showImageIndex.value === i) {
+      showImageIndex.value = i + 1;
+    } else if (showImageIndex.value === i + 1) {
+      showImageIndex.value = i;
+    }
+
+    // อัปเดต showImage ถ้าตำแหน่งแรกเปลี่ยน
+    if (i === 0) {
+      showImage.value = images.value[1].src;
+    }
+
+    let temp = images.value[i];
+    images.value[i] = images.value[i + 1];
+    images.value[i + 1] = temp;
+  }
+};
+
+// ปรับปรุงฟังก์ชัน removeImage - ไม่ให้รูปเลื่อนขึ้นมา แต่เปลี่ยนเป็นช่องว่าง (ทั้ง create และ edit)
+const removeImage = (index) => {
+  const imageToRemove = images.value[index];
+
+  // ถ้าเป็น edit mode และเป็นรูปเดิม ให้เก็บ fileName ไว้ใน deletedImageFileNames
+  if (
+    props.mode === "edit" &&
+    imageToRemove.isOriginal &&
+    imageToRemove.imageName
+  ) {
+    deletedImageFileNames.value.push(imageToRemove.imageName);
+  }
+
+  // ทั้ง create และ edit mode: แทนที่จะลบออกจาก array ให้เปลี่ยนเป็น placeholder
+  images.value[index] = {
+    imageName: "",
+    src: null,
+    isOriginal: false,
+    isDeleted: true, // มาร์คว่าถูกลบแล้ว
+    originalPosition: index + 1, // เก็บตำแหน่งเดิมไว้
+  };
+
+  // อัปเดต showImage และ index
+  if (index === showImageIndex.value) {
+    // หารูปถัดไปที่ยังไม่ถูกลบ
+    let nextValidImageIndex = -1;
+    for (let i = 0; i < images.value.length; i++) {
+      if (!images.value[i].isDeleted) {
+        nextValidImageIndex = i;
+        break;
+      }
+    }
+
+    if (nextValidImageIndex !== -1) {
+      showImageIndex.value = nextValidImageIndex;
+      showImage.value = images.value[nextValidImageIndex].src;
+    } else {
+      // ไม่มีรูปเหลือ
+      showImage.value = noPhoto;
+      showImageIndex.value = -1;
+    }
+  }
+};
 </script>
 
 <template>
   <div class="mt-10 lg:mt-0 lg:mx-16 mb-14">
     <div class="flex flex-col lg:flex-row">
-      <div class="w-full lg:w-2/4 mx-auto overflow-auto mb-10 lg:mb-10">
-        <div class="border-2 rounded-2xl w-4/5 md:w-2/3 mx-auto">
-          <img src="/pictures/iPhone15Pro.png" alt="" />
+      <div
+        class="w-full lg:w-2/4 mx-auto mb-10 lg:mb-10 flex flex-col items-center gap-4"
+      >
+        <div
+          class="border-2 rounded-2xl w-4/5 md:w-2/5 lg:w-2/3 max-h-[450px] mx-auto p-8"
+        >
+          <img
+            :src="showImage"
+            :class="images.length != 0 ? 'object-cover' : 'object-contain'"
+            class="w-full h-full rounded-2xl"
+            alt=""
+          />
         </div>
         <div
           class="flex gap-4 mt-10 w-full justify-center items-center overflow-auto"
         >
-          <img
-            v-for="i in 4"
-            class="h-full w-14 lg:w-18 border rounded-2xl"
-            :key="i"
-            src="/pictures/iPhone15Pro.png"
-            alt=""
-          />
+          <div
+            v-for="(image, index) in images"
+            :key="`image-${index}`"
+            class="relative flex flex-col items-center"
+          >
+            <div
+              v-if="image.isDeleted"
+              class="max-h-[60px] lg:max-h-[80px] h-[60px] lg:h-[80px] w-14 lg:w-18 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center bg-gray-50 opacity-60"
+            >
+              <svg
+                class="w-6 h-6 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </div>
+            <img
+              v-else
+              class="max-h-[60px] lg:max-h-[80px] h-[60px] lg:h-[80px] w-14 lg:w-18 border object-cover rounded-2xl cursor-pointer"
+              :src="image.src"
+              alt=""
+              :class="
+                showImageIndex == index
+                  ? 'border-2 border-blue-600 hover:border-black'
+                  : 'hover:border-blue-500'
+              "
+              @click="
+                showImage = image.src;
+                showImageIndex = index;
+              "
+            />
+            <span
+              class="text-xs mt-1"
+              :class="
+                image.isDeleted ? 'text-gray-400 line-through' : 'text-gray-600'
+              "
+            >
+              {{ index + 1 }}
+            </span>
+            <div class="text-xs mt-1">
+              <span v-if="image.isDeleted" class="text-gray-500 font-semibold">
+                {{ props.mode === "create" ? "Empty" : "Deleted" }}
+              </span>
+              <span
+                v-else-if="image.isOriginal"
+                class="text-green-600 font-semibold"
+                >Original</span
+              >
+              <span v-else class="text-blue-600 font-semibold">New</span>
+            </div>
+          </div>
+
+          <!-- แสดงช่องว่างสำหรับรูปที่ยังไม่มี (ถ้าไม่ครบ 4 รูป) -->
+          <!-- ไม่ต้องกดเพื่อ upload - เป็นแค่ preview เท่านั้น -->
+          <div
+            v-for="i in Math.max(0, 4 - images.length)"
+            :key="`empty-${i}`"
+            class="relative flex flex-col items-center"
+          >
+            <div
+              class="max-h-[60px] lg:max-h-[80px] h-[60px] lg:h-[80px] w-14 lg:w-18 border-2 border-dashed border-gray-300 rounded-2xl flex items-center justify-center bg-gray-50"
+            >
+              <svg
+                class="w-6 h-6 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                ></path>
+              </svg>
+            </div>
+
+            <!-- แสดงหมายเลขลำดับ -->
+            <span class="text-xs text-gray-400 mt-1">{{
+              images.length + i
+            }}</span>
+            <!-- แสดงสถานะ -->
+
+            <div class="text-xs mt-1">
+              <span class="text-gray-400">Empty</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ปุ่ม Upload Image -->
+        <div class="flex flex-col items-center gap-2">
+          <button
+            type="button"
+            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer transition-colors duration-200"
+            @click="uploadInput.click()"
+          >
+            Upload Images
+          </button>
+          <p class="text-sm text-gray-500">
+            {{ images.filter((img) => !img.isDeleted).length }}/4 images
+            uploaded
+          </p>
+        </div>
+
+        <!-- Hidden file input -->
+        <input
+          id="file-upload"
+          type="file"
+          class="hidden"
+          ref="uploadInput"
+          multiple
+          accept="image/*"
+          @change="uploadImage"
+        />
+
+        <!-- แสดงข้อมูลสถิติการลบรูป (เฉพาะ edit mode) -->
+        <div
+          v-if="props.mode === 'edit' && deletedImageFileNames.length > 0"
+          class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg"
+        >
+          <div class="text-sm text-red-700">
+            <span class="font-semibold"
+              >Deleted Images ({{ deletedImageFileNames.length }}):</span
+            >
+            <div class="mt-1">
+              <span
+                v-for="(fileName, index) in deletedImageFileNames"
+                :key="fileName"
+                class="inline-block"
+              >
+                {{ fileName
+                }}<span v-if="index < deletedImageFileNames.length - 1"
+                  >,
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- แสดงรายชื่อไฟล์และปุ่มจัดการ -->
+        <div
+          class="flex flex-col gap-2 items-center justify-center w-full max-w-md"
+        >
+          <!-- Header สำหรับรายการรูป -->
+          <div v-if="images.length > 0" class="w-full">
+            <h3 class="text-lg font-semibold text-gray-700 mb-3 text-center">
+              ({{ images.filter((img) => !img.isDeleted).length }}/4)
+              <span
+                v-if="props.mode === 'edit' && deletedImageFileNames.length > 0"
+                class="text-gray-500 text-sm"
+              >
+                ({{ deletedImageFileNames.length }} deleted)
+              </span>
+            </h3>
+          </div>
+
+          <!-- รายการรูปภาพ -->
+
+          <div
+            v-for="(image, i) in images"
+            :class="'itbms-picture-file' + i"
+            :key="`image-${i}-${image.imageName || 'deleted'}`"
+            class="w-full"
+          >
+            <div v-if="image.isDeleted" class="flex items-center gap-2">
+              <div
+                class="flex-shrink-0 w-8 h-8 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center text-sm font-semibold border-2 border-dashed border-gray-300"
+              >
+                {{ i + 1 }}
+              </div>
+
+              <div
+                class="flex-1 flex justify-between gap-2 border-2 border-dashed border-gray-300 text-gray-500 text-xs py-2 px-4 rounded bg-gray-50 opacity-60 max-w-sm"
+              >
+                <div class="flex flex-col flex-1 min-w-0">
+                  <p class="truncate font-medium line-through max-w-[200px]">
+                    {{
+                      props.mode === "create"
+                        ? "[Empty Slot]"
+                        : "[Deleted Slot]"
+                    }}
+                  </p>
+                  <div class="flex gap-2 mt-1 flex-wrap">
+                    <span
+                      class="text-gray-500 bg-gray-200 px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap"
+                    >
+                      {{ props.mode === "create" ? "Removed" : "Deleted" }}
+                    </span>
+                  </div>
+                </div>
+                <div class="text-gray-400 text-xs self-center">
+                  {{
+                    props.mode === "create"
+                      ? "Can be filled"
+                      : "Will be removed"
+                  }}
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="flex items-center gap-2">
+              <div
+                class="flex-shrink-0 w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold"
+              >
+                {{ i + 1 }}
+              </div>
+
+              <div
+                class="flex-1 flex justify-between gap-2 border text-xs py-2 px-4 rounded transition-colors max-w-sm"
+                :class="
+                  image.isOriginal
+                    ? 'border-green-500 text-green-700 bg-green-50'
+                    : 'border-blue-500 text-blue-700 bg-blue-50'
+                "
+              >
+                <div class="flex flex-col flex-1 min-w-0">
+                  <p
+                    class="truncate font-medium max-w-[200px]"
+                    :title="image.imageName"
+                  >
+                    {{ image.imageName }}
+                  </p>
+                  <div class="flex gap-2 mt-1 flex-wrap">
+                    <span
+                      :class="
+                        image.isOriginal
+                          ? 'text-green-600 bg-green-100'
+                          : 'text-blue-600 bg-blue-100'
+                      "
+                      class="px-2 py-0.5 rounded text-xs font-semibold whitespace-nowrap"
+                    >
+                      {{ image.isOriginal ? "Original" : "New" }}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  class="text-red-500 cursor-pointer hover:text-red-700 hover:bg-red-100 p-1 rounded transition-colors"
+                  :class="'itbms-picture-file' + i + '-clear'"
+                  @click="removeImage(i)"
+                  title="Delete image"
+                >
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+
+              <div
+                class="flex flex-col gap-1"
+                :class="
+                  i == 0
+                    ? 'self-end mb-2'
+                    : i == images.length - 1
+                    ? 'self-start mt-2'
+                    : ''
+                "
+              >
+                <button
+                  class="cursor-pointer hover:opacity-70 p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                  :class="'itbms-picture-file' + i + '-up'"
+                  v-if="i != 0"
+                  @click="swapUpImage(i)"
+                  title="Move up"
+                >
+                  <img
+                    class="w-3 h-3"
+                    src="../assets/icons/bxs--up-arrow.svg"
+                    alt=""
+                  />
+                </button>
+                <button
+                  class="cursor-pointer hover:opacity-70 p-1 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                  :class="'itbms-picture-file' + i + '-down'"
+                  v-if="i < images.length - 1"
+                  @click="swapDownImage(i)"
+                  title="Move down"
+                >
+                  <img
+                    class="w-3 h-3"
+                    src="../assets/icons/bxs--down-arrow.svg"
+                    alt=""
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div v-if="images.length < 4" class="w-full mt-2">
+            <div class="flex flex-col gap-2">
+              <div
+                v-for="emptySlot in Math.max(0, 4 - images.length)"
+                :key="`empty-slot-${emptySlot}`"
+                class="flex items-center gap-2 opacity-50"
+              >
+                <div
+                  class="flex-shrink-0 w-8 h-8 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-sm border-2 border-dashed"
+                >
+                  {{ images.length + emptySlot }}
+                </div>
+                <div
+                  class="flex-1 border-2 border-dashed border-gray-300 text-gray-400 text-xs py-2 px-4 rounded bg-gray-50 max-w-sm"
+                >
+                  <p class="truncate max-w-[200px]">
+                    Empty slot - Click "Upload Images" to add
+                  </p>
+                  <span class="text-gray-400 text-xs whitespace-nowrap"
+                    >Available position</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
       <div
         class="flex flex-col items-center lg:items-start justify-center lg:justify-start xl:w-2/4"
       >
@@ -555,14 +1320,18 @@ watchEffect(() => {
               id="quantity"
               class="itbms-quantity input"
               min="1"
-              value="1"
-              v-model="formData.quantity"
+              :value="formData.quantity === -1 ? '' : formData.quantity"
+              @input="
+                formData.quantity =
+                  $event.target.value === '' ? -1 : Number($event.target.value)
+              "
               :class="{
                 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
                   validate.quantity.showError,
               }"
               @blur="nonNegative('quantity', true)"
             />
+
             <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.quantity.showError"
@@ -586,7 +1355,7 @@ watchEffect(() => {
             </button>
 
             <button @click="$router.back()" class="itbms-cancel-button btn">
-              Cancle
+              Cancel
             </button>
           </div>
         </div>
