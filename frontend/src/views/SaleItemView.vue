@@ -129,13 +129,13 @@ const setDefaultStoreValues = (pageInfo) => {
 
 const applyFilter = async () => {
   try {
-    const storagesForApi = (filterStorages.value || []).filter(
-      (s) => typeof s === 'number'
-    )
+    // const storagesForApi = (filterStorages.value || []).map(
+    //   (s) => (s === 0 ? "" : s)
+    // )
 
     const response = await getAllSaleItems_v2({
       filterBrands: filterBrands.value,
-      filterStorages: storagesForApi,
+      filterStorages: filterStorages.value,
       filterPriceLower: filterPrices.value.min,
       filterPriceUpper: filterPrices.value.max,
       page: currentPage.value,
@@ -256,10 +256,12 @@ const initializeBrands = async () => {
 
 const initializeSaleItems = async (pageInfo) => {
   try {
-    const storagesForApi = (getFilterList().storages || []).filter(s => typeof s === 'number')
+    // const storagesForApi = (getFilterList().storages || []).map(
+    //   (s) => (s === 0 ? "" : s)
+    // )
     const response = await getAllSaleItems_v2({
       filterBrands: getFilterList().brands,
-      filterStorages: storagesForApi,
+      filterStorages: getFilterList().storages,
       filterPriceLower: getFilterList().prices.min,
       filterPriceUpper: getFilterList().prices.max,
       page: pageInfo?.page ?? 0,
@@ -424,7 +426,11 @@ const updateWidth = () => {
                 @mousedown.prevent="selectStorage(storage)"
                 class="itbms-storage-size-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
-                {{ typeof storage === 'number' && storage != 0 ? storage + ' GB' : "no storage" }}
+                {{
+                  typeof storage === 'number' && storage != 0
+                    ? storage + ' GB'
+                    : 'Not specified'
+                }}
               </li>
             </ul>
           </div>
@@ -546,7 +552,7 @@ const updateWidth = () => {
           class="itbms-storage-size-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
           <span class="itbms-storage-size-filter">{{
-            typeof storage === 'number' ? storage + ' GB' : storage
+            storage === 0 ? 'Not specified' : storage + ' GB'
           }}</span>
           <button
             class="itbms-storage-size-item-clear font-bold cursor-pointer"
