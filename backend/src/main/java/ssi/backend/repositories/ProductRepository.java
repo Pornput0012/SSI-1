@@ -27,4 +27,15 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             Integer priceUpper,
             Pageable pageable
     );
+
+    @Query("SELECT p FROM Product p JOIN p.brand brand " +
+                    "WHERE " +
+                    "(:brandNames IS NULL OR brand.name IN :brandNames) " +
+                    "AND (:priceLower IS NULL OR p.price >= :priceLower) " +
+                    "AND (:priceUpper IS NULL OR p.price <= :priceUpper)")
+    Page<Product> findFilteredProducts(
+                    List<String> brandNames,
+                    Integer priceLower,
+                    Integer priceUpper,
+                    Pageable pageable);
 }

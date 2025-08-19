@@ -134,16 +134,8 @@ public class ProductService {
                 return productPage;
             }
         } else {
-            List<Integer> defaultStorages = new ArrayList<>();
-            defaultStorages.add(32);
-            defaultStorages.add(64);
-            defaultStorages.add(128);
-            defaultStorages.add(256);
-            defaultStorages.add(512);
-            defaultStorages.add(1024);
             Page<Product> pageResult = productRepository.findFilteredProducts(
                     (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
-                    defaultStorages,
                     filterPriceLower,
                     filterPriceUpper,
                     pageable);
