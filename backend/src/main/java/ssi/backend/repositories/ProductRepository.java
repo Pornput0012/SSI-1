@@ -37,10 +37,15 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
                     "WHERE " +
                     "(:brandNames IS NULL OR brand.name IN :brandNames) " +
                     "AND (:priceLower IS NULL OR p.price >= :priceLower) " +
-                    "AND (:priceUpper IS NULL OR p.price <= :priceUpper)")
+                    "AND (:priceUpper IS NULL OR p.price <= :priceUpper)" +
+            "AND (:keyword IS NULL OR " +
+            "     LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "     OR LOWER(p.model) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "     OR LOWER(p.color) LIKE LOWER(CONCAT('%', :keyword, '%')) )")
     Page<Product> findFilteredProducts(
                     List<String> brandNames,
                     Integer priceLower,
                     Integer priceUpper,
+                    String keyword,
                     Pageable pageable);
 }
