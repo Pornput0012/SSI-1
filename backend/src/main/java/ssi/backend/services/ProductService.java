@@ -142,6 +142,7 @@ public class ProductService {
                     (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
                     filterPriceLower,
                     filterPriceUpper,
+                    keyword,
                     pageable);
             productPage = modelMapper.map(pageResult, ProductPageDTO.class);
             productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
