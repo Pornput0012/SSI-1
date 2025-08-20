@@ -51,7 +51,7 @@ public class ProductService {
 
     public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
             List<String> filterBrands, List<Integer> filterStorages,
-            Integer filterPriceLower, Integer filterPriceUpper) {
+            Integer filterPriceLower, Integer filterPriceUpper, String keyword) {
         ProductPageDTO productPage;
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
@@ -84,6 +84,7 @@ public class ProductService {
                         nonZeroStorages,
                         filterPriceLower,
                         filterPriceUpper,
+                        keyword,
                         pageable);
                 // Query รอบสองด้วย [0]
                 Page<Product> pageResult2 = productRepository.findFilteredProducts(
@@ -91,6 +92,7 @@ public class ProductService {
                         null,
                         filterPriceLower,
                         filterPriceUpper,
+                        keyword,
                         pageable);
                 // รวมผลลัพธ์
                 List<Product> combinedList = new ArrayList<>();
@@ -112,6 +114,7 @@ public class ProductService {
                         null,
                         filterPriceLower,
                         filterPriceUpper,
+                        keyword,
                         pageable);
                 productPage = modelMapper.map(pageResult, ProductPageDTO.class);
                 productPage
@@ -125,6 +128,7 @@ public class ProductService {
                         filterStorages,
                         filterPriceLower,
                         filterPriceUpper,
+                        keyword,
                         pageable);
                 productPage = modelMapper.map(pageResult, ProductPageDTO.class);
                 productPage
