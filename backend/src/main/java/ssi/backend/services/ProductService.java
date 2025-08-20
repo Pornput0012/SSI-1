@@ -73,8 +73,8 @@ public class ProductService {
 
         // Logic สำหรับกรณี filterStorages
         if (filterStorages != null && !filterStorages.isEmpty()) {
-            boolean hasZero = filterStorages.stream().anyMatch(ele -> ele == 0);
-            List<Integer> nonZeroStorages = filterStorages.stream().filter(ele -> ele != 0).toList();
+            boolean hasZero = filterStorages.stream().anyMatch(ele -> ele == -1);
+            List<Integer> nonZeroStorages = filterStorages.stream().filter(ele -> ele != -1).toList();
 
             if (hasZero && !nonZeroStorages.isEmpty()) {
                 // กรณีมี 0 และเลขอื่น
