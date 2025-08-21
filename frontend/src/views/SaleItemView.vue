@@ -63,7 +63,6 @@ const saleItems = computed(() => getSaleItemsPage());
 
 const searchInput = ref("");
 
-
 const hasError = ref("");
 const showFilterDropdown = ref(false);
 const showCreatedModal = ref(false);
@@ -154,10 +153,10 @@ const applyFilter = async () => {
   }
 };
 
-const handleSearchKeyword = async () =>{
-  handlePageChange(0)
-  await applyFilter()
-}
+const handleSearchKeyword = async () => {
+  handlePageChange(0);
+  await applyFilter();
+};
 
 const selectBrand = async (brand) => {
   setSelectBrand(brand);
@@ -316,48 +315,55 @@ const updateWidth = () => {
 
   <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
     <!-- Header Section -->
-    <header class="w-full flex justify-between items-center">
-      <h1 class="font-bold text-2xl">Products</h1>
-      <div class="flex gap-4 items-center">
+    <header
+      class="w-full flex flex-col lg:flex-row justify-between items-center"
+    >
+      <h1 class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">Products</h1>
+      <div class="flex flex-col md:flex-row gap-4 items-center">
         <router-link
           :to="{ name: 'create-sale-item' }"
-          class="itbms-sale-item-add btn btn-primary"
+          class="itbms-sale-item-add btn btn-primary text-xs md:text-base"
         >
           Add Sale Item
         </router-link>
-        <label class="w-fit h-8 input input-xs hidden sm:flex">
-          <input
-            @keypress.enter="handleSearchKeyword"
-            type="search"
-            v-model="searchInput"
-            class="grow text-lg"
-            placeholder="Search..."
-          />
-          <button @click="handleSearchKeyword" class="itbms-search-text cursor-pointer">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
+        <div class="flex gap-2">
+          <label class="w-fit h-8 input input-xs flex">
+            <input
+              @keypress.enter="handleSearchKeyword"
+              type="search"
+              v-model="searchInput"
+              class="grow text-lg"
+              placeholder="Search..."
+            />
+            <button
+              @click="handleSearchKeyword"
+              class="itbms-search-text cursor-pointer"
             >
-              <g fill="none" fill-rule="evenodd">
-                <path
-                  d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
-                />
-                <path
-                  fill="currentColor"
-                  d="M10.5 2a8.5 8.5 0 1 0 5.262 15.176l3.652 3.652a1 1 0 0 0 1.414-1.414l-3.652-3.652A8.5 8.5 0 0 0 10.5 2M4 10.5a6.5 6.5 0 1 1 13 0a6.5 6.5 0 0 1-13 0"
-                />
-              </g>
-            </svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+              >
+                <g fill="none" fill-rule="evenodd">
+                  <path
+                    d="m12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.018-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M10.5 2a8.5 8.5 0 1 0 5.262 15.176l3.652 3.652a1 1 0 0 0 1.414-1.414l-3.652-3.652A8.5 8.5 0 0 0 10.5 2M4 10.5a6.5 6.5 0 1 1 13 0a6.5 6.5 0 0 1-13 0"
+                  />
+                </g>
+              </svg>
+            </button>
+          </label>
+          <button
+            class="itbms-brand-filter-button btn btn-error btn-sm text-white"
+            @click="searchInput = ''"
+          >
+            clear
           </button>
-        </label>
-        <button
-          class="itbms-brand-filter-button btn btn-error btn-sm text-white"
-          @click="searchInput = ''"
-        >
-          clear
-        </button>
+        </div>
       </div>
     </header>
 
@@ -365,11 +371,13 @@ const updateWidth = () => {
     <section class="mt-6 w-full">
       <!-- Brand Filter Controls -->
       <div
-        class="flex justify-between items-center flex-wrap md:flex-nowrap gap-4"
+        class="flex flex-col lg:flex-row justify-between items-center flex-wrap md:flex-nowrap gap-4"
       >
-        <div class="flex gap-3 items-center">
+        <div class="flex flex-col md:flex-row gap-3 items-center">
           <!-- Brand Dropdown -->
-          <div class="itbms-brand-filter relative flex-1">
+          <div
+            class="itbms-brand-filter relative flex-1 md:max-w-28 xl:max-w-none"
+          >
             <input
               type="text"
               readonly
@@ -391,7 +399,9 @@ const updateWidth = () => {
             </ul>
           </div>
           <!-- Price Dropdown -->
-          <div class="itbms-price-filter relative flex-2">
+          <div
+            class="itbms-price-filter relative flex-1 xl:flex-2 md:max-w-28 xl:max-w-none"
+          >
             <input
               type="number"
               readonly
@@ -443,7 +453,9 @@ const updateWidth = () => {
             </ul>
           </div>
           <!-- Storage Size Dropdown -->
-          <div class="itbms-storage-size-filter relative flex-1">
+          <div
+            class="itbms-storage-size-filter relative flex-1 md:max-w-28 xl:max-w-none"
+          >
             <input
               type="number"
               readonly
@@ -518,7 +530,22 @@ const updateWidth = () => {
             :class="{ 'btn-active': !['ASC', 'DESC'].includes(sortDirection) }"
             :disabled="!['ASC', 'DESC'].includes(sortDirection)"
           >
-            None
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-miterlimit="10"
+                stroke-width="1.5"
+                d="M4 12h12M4 8h16M4 16h8"
+              />
+            </svg>
           </button>
           <button
             @click="handleSortChange('ASC')"
@@ -526,7 +553,17 @@ const updateWidth = () => {
             :class="{ 'btn-active': sortDirection === 'ASC' }"
             :disabled="sortDirection === 'ASC'"
           >
-            Asc
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+            >
+              <path
+                fill="currentColor"
+                d="M3 1.5a.5.5 0 0 0-1 0v11.8L.85 12.15a.5.5 0 0 0-.707.707l2 2a.5.5 0 0 0 .707 0l2-2a.5.5 0 0 0-.707-.707l-1.15 1.15V1.5zM7.5 12a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zm0-3a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1zm0-3a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm8-2a.5.5 0 0 0 0-1h-8a.5.5 0 0 0 0 1z"
+              />
+            </svg>
           </button>
           <button
             @click="handleSortChange('DESC')"
@@ -534,7 +571,17 @@ const updateWidth = () => {
             :class="{ 'btn-active': sortDirection === 'DESC' }"
             :disabled="sortDirection === 'DESC'"
           >
-            Desc
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+            >
+              <path
+                fill="currentColor"
+                d="M4.5 22a.5.5 0 0 0 .5-.5V3.7l3.15 3.15a.5.5 0 0 0 .707-.707l-4-4a.5.5 0 0 0-.707 0l-4 4a.5.5 0 0 0 .707.707l3.15-3.15v17.8a.5.5 0 0 0 .5.5zM11 6.5a.5.5 0 0 1 .5-.5h12a.5.5 0 0 1 0 1h-12a.5.5 0 0 1-.5-.5m.5 3.5a.5.5 0 0 0 0 1h9a.5.5 0 0 0 0-1zm0 4a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm-.5 4.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5"
+              />
+            </svg>
           </button>
         </div>
       </div>
