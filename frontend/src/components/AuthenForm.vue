@@ -5,6 +5,7 @@ const userType = ref("Buyer");
 
 let roles = ["Buyer", "Seller"];
 
+
 const formConstraints = {
   Buyer: [
     { label: "nickname", constraint: { type: "string", required: true } },
@@ -33,7 +34,10 @@ const formConstraints = {
   ],
 
   Seller: [
-    { label: "mobileNumber", constraint: { type: "string", required: true } },
+    {
+      label: "mobileNumber",
+      constraint: { type: "string", required: true },
+    },
     {
       label: "bankAccountNumber",
       constraint: { type: "string", required: true },
@@ -52,10 +56,10 @@ const formConstraints = {
 </script>
 
 <template>
-  <div class="w-full h-screen flex items-center justify-center">
+  <div class="w-full h-full min-h-screen flex">
     <!-- Left Banner Section -->
     <div
-      class="w-1/2 h-full relative overflow-hidden bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 flex flex-col justify-center items-center text-white"
+      class="w-1/2 min-h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 flex flex-col justify-center items-center text-white"
     >
       <!-- Main Content -->
       <div class="z-10 text-center px-12">
@@ -100,7 +104,7 @@ const formConstraints = {
         </div>
       </div>
     </div>
-    <div class="w-1/2 flex flex-col justify-center items-center gap-4">
+    <div class="w-1/2 min-h-screen flex flex-col justify-center items-center gap-4 py-16">
       <h1 class="text-3xl mb-6 text-indigo-700 font-medium">Create account</h1>
       <div class="flex items-center space-x-2 bg-gray-200 rounded-lg p-1 w-fit">
         <label
@@ -117,7 +121,7 @@ const formConstraints = {
       </div>
 
       <div class="max-w-full flex flex-col gap-2">
-        <div v-for="field in formConstraints.Buyer" class="flex flex-col gap-1">
+        <div v-if="userType == 'Buyer'" v-for="field in formConstraints.Buyer" class="flex flex-col gap-1">
           <label class="text-sm md:text-base" :for="field.label"
             >{{ field.label }}<span class="text-red-500"> *</span></label
           >
@@ -131,7 +135,25 @@ const formConstraints = {
             />
           </div>
         </div>
+         <div v-else v-for="field in [...formConstraints.Buyer,...formConstraints.Seller]" class="flex flex-col gap-1">
+          <label class="text-sm md:text-base" :for="field.label"
+            >{{ field.label }}<span class="text-red-500"> *</span></label
+          >
+
+          <div  class="flex-col">
+            <input
+              type="text"
+              :id="field.label"
+              class="itbms-model input w-48 sm:w-64 md:w-80"
+              :class="'itbms-' + field.label"
+            />
+          </div>
+        </div>
       </div>
+    <div class="flex gap-3 mt-6 w-48 sm:w-64 md:w-80 justify-end">
+      <button class="btn bg-base-200 shadow-sm text-indigo-700">Cancel</button>
+      <button class="btn btn-primary">Submit</button>
+    </div>
     </div>
   </div>
 </template>
