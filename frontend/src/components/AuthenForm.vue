@@ -1,19 +1,49 @@
 <script setup>
 import { ref } from "vue";
+import { useRouter } from "vue-router";
 
+const props = defineProps({
+  userDetail: {
+    type: Object,
+  },
+  disableSaveBtn: Boolean,
+});
 const userType = ref("Buyer");
 
 let roles = ["Buyer", "Seller"];
 
+const { router } = useRouter();
+
+const formDataBuyer = ref({
+  nickname: props.userDetail?.nickname ?? "",
+  email: props.userDetail?.email || "",
+  password: props.userDetail?.password ?? "",
+  fullname: props.userDetail?.fullname || "",
+  userType: "",
+});
+
+const formDataSeller = ref({
+  ...formDataBuyer.value,
+  mobileNumber: props.userDetail?.mobileNumber ?? "",
+  bankAccountNumber: props.userDetail?.bankAccountNumber || "",
+  bankName: props.userDetail?.bankName ?? "",
+  nationalIdNumber: props.userDetail?.nationalIdNumber || "",
+});
 
 const formConstraints = {
   Buyer: [
-    { label: "nickname", constraint: { type: "string", required: true } },
     {
+      title: "Nickname",
+      label: "nickname",
+      constraint: { type: "string", required: true },
+    },
+    {
+      title: "Email",
       label: "email",
       constraint: { type: "string", required: true, unique: true },
     },
     {
+      title: "Password",
       label: "password",
       constraint: {
         type: "string",
@@ -23,6 +53,7 @@ const formConstraints = {
       },
     },
     {
+      title: "Fullname",
       label: "fullname",
       constraint: {
         type: "string",
@@ -35,31 +66,42 @@ const formConstraints = {
 
   Seller: [
     {
+      title: "Mobile number",
       label: "mobileNumber",
       constraint: { type: "string", required: true },
     },
     {
+      title: "Bank account number",
       label: "bankAccountNumber",
       constraint: { type: "string", required: true },
     },
-    { label: "bankName", constraint: { type: "string", required: true } },
     {
-      label: "nationalIdNumber",
+      title: "Bank name",
+      label: "bankName",
       constraint: { type: "string", required: true },
     },
     {
-      label: "nationalIdPhoto",
-      constraint: { type: "file[]", required: true, files: 2 },
+      title: "National ID number",
+      label: "nationalIdNumber",
+      constraint: { type: "string", required: true },
     },
+    // {
+    //   title: "National ID photo",
+    //   label: "nationalIdPhoto",
+    //   constraint: { type: "file[]", required: true, files: 2 },
+    // },
   ],
 };
 </script>
 
 <template>
-  <div class="w-full h-full min-h-screen flex">
+  <div class="relative w-full h-full min-h-screen flex">
+    <div
+      class="absolute inset-0 w-1/2 min-h-screen h-full bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700"
+    ></div>
     <!-- Left Banner Section -->
     <div
-      class="w-1/2 min-h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 flex flex-col justify-center items-center text-white"
+      class="w-1/2 h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 flex flex-col justify-center items-center text-white"
     >
       <!-- Main Content -->
       <div class="z-10 text-center px-12">
@@ -104,7 +146,9 @@ const formConstraints = {
         </div>
       </div>
     </div>
-    <div class="w-1/2 min-h-screen flex flex-col justify-center items-center gap-4 py-16">
+    <div
+      class="w-1/2 min-h-screen flex flex-col justify-center items-center gap-4 py-16"
+    >
       <h1 class="text-3xl mb-6 text-indigo-700 font-medium">Create account</h1>
       <div class="flex items-center space-x-2 bg-gray-200 rounded-lg p-1 w-fit">
         <label
@@ -121,9 +165,19 @@ const formConstraints = {
       </div>
 
       <div class="max-w-full flex flex-col gap-2">
-        <div v-if="userType == 'Buyer'" v-for="field in formConstraints.Buyer" class="flex flex-col gap-1">
+        <div
+          v-if="userType == 'Buyer'"
+          v-for="field in formConstraints.Buyer"
+          class="flex flex-col gap-1"
+        >
           <label class="text-sm md:text-base" :for="field.label"
-            >{{ field.label }}<span class="text-red-500"> *</span></label
+            >{{ field.title
+            }}<span
+              class="text-red-500"
+              v-show="field?.constraint?.required === true"
+            >
+              *</span
+            ></label
           >
 
           <div class="flex-col">
@@ -135,12 +189,22 @@ const formConstraints = {
             />
           </div>
         </div>
-         <div v-else v-for="field in [...formConstraints.Buyer,...formConstraints.Seller]" class="flex flex-col gap-1">
+        <div
+          v-else
+          v-for="field in [...formConstraints.Buyer, ...formConstraints.Seller]"
+          class="flex flex-col gap-1"
+        >
           <label class="text-sm md:text-base" :for="field.label"
-            >{{ field.label }}<span class="text-red-500"> *</span></label
+            >{{ field.title
+            }}<span
+              class="text-red-500"
+              v-show="field?.constraint?.required === true"
+            >
+              *</span
+            ></label
           >
 
-          <div  class="flex-col">
+          <div class="flex-col">
             <input
               type="text"
               :id="field.label"
@@ -149,11 +213,41 @@ const formConstraints = {
             />
           </div>
         </div>
+        <div v-if="userType == 'Seller'">
+          <label class="text-sm md:text-base" for="nationalIdPhoto"
+            >National ID photo<span class="text-red-500"> *</span></label
+          >
+          <p class="my-2 text-sm text-purple-900/70">front</p>
+          <div class="flex-col">
+            <input
+              type="file"
+              ref="uploadInput"
+              accept="image/*"
+              @change="uploadImage"
+              class="itbms-nationalIdPhoto file-input file-input-ghost"
+            />
+          </div>
+          <p class="my-2 text-sm text-purple-900/70 ">Back</p>
+          <div class="flex-col">
+            <input
+              type="file"
+              ref="uploadInput"
+              accept="image/*"
+              @change="uploadImage"
+              class="itbms-nationalIdPhoto file-input file-input-ghost"
+            />
+          </div>
+        </div>
       </div>
-    <div class="flex gap-3 mt-6 w-48 sm:w-64 md:w-80 justify-end">
-      <button class="btn bg-base-200 shadow-sm text-indigo-700">Cancel</button>
-      <button class="btn btn-primary">Submit</button>
-    </div>
+      <div class="flex gap-3 mt-6 w-48 sm:w-64 md:w-80 justify-end">
+        <button
+          @click="$router.back()"
+          class="btn bg-base-200 shadow-sm text-indigo-700"
+        >
+          Cancel
+        </button>
+        <button class="btn btn-primary">Submit</button>
+      </div>
     </div>
   </div>
 </template>
