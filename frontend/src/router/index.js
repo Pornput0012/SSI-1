@@ -8,6 +8,7 @@ import homeView from "@/views/LandingView.vue";
 import SaleItemListView from "@/views/SaleItemListView.vue";
 import SaleItemView from "@/views/SaleItemView.vue";
 import { createRouter, createWebHistory } from "vue-router";
+import RegisterView from "@/views/RegisterView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -61,6 +62,12 @@ const router = createRouter({
       path: "/brands/:id/edit",
       component: EditBrandView,
       name: "edit-brand",
+    },
+
+     {
+      path: "/register",
+      component: RegisterView,
+      name: "register",
     },
   ],
 });
