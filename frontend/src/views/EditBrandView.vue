@@ -4,7 +4,7 @@ import MessageModal from "@/components/MessageModal.vue";
 import FormBrand from "@/components/FormBrand.vue";
 import { getBrandById, updateBrand } from "@/services/BrandService";
 import { useBrandStore } from "@/stores/BrandStore";
-import { useNotiStore } from "@/stores/์NotiStore";
+import { useNotiStore } from "@/stores/NotiStore";
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
