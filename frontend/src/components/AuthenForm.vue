@@ -85,11 +85,7 @@ const formConstraints = {
       label: "nationalIdNumber",
       constraint: { type: "string", required: true },
     },
-    // {
-    //   title: "National ID photo",
-    //   label: "nationalIdPhoto",
-    //   constraint: { type: "file[]", required: true, files: 2 },
-    // },
+   
   ],
 };
 </script>
