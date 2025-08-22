@@ -5,7 +5,7 @@ import { getAllBrands } from "@/services/BrandService";
 import { getAllSaleItems_v2 } from "@/services/SaleItemService";
 import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useNotiStore } from "@/stores/์NotiStore";
+import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
   SELECTED_STORAGES: "selectedStorages",
   SELECTED_PRICES: "selectedPrices",
   PAGE_INFO: "pageInfo",
+  SEARCH_KEYWORD: "searchKeyword",
 };
 
 const filterStore = useFilterStore();
@@ -43,6 +44,7 @@ const {
   setSelectPrice,
   setSelectedPrice,
   removePrice,
+  setSearchKeyword,
 } = filterStore;
 
 const { getSaleItemsPage } = saleItemStore;
@@ -54,6 +56,7 @@ const pageSize = computed(() => filterStore.pageSize);
 const selectedBrands = computed(() => filterStore.selectedBrands);
 const selectedStorages = computed(() => filterStore.selectedStorages);
 const selectedPrices = computed(() => filterStore.selectedPrices);
+const searchKeyword = computed(() => filterStore.searchKeyword);
 
 const filterBrands = computed(() => getFilterList().brands);
 const filterStorages = computed(() => getFilterList().storages);
@@ -81,6 +84,10 @@ const saveToLocalStorage = () => {
   sessionStorage.setItem(
     STORAGE_KEYS.SELECTED_BRANDS,
     JSON.stringify(selectedBrands.value)
+  );
+  sessionStorage.setItem(
+    STORAGE_KEYS.SEARCH_KEYWORD,
+    JSON.stringify(searchKeyword.value)
   );
   sessionStorage.setItem(
     STORAGE_KEYS.SELECTED_STORAGES,
@@ -111,15 +118,25 @@ const getFromLocalStorage = () => {
   const selectedPrices = JSON.parse(
     sessionStorage.getItem(STORAGE_KEYS.SELECTED_PRICES)
   );
+  const searchKeyword = JSON.parse(
+    sessionStorage.getItem(STORAGE_KEYS.SEARCH_KEYWORD)
+  );
   const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO));
 
-  return { selectedBrands, selectedStorages, selectedPrices, pageInfo };
+  return {
+    selectedBrands,
+    selectedStorages,
+    selectedPrices,
+    pageInfo,
+    searchKeyword,
+  };
 };
 
 const setDefaultStoreValues = (pageInfo) => {
-  const { selectedBrands, selectedStorages, selectedPrices } =
+  const { selectedBrands, selectedStorages, selectedPrices, searchKeyword } =
     getFromLocalStorage();
-
+  setSearchKeyword(searchKeyword ?? "");
+  searchInput.value = searchKeyword;
   setSelectedBrand(Array.isArray(selectedBrands) ? selectedBrands : []);
   setSelectedStorage(Array.isArray(selectedStorages) ? selectedStorages : []);
   setSelectedPrice(selectedPrices ?? { min: null, max: null });
@@ -140,7 +157,7 @@ const applyFilter = async () => {
       size: pageSize.value,
       sortField: sortField.value,
       sortDirection: sortDirection.value,
-      keyword: searchInput.value,
+      keyword: searchKeyword.value,
     });
 
     saveToLocalStorage();
@@ -154,6 +171,7 @@ const applyFilter = async () => {
 };
 
 const handleSearchKeyword = async () => {
+  setSearchKeyword(searchInput.value);
   handlePageChange(0);
   await applyFilter();
 };
@@ -271,6 +289,7 @@ const initializeSaleItems = async (pageInfo) => {
       size: pageInfo?.size ?? 10,
       sortField: pageInfo?.sortField ?? null,
       sortDirection: pageInfo?.sortDirection ?? null,
+      keyword: searchKeyword.value
     });
 
     if (response.error) {
@@ -302,6 +321,12 @@ onMounted(async () => {
     hasError.value = error.message;
   }
 });
+
+const clearSearchKeyword = () => {
+  searchInput.value = "";
+  setSearchKeyword("");
+  sessionStorage.setItem(STORAGE_KEYS.SEARCH_KEYWORD, JSON.stringify(""));
+};
 
 const windowWidth = ref(window.innerWidth);
 
@@ -359,7 +384,7 @@ const updateWidth = () => {
           </label>
           <button
             class="itbms-brand-filter-button btn btn-error btn-sm text-white"
-            @click="searchInput = ''"
+            @click="clearSearchKeyword"
           >
             clear
           </button>
