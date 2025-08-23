@@ -10,7 +10,7 @@ import {
   deleteSaleItemById,
 } from "@/services/SaleItemService";
 import Breadcrumbs from "../components/Breadcrumbs.vue";
-import { useNotiStore } from "@/stores/์NotiStore";
+import { useNotiStore } from "@/stores/NotiStore";
 import MessageModal from "@/components/MessageModal.vue";
 
 const route = useRoute();
