@@ -1,8 +1,11 @@
 package ssi.backend.services;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.Validator;
+import ssi.backend.dtos.BuyerRequestDTO;
+import ssi.backend.dtos.BuyerResponseDTO;
+import ssi.backend.dtos.SellerRequestDTO;
 import ssi.backend.entities.Buyer;
 import ssi.backend.entities.Seller;
 import ssi.backend.repositories.BuyerRepository;
@@ -18,7 +21,7 @@ public class RegisterService {
     @Autowired
     private SellerRepository sellerRepository;
     @Autowired
-    private Validator validator;
+    private ModelMapper modelMapper;
 
     public List<Buyer> getAllBuyers() {
         return buyerRepository.findAll();
@@ -36,19 +39,26 @@ public class RegisterService {
         return sellerRepository.findByEmail(email);
     }
 
-    public Buyer createBuyer(Buyer buyer) {
+    public Buyer createBuyer(BuyerRequestDTO buyer) {
         if (!getAllEmailBuyers(buyer.getEmail()).isEmpty() ||
             !getAllEmailSellers(buyer.getEmail()).isEmpty()) {
             throw new BadRequestException("Email already exists: " + buyer.getEmail());
         }
-        return buyerRepository.save(buyer);
+
+        Buyer creatingBuyer = modelMapper.map(buyer, Buyer.class);
+        creatingBuyer.setId(null);
+        return buyerRepository.save(creatingBuyer);
+        
     }
 
-    public Seller createSeller(Seller seller) {
+    public Seller createSeller(SellerRequestDTO seller) {
         if (!getAllEmailBuyers(seller.getEmail()).isEmpty() ||
             !getAllEmailSellers(seller.getEmail()).isEmpty()) {
             throw new BadRequestException("Email already exists: " + seller.getEmail());
         }
-        return sellerRepository.save(seller);
+
+        Seller creatingSeller = modelMapper.map(seller, Seller.class);
+        creatingSeller.setId(null);
+        return sellerRepository.save(creatingSeller);
     }
 }
