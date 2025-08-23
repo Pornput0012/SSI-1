@@ -13,7 +13,7 @@ const createUser = async (userDetail, nationalIdPhoto = null,userType) => {
     if (nationalIdPhoto) {
       for (const [key, value] of Object.entries(nationalIdPhoto)) {
         if (value != null) {
-          formData.append(key == "front" ? "" : "", value);
+          formData.append(key == "front" ? "frontSide" : "backSide", value);
         }
       }
     }
@@ -35,4 +35,9 @@ const createUser = async (userDetail, nationalIdPhoto = null,userType) => {
       error: `Error creating user: ${error.message}`,
     };
   }
+};
+
+
+export {
+  createUser
 };
