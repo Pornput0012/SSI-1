@@ -3,6 +3,7 @@ package ssi.backend.controllers;
 import com.nimbusds.jose.JOSEException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ssi.backend.services.EmailService;
@@ -11,6 +12,7 @@ import ssi.backend.services.JwtService;
 import java.text.ParseException;
 
 @RestController
+@RequestMapping("/itb-mshop")
 public class EmailController {
     private final EmailService emailService;
     private final JwtService jwtService;
@@ -33,11 +35,6 @@ public class EmailController {
         }
 
         jwtService.validateToken(token);
-
-        String email = jwtService.extractEmail(token);
-
-        // logic สำรหัส ACTIVE email
-        System.out.println(email);
 
         return ResponseEntity.ok("Email verified successfully");
     }
