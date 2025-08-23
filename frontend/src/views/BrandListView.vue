@@ -5,7 +5,7 @@ import { deleteBrandById, getAllBrands } from "@/services/BrandService";
 import { getAllSaleItems } from "@/services/SaleItemService";
 import { useBrandStore } from "@/stores/BrandStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useNotiStore } from "@/stores/์NotiStore";
+import { useNotiStore } from "@/stores/NotiStore";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 

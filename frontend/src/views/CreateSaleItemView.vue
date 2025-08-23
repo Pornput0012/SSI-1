@@ -5,7 +5,7 @@ import MessageModal from "@/components/MessageModal.vue";
 import router from "@/router";
 import { createSaleItem, createSaleItem_v2 } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useNotiStore } from "@/stores/์NotiStore";
+import { useNotiStore } from "@/stores/NotiStore";
 import { ref } from "vue";
 
 const errorTitle = ref("");
