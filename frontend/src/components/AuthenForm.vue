@@ -24,7 +24,6 @@ const formDataBuyer = ref({
   email: "",
   password: "",
   fullname: "",
-  userType: "Buyer",
 });
 
 const formDataSeller = ref({
@@ -143,43 +142,101 @@ function removeBackImage() {
 
 const handleSubmit = () => {
   if (userType.value === "Seller") {
-    formDataSeller.value.userType = "Seller"
+    formDataSeller.value.userType = "Seller";
     emit("onSubmit", {
       userDetail: formDataSeller.value,
       images: { front: frontImage.value, back: backImage.value },
+      userType: "Seller",
     });
-
   } else {
-    emit("onSubmit", { userDetail: formDataBuyer.value });
+    emit("onSubmit", { userDetail: formDataBuyer.value, userType: "Buyer" });
   }
+
+  clearData();
 };
 
+function clearData(role = null) {
+  const onToggle = role !== null;
 
-watchEffect(()=>{
-  let isValid = true
+  if (onToggle && role === "Seller") {
+    formDataBuyer.value = {
+      nickname: "",
+      email: "",
+      password: "",
+      fullname: "",
+    };
+    return;
+  }
 
-   let dataToCheck, imagesToSend = null;
+  if (onToggle && role === "Buyer") {
+    formDataSeller.value = {
+      ...formDataBuyer.value,
+      mobileNumber: "",
+      bankAccountNumber: "",
+      bankName: "",
+      nationalIdNumber: "",
+    };
+    return;
+  }
+
+  formDataBuyer.value = {
+    nickname: "",
+    email: "",
+    password: "",
+    fullname: "",
+  };
+
+  formDataSeller.value = {
+    ...formDataBuyer.value,
+    mobileNumber: "",
+    bankAccountNumber: "",
+    bankName: "",
+    nationalIdNumber: "",
+  };
+}
+
+watchEffect(() => {
+  let isValid = true;
+
+  let dataToCheck,
+    imagesToSend = null;
   if (userType.value === "Seller") {
     dataToCheck = { ...formDataSeller.value, userType: "Seller" };
-    imagesToSend = { front: frontImage.value?.file, back: backImage.value?.file };
+    imagesToSend = {
+      front: frontImage.value?.file,
+      back: backImage.value?.file,
+    };
   } else {
     dataToCheck = { ...formDataBuyer.value, userType: "Buyer" };
   }
 
-  const hasImage = imagesToSend?.front && imagesToSend?.back
-  const emptyFields = Object.entries(dataToCheck)
-    .filter(([key, value]) => value === "" || value === null);
+  const hasImage = imagesToSend?.front && imagesToSend?.back;
+  const emptyFields = Object.entries(dataToCheck).filter(
+    ([key, value]) => value === "" || value === null
+  );
 
-  if (emptyFields.length > 0 ) {
-    isValid= false
+  if (emptyFields.length > 0) {
+    isValid = false;
   }
 
-  if (userType.value === 'Seller' &&  !hasImage) {
-    isValid= false
+  if (userType.value === "Seller" && !hasImage) {
+    isValid = false;
   }
 
-  isCanNotSave.value=!isValid
-})
+  console.log(isValid);
+  console.log(emptyFields);
+  console.log(hasImage);
+  
+  
+  
+  isCanNotSave.value = !isValid;
+
+  console.log(isCanNotSave.value);
+  
+  console.log(props.disableSaveBtn);
+});
+
+
 </script>
 
 <template>
@@ -249,7 +306,13 @@ watchEffect(()=>{
             userType === role ? 'bg-indigo-600 text-white' : 'text-gray-700'
           "
         >
-          <input type="radio" v-model="userType" :value="role" class="hidden" />
+          <input
+            type="radio"
+            v-model="userType"
+            @click="clearData(role)"
+            :value="role"
+            class="hidden"
+          />
           {{ role }}
         </label>
       </div>

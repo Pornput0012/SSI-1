@@ -2,7 +2,7 @@ const USER_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v1/user`;
 
-const createUser = async (userDetail, nationalIdPhoto = null) => {
+const createUser = async (userDetail, nationalIdPhoto = null,userType) => {
   try {
     const formData = new FormData();
 
