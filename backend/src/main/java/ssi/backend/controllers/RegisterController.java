@@ -11,7 +11,7 @@ import jakarta.validation.Valid;
 import ssi.backend.dtos.RegisterRequestDTO;
 import ssi.backend.entities.Buyer;
 import ssi.backend.entities.Seller;
-import ssi.backend.services.RegisterService;
+import ssi.backend.services.UserService;
 
 @RestController
 @RequestMapping("/itb-mshop/v1/register")
@@ -19,7 +19,7 @@ import ssi.backend.services.RegisterService;
 public class RegisterController {
 
     @Autowired
-    private RegisterService registerService;
+    private UserService registerService;
 
     @GetMapping("/buyers")
     public ResponseEntity<List<Buyer>> getAllBuyers() {

@@ -15,27 +15,14 @@ import java.text.ParseException;
 @RequestMapping("/itb-mshop")
 public class EmailController {
     private final EmailService emailService;
-    private final JwtService jwtService;
 
-    public EmailController(EmailService emailService, JwtService jwtService) {
+    public EmailController(EmailService emailService) {
         this.emailService = emailService;
-        this.jwtService = jwtService;
     }
 
     @GetMapping("/send-test-email")
     public ResponseEntity<String> sendEmail() {
         emailService.sendEmail("moomost123@gmail.com", "Email Testing", "This is test email");
         return ResponseEntity.ok("Email Sent");
-    }
-
-    @GetMapping("/verify-email")
-    public ResponseEntity<String> verifyEmail(@RequestParam String token) throws ParseException, JOSEException {
-        if (token == null || token.isEmpty()) {
-            return ResponseEntity.badRequest().body("Token is missing.");
-        }
-
-        jwtService.validateToken(token);
-
-        return ResponseEntity.ok("Email verified successfully");
     }
 }

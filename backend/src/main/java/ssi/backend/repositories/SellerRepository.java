@@ -13,4 +13,6 @@ public interface SellerRepository extends JpaRepository<Seller, Integer> {
 
     @Query("SELECT s.email FROM Seller s")
     List<String> findAllEmailsSeller();
+
+    Seller findByIdAndEmail(Integer id, String email);
 }

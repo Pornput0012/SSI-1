@@ -4,17 +4,21 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ssi.backend.dtos.EmailVerifyDTO;
 import ssi.backend.dtos.RegisterRequestDTO;
+import ssi.backend.dtos.UserResponseDTO;
 import ssi.backend.entities.Buyer;
 import ssi.backend.entities.Seller;
+import ssi.backend.exceptions.ConfilctResourceException;
 import ssi.backend.repositories.BuyerRepository;
 import ssi.backend.repositories.SellerRepository;
 import ssi.backend.exceptions.BadRequestException;
 
+import java.text.ParseException;
 import java.util.List;
 
 @Service
-public class RegisterService {
+public class UserService {
     @Autowired
     private BuyerRepository buyerRepository;
     @Autowired
@@ -55,7 +59,7 @@ public class RegisterService {
         Buyer savedBuyer = buyerRepository.save(creatingBuyer);
 
         try {
-            String token = jwtService.generateToken(creatingBuyer.getId(), creatingBuyer.getFullname(), creatingBuyer.getEmail(), "buyer");
+            String token = jwtService.generateToken(creatingBuyer.getId(), creatingBuyer.getFullname(), creatingBuyer.getEmail(), "BUYER");
             emailService.sendEmail(savedBuyer.getEmail(), "Welcome to ITB-MSHOP!",
                     "สวัสดีคุณ " + savedBuyer.getFullname()
                             + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
@@ -97,7 +101,7 @@ public class RegisterService {
         try {
             sellerRes = sellerRepository.save(creatingSeller);
             try {
-                String token = jwtService.generateToken(sellerRes.getId(), sellerRes.getFullname(), sellerRes.getEmail(), "seller");
+                String token = jwtService.generateToken(sellerRes.getId(), sellerRes.getFullname(), sellerRes.getEmail(), "SELLER");
                 emailService.sendEmail(sellerRes.getEmail(), "Welcome to ITB-MSHOP!",
                         "สวัสดีคุณ " + sellerRes.getFullname()
                                 + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
@@ -115,5 +119,50 @@ public class RegisterService {
             throw new BadRequestException("Seller not created" + e.getMessage());
         }
 
+    }
+
+    public UserResponseDTO verifyEmail(String token) throws ParseException {
+        EmailVerifyDTO emailVerifyDTO = jwtService.extractClaims(token);
+        if (emailVerifyDTO.getUserType().equals("buyer")) {
+            Buyer buyer = buyerRepository.findByIdAndEmail(emailVerifyDTO.getUser_id(), emailVerifyDTO.getEmail());
+
+            if (buyer == null) {
+                throw new BadRequestException("Invalid email or User id");
+            }
+
+            if (buyer.getStatus().equalsIgnoreCase("active")) {
+                throw new ConfilctResourceException("Email already verified");
+            }
+
+            buyer.setStatus("ACTIVE");
+            buyerRepository.save(buyer);
+
+            UserResponseDTO userResponseDTO = modelMapper.map(buyer, UserResponseDTO.class);
+            userResponseDTO.setUserType(emailVerifyDTO.getUserType());
+            userResponseDTO.setIsActive(true);
+
+            return userResponseDTO;
+
+        } else if (emailVerifyDTO.getUserType().equals("seller")) {
+            Seller seller = sellerRepository.findByIdAndEmail(emailVerifyDTO.getUser_id(), emailVerifyDTO.getEmail());
+
+            if (seller == null) {
+                throw new BadRequestException("Invalid email or User id");
+            }
+
+            if (seller.getStatus().equalsIgnoreCase("active")) {
+                throw new ConfilctResourceException("Email already verified");
+            }
+
+            seller.setStatus("ACTIVE");
+            sellerRepository.save(seller);
+
+            UserResponseDTO userResponseDTO = modelMapper.map(seller, UserResponseDTO.class);
+            userResponseDTO.setUserType(emailVerifyDTO.getUserType());
+            userResponseDTO.setIsActive(true);
+
+            return userResponseDTO;
+        }
+        return null;
     }
 }

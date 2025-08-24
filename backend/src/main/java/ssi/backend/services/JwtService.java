@@ -10,6 +10,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.springframework.stereotype.Service;
 import ssi.backend.configuration.JwtProperties;
+import ssi.backend.dtos.EmailVerifyDTO;
 import ssi.backend.exceptions.BadRequestException;
 
 import java.nio.charset.StandardCharsets;
@@ -27,7 +28,7 @@ public class JwtService {
         this.jwtProperties = jwtProperties;
     }
 
-    public String generateToken(String username, String email) throws JOSEException {
+    public String generateToken(Integer user_id,String username, String email, String userType) throws JOSEException {
 
         if (username == null || email == null) {
             throw new IllegalArgumentException("Username and email cannot be null");
@@ -40,6 +41,8 @@ public class JwtService {
                 .subject(username)
                 .claim("email", email)
                 .claim("type", "email_verification")
+                .claim("userType", userType)
+                .claim("user_id", user_id)
                 .issueTime(now)
                 .expirationTime(expiryDate)
                 .build();
@@ -55,18 +58,27 @@ public class JwtService {
         return signedJWT.serialize();
     }
 
-    public String extractEmail(String token) throws ParseException {
+    public EmailVerifyDTO extractClaims(String token) throws ParseException {
         if (token == null || token.trim().isEmpty()) {
             throw new IllegalArgumentException("Token cannot be null or empty");
         }
         SignedJWT signedJWT = SignedJWT.parse(token);
-        Object emailClaim = signedJWT.getJWTClaimsSet().getClaim("email");
+        String email = signedJWT.getJWTClaimsSet().getClaim("email").toString();
+        String type = signedJWT.getJWTClaimsSet().getClaim("type").toString();
+        String userType = signedJWT.getJWTClaimsSet().getClaim("userType").toString();
+        Integer user_id = (Integer) signedJWT.getJWTClaimsSet().getClaim("user_id");
 
-        if (emailClaim == null) {
+        if (type != "email_verification") {
             throw new IllegalArgumentException("Email claim not found");
         }
 
-        return emailClaim.toString();
+        EmailVerifyDTO emailVerifyDTO = new EmailVerifyDTO();
+        emailVerifyDTO.setEmail(email);
+        emailVerifyDTO.setType(type);
+        emailVerifyDTO.setUserType(userType);
+        emailVerifyDTO.setUser_id(user_id);
+
+        return emailVerifyDTO;
     }
 
     // ตรวจสอบ token ว่าลายเซ็นตรงไหม และหมดอายุหรือยัง
@@ -79,12 +91,12 @@ public class JwtService {
         JWSVerifier verifier = new MACVerifier(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
 
         if (!signedJWT.verify(verifier)) {
-            throw new BadRequestException("Invalid token signature");
+            throw new BadRequestException("Invalid verification token");
         }
 
         Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         if (expirationTime == null || !new Date().before(expirationTime)) {
-            throw new BadRequestException("Token has expired");
+            throw new BadRequestException("Invalid verification token");
         }
     }
 }
