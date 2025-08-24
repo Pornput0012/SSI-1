@@ -40,6 +40,34 @@ CREATE TABLE IF NOT EXISTS sale_item_images (
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS buyers (
+    buyers_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    nickname VARCHAR(255) NOT NULL, 
+    email VARCHAR(255) UNIQUE NOT NULL, 
+    password VARCHAR(255) NOT NULL, 
+    fullname VARCHAR(40) NOT NULL,
+    status VARCHAR(255) DEFAULT 'INACTIVE', 
+    createdOn datetime not null default current_timestamp, 
+    updatedOn datetime not null default current_timestamp on update current_timestamp
+);
+
+CREATE TABLE IF NOT EXISTS sellers (
+    sellers_id INT AUTO_INCREMENT PRIMARY KEY, 
+    nickname VARCHAR(255) NOT NULL, 
+    email VARCHAR(255) UNIQUE NOT NULL, 
+    password VARCHAR(255) NOT NULL, 
+    fullname VARCHAR(40) NOT NULL, 
+    mobileNumber VARCHAR(255) NOT NULL, 
+    bankAccountNumber VARCHAR(255) NOT NULL,
+    bankName VARCHAR(255) NOT NULL,
+    nationalIdNumber VARCHAR(255) NOT NULL,
+    nationalIdPhotoFront VARCHAR(255) NOT NULL,
+    nationalIdPhotoBack VARCHAR(255) NOT NULL,
+    status VARCHAR(255) DEFAULT 'INACTIVE', 
+    createdOn datetime not null default current_timestamp, 
+    updatedOn datetime not null default current_timestamp on update current_timestamp
+);
+
 INSERT INTO brands (name, countryOfOrigin, websiteUrl, isActive) VALUES
 ('Samsung', 'South Korea', 'https://www.samsung.com', 1),
 ('Apple', 'United States', 'https://www.apple.com', 1),
