@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.dtos.RegisterRequestDTO;
+import ssi.backend.entities.Buyer;
+import ssi.backend.entities.Seller;
 import ssi.backend.services.RegisterService;
 
 @RestController
@@ -41,11 +43,11 @@ public class RegisterController {
     }
 
     @PostMapping("")
-    public ResponseEntity<?> registerUser(@Valid @ModelAttribute RegisterRequestDTO user,
-                                          @RequestParam(required = false) List<MultipartFile> images) {
-        if ("BUYER".equalsIgnoreCase(user.getAccountType())) {
+    public ResponseEntity<Object> registerUser(@Valid @ModelAttribute RegisterRequestDTO user,
+                                          @RequestParam(required = false) List<MultipartFile> images,@RequestParam String userType) {
+        if ("BUYER".equalsIgnoreCase(userType)) {
             return ResponseEntity.status(HttpStatus.CREATED).body(registerService.createBuyer(user));
-        } else if ("SELLER".equalsIgnoreCase(user.getAccountType())) {
+        } else if ("SELLER".equalsIgnoreCase(userType)) {
             return ResponseEntity.status(HttpStatus.CREATED).body(registerService.createSeller(user,images));
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

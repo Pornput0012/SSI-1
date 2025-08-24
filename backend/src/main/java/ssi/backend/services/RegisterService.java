@@ -1,16 +1,20 @@
 package ssi.backend.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.dtos.RegisterRequestDTO;
+import ssi.backend.entities.Buyer;
+import ssi.backend.entities.Seller;
 import ssi.backend.repositories.BuyerRepository;
 import ssi.backend.repositories.SellerRepository;
 import ssi.backend.exceptions.BadRequestException;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class RegisterService {
     @Autowired
@@ -40,18 +44,19 @@ public class RegisterService {
 
     public Buyer createBuyer(RegisterRequestDTO buyer) {
         if (!getAllEmailBuyers(buyer.getEmail()).isEmpty() ||
-            !getAllEmailSellers(buyer.getEmail()).isEmpty()) {
+                !getAllEmailSellers(buyer.getEmail()).isEmpty()) {
             throw new BadRequestException("Email already exists: " + buyer.getEmail());
         }
 
         Buyer creatingBuyer = modelMapper.map(buyer, Buyer.class);
+        creatingBuyer.setId(null);
         return buyerRepository.save(creatingBuyer);
-        
+
     }
 
-    public Seller createSeller(RegisterRequestDTO seller,List<MultipartFile> images) {
+    public Seller createSeller(RegisterRequestDTO seller, List<MultipartFile> images) {
         if (!getAllEmailBuyers(seller.getEmail()).isEmpty() ||
-            !getAllEmailSellers(seller.getEmail()).isEmpty()) {
+                !getAllEmailSellers(seller.getEmail()).isEmpty()) {
             throw new BadRequestException("Email already exists: " + seller.getEmail());
         }
 
@@ -62,21 +67,33 @@ public class RegisterService {
         } else {
             throw new BadRequestException("Images are empty");
         }
-        if(fileNames != null || !fileNames.isEmpty()) {
+        if (fileNames != null && !fileNames.isEmpty()) {
             fileNames.stream().forEach(fileName -> {
-                if(fileName.contains("_fs_")){
-                    creatingSeller.setFrontSide(fileName);
-                }else if(fileName.contains("_bs_")){
-                    creatingSeller.setBackSide(fileName);
+                if (fileName.contains("_fs_")) {
+                    creatingSeller.setNationalIdPhotoFront(fileName);
+                } else if (fileName.contains("_bs_")) {
+                    creatingSeller.setNationalIdPhotoBack(fileName);
                 } else {
                     throw new BadRequestException("Invalid file name side: " + fileName);
                 }
             });
         }
 
-        Seller sellerRes = sellerRepository.save(creatingSeller);
+        creatingSeller.setId(null);
+        Seller sellerRes = new Seller();
+        try {
+            sellerRes =sellerRepository.save(creatingSeller);
+            System.out.println(sellerRes);
+            return sellerRes;
 
 
-        return sellerRepository.save(creatingSeller);
+        } catch (Exception e) {
+            fileService.removeFiles(fileNames);
+
+            throw new BadRequestException("Seller not created" + e.getMessage());
+        }
+
+
+
     }
 }

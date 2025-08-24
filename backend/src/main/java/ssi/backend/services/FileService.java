@@ -154,6 +154,12 @@ public class FileService {
         }
     }
 
+    public void removeFiles(List<String> fileNames) {
+        fileNames.forEach(fileName -> {
+            removeFileNormal(fileName);
+        });
+    }
+
     public void removeFiles(Product product, List<String> fileNames) {
         List<String> failedFiles = new ArrayList<>();
 
@@ -167,6 +173,20 @@ public class FileService {
 
         if (!failedFiles.isEmpty()) {
             throw new RuntimeException("Failed to delete files: " + String.join(", ", failedFiles));
+        }
+    }
+
+    public void removeFileNormal(String fileName) {
+        try {
+            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+            } else {
+                throw new RuntimeException("File not found " + fileName);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("File operation error: " + fileName, ex);
         }
     }
 
@@ -185,6 +205,7 @@ public class FileService {
             throw new RuntimeException("File operation error: " + fileName, ex);
         }
     }
+
     public boolean fileExists(Product product, String fileName) {
         // สมมติว่าไฟล์อยู่ในโฟลเดอร์ picture/{product.id}/
         File file = new java.io.File("picture/" + product.getId() + "/" + fileName);

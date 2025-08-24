@@ -1,5 +1,6 @@
 package ssi.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -18,7 +19,7 @@ import java.time.Instant;
 public class Buyer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "buyers_id", nullable = false)
+    @Column(name = "buyers_id")
     private Integer id;
 
     @Size(max = 255)
@@ -41,21 +42,22 @@ public class Buyer {
     @Column(name = "fullname", nullable = false, length = 40)
     private String fullname;
 
-    @NotNull
+
     @ColumnDefault("'INACTIVE'")
-    @Lob
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
+    @Generated(GenerationTime.ALWAYS)
     private String status;
 
-    @NotNull
+    @JsonIgnore
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "createdOn", nullable = false)
+    @Column(name = "createdOn", insertable = false, updatable = false)
     @Generated(GenerationTime.INSERT)
     private Instant createdOn;
 
-    @NotNull
+    @JsonIgnore
     @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updatedOn", nullable = false)
+    @Generated(GenerationTime.ALWAYS)
+    @Column(name = "updatedOn", insertable = false, updatable = false)
     private Instant updatedOn;
 
 }
