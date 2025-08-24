@@ -43,7 +43,11 @@ public class RegisterService {
             throw new BadRequestException("Email already exists: " + buyer.getEmail());
         }
 
-        Buyer creatingBuyer = modelMapper.map(buyer, Buyer.class);
+        Buyer creatingBuyer = new Buyer();
+        creatingBuyer.setNickname(buyer.getNickname());
+        creatingBuyer.setEmail(buyer.getEmail());
+        creatingBuyer.setPassword(buyer.getPassword());
+        creatingBuyer.setFullname(buyer.getFullname());
         return buyerRepository.save(creatingBuyer);
 
     }
