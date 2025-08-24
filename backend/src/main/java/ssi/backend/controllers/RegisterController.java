@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import ssi.backend.dtos.RegisterRequestDTO;
 import ssi.backend.entities.Buyer;
 import ssi.backend.entities.Seller;
@@ -47,7 +48,7 @@ public class RegisterController {
     }
 
     @PostMapping("")
-    public ResponseEntity<?> registerUser(@RequestBody RegisterRequestDTO user) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequestDTO user) {
         if ("BUYER".equalsIgnoreCase(user.getAccountType())) {
             return ResponseEntity.status(HttpStatus.CREATED).body(registerService.createBuyer(user));
         } else if ("SELLER".equalsIgnoreCase(user.getAccountType())) {
