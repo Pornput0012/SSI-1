@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import ssi.backend.dtos.ErrorResponseDTO;
 import ssi.backend.exceptions.BadRequestException;
+import ssi.backend.exceptions.ConfilctResourceException;
 import ssi.backend.exceptions.ItemNotFoundException;
 
 @RestControllerAdvice
@@ -44,7 +45,7 @@ public class GlobalExceptionController {
         );
     }
 
-    @ExceptionHandler(ssi.backend.exceptions.BadRequestException.class)
+    @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseDTO handleException(
             BadRequestException exception, WebRequest request) {
@@ -54,5 +55,13 @@ public class GlobalExceptionController {
                 exception.getMessage(),
                 request.getDescription(false)
         );
+    }
+
+    @ExceptionHandler(ConfilctResourceException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleException(
+            ConfilctResourceException exception, WebRequest request) {
+
+        return exception.getMessage();
     }
 }

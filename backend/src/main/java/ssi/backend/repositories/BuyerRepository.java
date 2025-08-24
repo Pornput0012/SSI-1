@@ -13,4 +13,6 @@ public interface BuyerRepository extends JpaRepository<Buyer, Integer> {
 
     @Query("SELECT b.email FROM Buyer b")
     List<String> findAllEmailsBuyer();
+
+    Buyer findByIdAndEmail(Integer id, String email);
 }
