@@ -45,7 +45,6 @@ public class Buyer {
 
     @ColumnDefault("'INACTIVE'")
     @Column(name = "status")
-    @Generated(GenerationTime.ALWAYS)
     private String status;
 
     @JsonIgnore

@@ -63,7 +63,7 @@ public class UserService {
             emailService.sendEmail(savedBuyer.getEmail(), "Welcome to ITB-MSHOP!",
                     "สวัสดีคุณ " + savedBuyer.getFullname()
                             + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
-                            + "http://localhost:5173/verify-email/?jwtToken=" + token
+                            + "http://localhost:5173/verify-email?jwtToken=" + token
                             + "\n\nขอบคุณที่เข้าร่วมกับเรา!");
         } catch (Exception e) {
             System.err.println("❌ ส่งอีเมลไปยัง Buyer ไม่สำเร็จ: " + e.getMessage());
@@ -105,7 +105,7 @@ public class UserService {
                 emailService.sendEmail(sellerRes.getEmail(), "Welcome to ITB-MSHOP!",
                         "สวัสดีคุณ " + sellerRes.getFullname()
                                 + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
-                                + "http://localhost:5173/verify-email/?jwtToken=" + token
+                                + "http://localhost:5173/verify-email?jwtToken=" + token
                                 + "\n\nขอบคุณที่เข้าร่วมกับเรา!");
             } catch (Exception e) {
                 System.err.println("❌ ส่งอีเมลไปยัง Seller ไม่สำเร็จ: " + e.getMessage());
@@ -123,7 +123,7 @@ public class UserService {
 
     public UserResponseDTO verifyEmail(String token) throws ParseException {
         EmailVerifyDTO emailVerifyDTO = jwtService.extractClaims(token);
-        if (emailVerifyDTO.getUserType().equals("buyer")) {
+        if (emailVerifyDTO.getUserType().equalsIgnoreCase("buyer")) {
             Buyer buyer = buyerRepository.findByIdAndEmail(emailVerifyDTO.getUser_id(), emailVerifyDTO.getEmail());
 
             if (buyer == null) {
@@ -135,6 +135,7 @@ public class UserService {
             }
 
             buyer.setStatus("ACTIVE");
+            buyer.setId(emailVerifyDTO.getUser_id());
             buyerRepository.save(buyer);
 
             UserResponseDTO userResponseDTO = modelMapper.map(buyer, UserResponseDTO.class);
@@ -143,7 +144,7 @@ public class UserService {
 
             return userResponseDTO;
 
-        } else if (emailVerifyDTO.getUserType().equals("seller")) {
+        } else if (emailVerifyDTO.getUserType().equalsIgnoreCase("seller")) {
             Seller seller = sellerRepository.findByIdAndEmail(emailVerifyDTO.getUser_id(), emailVerifyDTO.getEmail());
 
             if (seller == null) {

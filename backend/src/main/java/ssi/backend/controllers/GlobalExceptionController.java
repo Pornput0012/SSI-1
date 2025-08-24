@@ -58,7 +58,7 @@ public class GlobalExceptionController {
     }
 
     @ExceptionHandler(ConfilctResourceException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public String handleException(
             ConfilctResourceException exception, WebRequest request) {
 

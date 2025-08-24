@@ -66,17 +66,14 @@ public class JwtService {
         String email = signedJWT.getJWTClaimsSet().getClaim("email").toString();
         String type = signedJWT.getJWTClaimsSet().getClaim("type").toString();
         String userType = signedJWT.getJWTClaimsSet().getClaim("userType").toString();
-        Integer user_id = (Integer) signedJWT.getJWTClaimsSet().getClaim("user_id");
+        Long user_id = (Long) signedJWT.getJWTClaimsSet().getClaim("user_id");
 
-        if (type != "email_verification") {
-            throw new IllegalArgumentException("Email claim not found");
-        }
-
+        Integer user_id_int =  user_id.intValue();
         EmailVerifyDTO emailVerifyDTO = new EmailVerifyDTO();
         emailVerifyDTO.setEmail(email);
         emailVerifyDTO.setType(type);
         emailVerifyDTO.setUserType(userType);
-        emailVerifyDTO.setUser_id(user_id);
+        emailVerifyDTO.setUser_id(user_id_int);
 
         return emailVerifyDTO;
     }

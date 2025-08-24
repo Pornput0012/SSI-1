@@ -7,10 +7,10 @@ import lombok.Setter;
 @Setter
 public class RegisterRequestDTO {
     private Integer id;
-    private String nickname;
+    private String nickName;
     private String email;
     private String password;
-    private String fullname;
+    private String fullName;
 
 
 
