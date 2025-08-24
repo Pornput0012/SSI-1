@@ -25,6 +25,8 @@ public class RegisterService {
     private FileService fileService;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private JwtService jwtService;
 
     public List<Buyer> getAllBuyers() {
         return buyerRepository.findAll();
@@ -53,9 +55,12 @@ public class RegisterService {
         Buyer savedBuyer = buyerRepository.save(creatingBuyer);
 
         try {
+            String token = jwtService.generateToken(creatingBuyer.getId(), creatingBuyer.getFullname(), creatingBuyer.getEmail(), "buyer");
             emailService.sendEmail(savedBuyer.getEmail(), "Welcome to ITB-MSHOP!",
                     "สวัสดีคุณ " + savedBuyer.getFullname()
-                            + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว\n\nขอบคุณที่เข้าร่วมกับเรา!");
+                            + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
+                            + "http://localhost:5173/verify-email/?jwtToken=" + token
+                            + "\n\nขอบคุณที่เข้าร่วมกับเรา!");
         } catch (Exception e) {
             System.err.println("❌ ส่งอีเมลไปยัง Buyer ไม่สำเร็จ: " + e.getMessage());
         }
@@ -92,9 +97,12 @@ public class RegisterService {
         try {
             sellerRes = sellerRepository.save(creatingSeller);
             try {
+                String token = jwtService.generateToken(sellerRes.getId(), sellerRes.getFullname(), sellerRes.getEmail(), "seller");
                 emailService.sendEmail(sellerRes.getEmail(), "Welcome to ITB-MSHOP!",
-                    "สวัสดีคุณ " + sellerRes.getFullname()
-                            + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว\n\nขอบคุณที่เข้าร่วมกับเรา!");
+                        "สวัสดีคุณ " + sellerRes.getFullname()
+                                + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
+                                + "http://localhost:5173/verify-email/?jwtToken=" + token
+                                + "\n\nขอบคุณที่เข้าร่วมกับเรา!");
             } catch (Exception e) {
                 System.err.println("❌ ส่งอีเมลไปยัง Seller ไม่สำเร็จ: " + e.getMessage());
             }
