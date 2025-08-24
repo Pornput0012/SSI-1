@@ -14,7 +14,6 @@ import ssi.backend.exceptions.BadRequestException;
 
 import java.util.List;
 
-@Slf4j
 @Service
 public class RegisterService {
     @Autowired
@@ -43,8 +42,8 @@ public class RegisterService {
     }
 
     public Buyer createBuyer(RegisterRequestDTO buyer) {
-        if (!getAllEmailBuyers(buyer.getEmail()).isEmpty() ||
-                !getAllEmailSellers(buyer.getEmail()).isEmpty()) {
+        if (getAllBuyerEmails().contains(buyer.getEmail())||
+                getAllSellerEmails().contains(buyer.getEmail())) {
             throw new BadRequestException("Email already exists: " + buyer.getEmail());
         }
 
@@ -55,8 +54,8 @@ public class RegisterService {
     }
 
     public Seller createSeller(RegisterRequestDTO seller, List<MultipartFile> images) {
-        if (!getAllEmailBuyers(seller.getEmail()).isEmpty() ||
-                !getAllEmailSellers(seller.getEmail()).isEmpty()) {
+        if (getAllBuyerEmails().contains(seller.getEmail())||
+                getAllSellerEmails().contains(seller.getEmail())) {
             throw new BadRequestException("Email already exists: " + seller.getEmail());
         }
 
