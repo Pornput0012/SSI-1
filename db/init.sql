@@ -1,8 +1,8 @@
 
 drop database if exists  int221;
 -- require for production
--- SET GLOBAL time_zone = 'Asia/Bangkok';
--- SET time_zone = 'Asia/Bangkok';
+SET GLOBAL time_zone = 'Asia/Bangkok';
+SET time_zone = 'Asia/Bangkok';
 
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 create database if not exists INT221 CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -155,5 +155,6 @@ INSERT INTO products (product_id, brand_id, model, description, price, ramGb, sc
 (83, 10, 'Find X5 Lite', 'Previous gen lite', 14850, 8, 6.43, 128, 'Starry Black', 8),
 (84, 10, 'A77', 'Budget friendly', 8250, 6, 6.56, 128, 'Ocean Blue', 20),
 (85, 10, 'Reno6 Pro', 'Classic premium', 16500, 12, 6.55, 256, 'Arctic Blue', 7);
+
 
 
