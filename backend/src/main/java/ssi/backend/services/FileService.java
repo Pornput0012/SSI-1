@@ -94,6 +94,30 @@ public class FileService {
 
     }
 
+
+    public String saveFile(MultipartFile image) {
+        String fileName = StringUtils.cleanPath(image.getOriginalFilename());
+
+        try {
+            if (fileName.contains("..")) {
+                throw new RuntimeException("Cannot upload file outside current directory: " + fileName);
+            }
+            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+            Files.copy(image.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            return fileName;
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to save file: " + fileName, e);
+        }
+
+    }
+
+    public List<String> saveFile(List<MultipartFile> images) {
+        List<String> fileNames = new ArrayList<>(images.size());
+        images.forEach(image -> fileNames.add(saveFile(image)));
+        return fileNames;
+    }
+
     public List<String> saveFile(List<MultipartFile> images, Product product) {
         List<String> fileNames = new ArrayList<>(images.size());
         images.forEach(image -> fileNames.add(saveFile(image, product)));
@@ -130,6 +154,12 @@ public class FileService {
         }
     }
 
+    public void removeFiles(List<String> fileNames) {
+        fileNames.forEach(fileName -> {
+            removeFileNormal(fileName);
+        });
+    }
+
     public void removeFiles(Product product, List<String> fileNames) {
         List<String> failedFiles = new ArrayList<>();
 
@@ -143,6 +173,20 @@ public class FileService {
 
         if (!failedFiles.isEmpty()) {
             throw new RuntimeException("Failed to delete files: " + String.join(", ", failedFiles));
+        }
+    }
+
+    public void removeFileNormal(String fileName) {
+        try {
+            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+            } else {
+                throw new RuntimeException("File not found " + fileName);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("File operation error: " + fileName, ex);
         }
     }
 
@@ -161,6 +205,7 @@ public class FileService {
             throw new RuntimeException("File operation error: " + fileName, ex);
         }
     }
+
     public boolean fileExists(Product product, String fileName) {
         // สมมติว่าไฟล์อยู่ในโฟลเดอร์ picture/{product.id}/
         File file = new java.io.File("picture/" + product.getId() + "/" + fileName);
