@@ -30,11 +30,6 @@ onMounted(() => {
     notiStore.createSuccess = false;
   }
 
-  if (notiStore.createUserSuccess) {
-    showCreatedModal.value = true;
-    notiStore.createUserSuccess = false;
-  }
-
 });
 </script>
 
@@ -83,7 +78,7 @@ onMounted(() => {
       v-if="showCreatedModal"
       :handle-ok="() => (showCreatedModal = false)"
       :title="'Successfully!'"
-      :message="notiStore.createUserSuccess ? 'The user account has been successfully registered.' :'The sale item has been successfully added.'"
+      :message="'The sale item has been successfully added.'"
       :type-modal="'text-success'"
     />
 

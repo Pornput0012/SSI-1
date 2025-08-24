@@ -289,7 +289,7 @@ const initializeSaleItems = async (pageInfo) => {
       size: pageInfo?.size ?? 10,
       sortField: pageInfo?.sortField ?? null,
       sortDirection: pageInfo?.sortDirection ?? null,
-      keyword: searchKeyword.value
+      keyword: searchKeyword.value,
     });
 
     if (response.error) {
@@ -301,11 +301,16 @@ const initializeSaleItems = async (pageInfo) => {
 };
 
 const showSuccessModal = () => {
-  if (notiStore.createSuccess) {
+  if (notiStore.createSuccess || notiStore.createUserSuccess) {
     showCreatedModal.value = true;
-    notiStore.createSuccess = false;
   }
 };
+
+function closeModal() {
+  showCreatedModal.value = false;
+  notiStore.createSuccess = false;
+  notiStore.createUserSuccess = false;
+}
 
 onMounted(async () => {
   window.addEventListener("resize", updateWidth);
@@ -704,7 +709,11 @@ const updateWidth = () => {
     <div class="modal-box text-center">
       <h3 class="font-bold text-success">Successfully!</h3>
       <p class="py-4 itbms-message">
-        The sale item has been successfully added.
+        {{
+          notiStore.createUserSuccess
+            ? "The user account has been successfully registered."
+            : "The sale item has been successfully added."
+        }}
       </p>
       <div class="itbms-button modal-action justify-center">
         <button @click="showCreatedModal = false" class="btn btn-primary">
