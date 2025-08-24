@@ -1,6 +1,8 @@
+
+drop database if exists  int221;
 -- require for production
-SET GLOBAL time_zone = 'Asia/Bangkok';
-SET time_zone = 'Asia/Bangkok';
+-- SET GLOBAL time_zone = 'Asia/Bangkok';
+-- SET time_zone = 'Asia/Bangkok';
 
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 create database if not exists INT221 CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -60,6 +62,12 @@ CREATE TABLE sellers (
   password VARCHAR(255) NOT NULL,
   fullname VARCHAR(40) NOT NULL,
   status enum('ACTIVE','INACTIVE') DEFAULT 'INACTIVE',
+  mobileNumber varchar(255) not null,
+  bankAccountNumber varchar(255) not null,
+  bankName varchar(255) not null,
+  nationalIdNumber varchar(255) not null,
+  nationalIdPhotoFront varchar(255) not null,
+  nationalIdPhotoBack varchar(255) not null,
   createdOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
