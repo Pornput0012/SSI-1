@@ -37,13 +37,13 @@ public class RegisterController {
     }
 
     @GetMapping("/buyers/email")
-    public ResponseEntity<List<Buyer>> getBuyersByEmail(@RequestParam String email) {
-        return ResponseEntity.ok(registerService.getAllEmailBuyers(email));
+    public ResponseEntity<List<String>> getBuyersByEmail() {
+        return ResponseEntity.ok(registerService.getAllBuyerEmails());
     }
 
     @GetMapping("/sellers/email")
-    public ResponseEntity<List<Seller>> getSellersByEmail(@RequestParam String email) {
-        return ResponseEntity.ok(registerService.getAllEmailSellers(email));
+    public ResponseEntity<List<String>> getSellersByEmail() {
+        return ResponseEntity.ok(registerService.getAllSellerEmails());
     }
 
     @PostMapping("")

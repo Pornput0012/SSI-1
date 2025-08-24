@@ -29,28 +29,28 @@ public class RegisterService {
         return sellerRepository.findAll();
     }
 
-    public List<Buyer> getAllEmailBuyers(String email) {
-        return buyerRepository.findByEmail(email);
+    public List<String> getAllBuyerEmails() {
+        return buyerRepository.findAllEmailsBuyer();
     }
 
-    public List<Seller> getAllEmailSellers(String email) {
-        return sellerRepository.findByEmail(email);
+    public List<String> getAllSellerEmails() {
+        return sellerRepository.findAllEmailsSeller();
     }
 
     public Buyer createBuyer(RegisterRequestDTO buyer) {
-        if (!getAllEmailBuyers(buyer.getEmail()).isEmpty() ||
-            !getAllEmailSellers(buyer.getEmail()).isEmpty()) {
+        if (getAllBuyerEmails().contains(buyer.getEmail()) ||
+                getAllSellerEmails().contains(buyer.getEmail())) {
             throw new BadRequestException("Email already exists: " + buyer.getEmail());
         }
 
         Buyer creatingBuyer = modelMapper.map(buyer, Buyer.class);
         return buyerRepository.save(creatingBuyer);
-        
+
     }
 
     public Seller createSeller(RegisterRequestDTO seller) {
-        if (!getAllEmailBuyers(seller.getEmail()).isEmpty() ||
-            !getAllEmailSellers(seller.getEmail()).isEmpty()) {
+        if (getAllBuyerEmails().contains(seller.getEmail()) ||
+                getAllSellerEmails().contains(seller.getEmail())) {
             throw new BadRequestException("Email already exists: " + seller.getEmail());
         }
 
