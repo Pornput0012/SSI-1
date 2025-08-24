@@ -1,6 +1,5 @@
 package ssi.backend.services;
 
-import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +23,8 @@ public class RegisterService {
     private ModelMapper modelMapper;
     @Autowired
     private FileService fileService;
+    @Autowired
+    private EmailService emailService;
 
     public List<Buyer> getAllBuyers() {
         return buyerRepository.findAll();
@@ -42,19 +43,27 @@ public class RegisterService {
     }
 
     public Buyer createBuyer(RegisterRequestDTO buyer) {
-        if (getAllBuyerEmails().contains(buyer.getEmail())||
+        if (getAllBuyerEmails().contains(buyer.getEmail()) ||
                 getAllSellerEmails().contains(buyer.getEmail())) {
             throw new BadRequestException("Email already exists: " + buyer.getEmail());
         }
 
         Buyer creatingBuyer = modelMapper.map(buyer, Buyer.class);
         creatingBuyer.setId(null);
-        return buyerRepository.save(creatingBuyer);
+        Buyer savedBuyer = buyerRepository.save(creatingBuyer);
 
+        try {
+            emailService.sendEmail(savedBuyer.getEmail(), "Welcome to ITB-MSHOP!",
+                    "สวัสดีคุณ " + savedBuyer.getFullname()
+                            + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว\n\nขอบคุณที่เข้าร่วมกับเรา!");
+        } catch (Exception e) {
+            System.err.println("❌ ส่งอีเมลไปยัง Buyer ไม่สำเร็จ: " + e.getMessage());
+        }
+        return savedBuyer;
     }
 
     public Seller createSeller(RegisterRequestDTO seller, List<MultipartFile> images) {
-        if (getAllBuyerEmails().contains(seller.getEmail())||
+        if (getAllBuyerEmails().contains(seller.getEmail()) ||
                 getAllSellerEmails().contains(seller.getEmail())) {
             throw new BadRequestException("Email already exists: " + seller.getEmail());
         }
@@ -81,18 +90,22 @@ public class RegisterService {
         creatingSeller.setId(null);
         Seller sellerRes = new Seller();
         try {
-            sellerRes =sellerRepository.save(creatingSeller);
+            sellerRes = sellerRepository.save(creatingSeller);
+            try {
+                emailService.sendEmail(sellerRes.getEmail(), "Welcome to ITB-MSHOP!",
+                    "สวัสดีคุณ " + sellerRes.getFullname()
+                            + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว\n\nขอบคุณที่เข้าร่วมกับเรา!");
+            } catch (Exception e) {
+                System.err.println("❌ ส่งอีเมลไปยัง Seller ไม่สำเร็จ: " + e.getMessage());
+            }
             System.out.println(sellerRes);
             return sellerRes;
-
 
         } catch (Exception e) {
             fileService.removeFiles(fileNames);
 
             throw new BadRequestException("Seller not created" + e.getMessage());
         }
-
-
 
     }
 }

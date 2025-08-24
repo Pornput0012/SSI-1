@@ -1,13 +1,13 @@
 package ssi.backend.controllers;
 
 import java.util.List;
-
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import jakarta.validation.Valid;
 import ssi.backend.dtos.RegisterRequestDTO;
 import ssi.backend.entities.Buyer;
 import ssi.backend.entities.Seller;
