@@ -1,5 +1,5 @@
 <script setup>
-import { ref, useAttrs, watchEffect } from "vue";
+import { ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import MessageModal from "./MessageModal.vue";
 
@@ -9,9 +9,9 @@ const props = defineProps({
 });
 
 const isCanNotSave = ref(true);
-const userType = ref("Buyer");
 
 let roles = ["Buyer", "Seller"];
+const userType = ref(roles[0]);
 
 const router = useRouter();
 
@@ -124,9 +124,9 @@ function uploadImage(event, side) {
     fileName.endsWith(".png")
   ) {
     if (side === "front") {
-      frontImage.value = { fileName: fileName, file: previewBinaryFile(file) };
+      frontImage.value = { fileName: fileName, file: {src :previewBinaryFile(file) ,image : file}};
     } else {
-      backImage.value = { fileName: fileName, file: previewBinaryFile(file) };
+      backImage.value = { fileName: fileName, file:{src :previewBinaryFile(file) ,image : file} };
     }
   } else {
     console.log("invalid type");
@@ -142,10 +142,9 @@ function removeBackImage() {
 
 const handleSubmit = () => {
   if (userType.value === "Seller") {
-    formDataSeller.value.userType = "Seller";
     emit("onSubmit", {
       userDetail: formDataSeller.value,
-      images: { front: frontImage.value, back: backImage.value },
+      images: { front: frontImage.value?.file.image, back: backImage.value?.file.image },
       userType: "Seller",
     });
   } else {
@@ -203,8 +202,8 @@ watchEffect(() => {
   if (userType.value === "Seller") {
     dataToCheck = { ...formDataSeller.value, userType: "Seller" };
     imagesToSend = {
-      front: frontImage.value?.file,
-      back: backImage.value?.file,
+      front: frontImage.value?.file.src,
+      back: backImage.value?.file.src,
     };
   } else {
     dataToCheck = { ...formDataBuyer.value, userType: "Buyer" };
@@ -380,9 +379,9 @@ watchEffect(() => {
               class="w-80 h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
             >
               <!-- Image Preview or Placeholder -->
-              <div v-if="frontImage?.file" class="relative">
+              <div v-if="frontImage?.file.src" class="relative">
                 <img
-                  :src="frontImage?.file"
+                  :src="frontImage?.file.src"
                   alt="National ID Front"
                   class="w-full h-48 object-cover rounded-lg"
                 />
@@ -434,9 +433,9 @@ watchEffect(() => {
               class="w-80 h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
             >
               <!-- Image Preview or Placeholder -->
-              <div v-if="backImage?.file" class="relative">
+              <div v-if="backImage?.file.src" class="relative">
                 <img
-                  :src="backImage?.file"
+                  :src="backImage?.file.src"
                   alt="National ID Back"
                   class="w-full h-48 object-cover rounded-lg"
                 />
@@ -485,6 +484,7 @@ watchEffect(() => {
       <div class="flex gap-3 mt-6 w-48 sm:w-64 md:w-80 justify-end">
         <button
           class="itbms-submit-button btn btn-primary"
+          :class="disableSaveBtn ? 'cursor-not-allowed' : ''"
           @click="handleSubmit"
           :disabled="isCanNotSave || disableSaveBtn"
         >

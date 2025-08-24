@@ -2,10 +2,11 @@
 import AuthenForm from "@/components/AuthenForm.vue";
 import MessageModal from "@/components/MessageModal.vue";
 import { createUser } from "@/services/userService";
-import { useNotiStore } from "@/stores/์NotiStore";
+
 import router from "@/router";
 
 import { ref } from "vue";
+import { useNotiStore } from "@/stores/NotiStore";
 
 
 const errorTitle = ref("");
@@ -20,8 +21,8 @@ const handleSubmit = async (payload) => {
         payload.userType === "Seller"
           ? await createUser(
               payload.userDetail,
-              payload.images,
-              payload.userType
+              payload.userType,
+              payload.images
             )
           : await createUser(payload.userDetail, payload.userType);
       if (!response.error) {
@@ -40,8 +41,8 @@ const handleSubmit = async (payload) => {
 
 const notiStore = useNotiStore();
 const createSuccess = () => {
-  notiStore.createSuccess = true;
-  router.back();
+  notiStore.createUserSuccess = true;
+  router.push({name : 'sale-items'});
 };
 </script>
 
