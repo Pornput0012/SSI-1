@@ -1,25 +1,58 @@
 <script setup>
-import AuthenForm from '@/components/AuthenForm.vue';
-import { ref } from 'vue';
+import AuthenForm from "@/components/AuthenForm.vue";
+import MessageModal from "@/components/MessageModal.vue";
+import { createUser } from "@/services/userService";
+import { useNotiStore } from "@/stores/์NotiStore";
+import router from "@/router";
 
-const isSaving = ref(false)
-const createUser = (payload) => {
-    isSaving.value =true
-    console.log("hi");
-    
-    console.log(payload.userDetail);
-    console.log(payload?.images);
-    
-    
-}
+import { ref } from "vue";
 
+
+const errorTitle = ref("");
+const errorMessage = ref("");
+const showModal = ref(false);
+const isSaving = ref(false);
+const handleSubmit = async (payload) => {
+  try {
+    isSaving.value = true;
+    if (payload) {
+      const response =
+        payload.userType === "Seller"
+          ? await createUser(
+              payload.userDetail,
+              payload.images,
+              payload.userType
+            )
+          : await createUser(payload.userDetail, payload.userType);
+      if (!response.error) {
+        createSuccess();
+      } else {
+        throw new Error(response.error);
+      }
+    }
+  } catch (error) {
+    errorTitle.value = "Failed to create user";
+    errorMessage.value = error.message;
+    showModal.value = true;
+    isSaving.value = false;
+  }
+};
+
+const notiStore = useNotiStore();
+const createSuccess = () => {
+  notiStore.createSuccess = true;
+  router.back();
+};
 </script>
 
 <template>
-    
-    <AuthenForm @onSubmit="createUser" :disable-save-btn="isSaving" />
+  <AuthenForm @onSubmit="handleSubmit" :disable-save-btn="isSaving" />
+  <MessageModal
+    v-if="showModal"
+    :handle-ok="() => (showModal = false)"
+    :title="errorTitle"
+    :message="errorMessage"
+  />
 </template>
 
-<style>
-
-</style>
+<style></style>

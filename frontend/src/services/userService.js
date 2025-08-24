@@ -2,7 +2,7 @@ const USER_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v1/user`;
 
-const createUser = async (userDetail, nationalIdPhoto = null) => {
+const createUser = async (userDetail, nationalIdPhoto = null,userType) => {
   try {
     const formData = new FormData();
 
@@ -13,7 +13,7 @@ const createUser = async (userDetail, nationalIdPhoto = null) => {
     if (nationalIdPhoto) {
       for (const [key, value] of Object.entries(nationalIdPhoto)) {
         if (value != null) {
-          formData.append(key == "front" ? "" : "", value);
+          formData.append(key == "front" ? "frontSide" : "backSide", value);
         }
       }
     }
@@ -35,4 +35,9 @@ const createUser = async (userDetail, nationalIdPhoto = null) => {
       error: `Error creating user: ${error.message}`,
     };
   }
+};
+
+
+export {
+  createUser
 };
