@@ -73,10 +73,8 @@ public class Seller {
     private String nationalIdPhotoBack;
 
 
-    @ColumnDefault("'INACTIVE'")
     @Column(name = "status")
-    @Generated(GenerationTime.ALWAYS)
-    private String status;
+    private String status = "INACTIVE";
 
     @JsonIgnore
     @ColumnDefault("CURRENT_TIMESTAMP")
