@@ -20,10 +20,10 @@ const errorMessage = ref("");
 const showModal = ref(false);
 
 const formDataBuyer = ref({
-  nickname: "",
+  nickName: "",
   email: "",
   password: "",
-  fullname: "",
+  fullName: "",
 });
 
 const formDataSeller = ref({
@@ -39,7 +39,7 @@ const formConstraints = {
     {
       title: "Nickname",
       label: "nickname",
-      model: "nickname",
+      model: "nickName",
       constraint: { type: "string", required: true },
     },
     {
@@ -62,7 +62,7 @@ const formConstraints = {
     {
       title: "Fullname",
       label: "fullname",
-      model: "fullname",
+      model: "fullName",
       constraint: {
         type: "string",
         required: true,
@@ -159,10 +159,10 @@ function clearData(role = null) {
 
   if (onToggle && role === "Seller") {
     formDataBuyer.value = {
-      nickname: "",
+      nickName: "",
       email: "",
       password: "",
-      fullname: "",
+      fullName: "",
     };
     return;
   }
@@ -179,10 +179,10 @@ function clearData(role = null) {
   }
 
   formDataBuyer.value = {
-    nickname: "",
+    nickName: "",
     email: "",
     password: "",
-    fullname: "",
+    fullName: "",
   };
 
   formDataSeller.value = {
@@ -334,7 +334,7 @@ watchEffect(() => {
 
           <div class="flex-col">
             <input
-              type="text"
+              :type="field.label === 'Password'? 'password' : 'text'"
               :id="field.label"
               class="input w-48 sm:w-64 md:w-80"
               :class="'itbms-' + field.label"

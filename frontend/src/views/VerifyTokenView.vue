@@ -18,6 +18,8 @@ onMounted(async () => {
     if (response.error) {
       throw new Error(response.error);
     }
+
+    router.push({name :'home'})
   } catch (error) {
     errorTitle.value = 'Failed to verify token'
     errorMessage.value =  error.message
