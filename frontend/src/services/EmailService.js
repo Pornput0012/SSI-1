@@ -1,13 +1,15 @@
 const EMAIL_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
-}/itb-mshop/verify-email`;
+}/itb-mshop/v2/user`;
 
 const verifyEmail = async (token) => {
   try {
-
-    const response = await fetch(`${EMAIL_API_URL}?jwtToken=${token}`, {
-      method: "GET",
-    });
+    const response = await fetch(
+      `${EMAIL_API_URL}/verify-token?jwtToken=${token}`,
+      {
+        method: "POST",
+      }
+    );
 
     if (response.status !== 200) {
       throw new Error(
@@ -15,9 +17,21 @@ const verifyEmail = async (token) => {
       );
     }
 
-    const data = await response.json();
+    const activateEmail = await fetch(
+      `${EMAIL_API_URL}/verify-email?jwtToken=${token}`,
+      {
+        method: "POST",
+      }
+    );
 
-    return data;
+    if (activateEmail.status !== 200) {
+      throw new Error(
+        `Failed to verify email. Server responded with status ${response.status}`
+      );
+    }
+
+
+    return true;
   } catch (error) {
     return {
       error: `Error: ${error.message}`,
@@ -25,6 +39,4 @@ const verifyEmail = async (token) => {
   }
 };
 
-export {
-    verifyEmail
-}
+export { verifyEmail };
