@@ -3,7 +3,7 @@ import MessageModal from "@/components/MessageModal.vue";
 import SaleItemList from "@/components/SaleItemList.vue";
 import { getAllSaleItems } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useNotiStore } from "@/stores/์NotiStore";
+import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
 
 const { getSaleItems } = useSaleItemStore();
@@ -29,6 +29,7 @@ onMounted(() => {
     showCreatedModal.value = true;
     notiStore.createSuccess = false;
   }
+
 });
 </script>
 

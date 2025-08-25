@@ -63,7 +63,7 @@ public class FileService {
     }
 
     public String saveFile(MultipartFile image, Product product) {
-        String fileName = StringUtils.cleanPath(image.getOriginalFilename());
+        String fileName = getUniqueFileName(image.getOriginalFilename());
 
         try {
             if (fileName.contains("..")) {
@@ -92,6 +92,30 @@ public class FileService {
             throw new RuntimeException("Unable to save file: " + fileName, e);
         }
 
+    }
+
+
+    public String saveFile(MultipartFile image) {
+        String fileName = getUniqueFileName(image.getOriginalFilename());
+
+        try {
+            if (fileName.contains("..")) {
+                throw new RuntimeException("Cannot upload file outside current directory: " + fileName);
+            }
+            Path targetLocation = this.fileStorageLocation.resolve(fileName);
+            Files.copy(image.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            return fileName;
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to save file: " + fileName, e);
+        }
+
+    }
+
+    public List<String> saveFile(List<MultipartFile> images) {
+        List<String> fileNames = new ArrayList<>(images.size());
+        images.forEach(image -> fileNames.add(saveFile(image)));
+        return fileNames;
     }
 
     public List<String> saveFile(List<MultipartFile> images, Product product) {
@@ -130,6 +154,12 @@ public class FileService {
         }
     }
 
+    public void removeFiles(List<String> fileNames) {
+        fileNames.forEach(fileName -> {
+            removeFileNormal(fileName);
+        });
+    }
+
     public void removeFiles(Product product, List<String> fileNames) {
         List<String> failedFiles = new ArrayList<>();
 
@@ -146,6 +176,46 @@ public class FileService {
         }
     }
 
+    public void removeFileNormal(String fileName) {
+        try {
+            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+            } else {
+                throw new RuntimeException("File not found " + fileName);
+            }
+        } catch (IOException ex) {
+            throw new RuntimeException("File operation error: " + fileName, ex);
+        }
+    }
+
+    private String getUniqueFileName(String originalFileName) {
+        String fileName = StringUtils.cleanPath(originalFileName);
+
+        String name = fileName;
+        String extension = "";
+
+        int dotIndex = fileName.lastIndexOf(".");
+        if (dotIndex > 0) {
+            name = fileName.substring(0, dotIndex);
+            extension = fileName.substring(dotIndex);
+        }
+
+        Path targetLocation = this.fileStorageLocation.resolve(fileName);
+        int counter = 1;
+
+        // ถ้ามีไฟล์ชื่อเดียวกันอยู่แล้ว -> ต่อ (1), (2), ...
+        while (Files.exists(targetLocation)) {
+            fileName = name + "(" + counter + ")" + extension;
+            targetLocation = this.fileStorageLocation.resolve(fileName);
+            counter++;
+        }
+
+        return fileName;
+    }
+
+
     public void removeFile(String fileName) {
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
@@ -161,6 +231,7 @@ public class FileService {
             throw new RuntimeException("File operation error: " + fileName, ex);
         }
     }
+
     public boolean fileExists(Product product, String fileName) {
         // สมมติว่าไฟล์อยู่ในโฟลเดอร์ picture/{product.id}/
         File file = new java.io.File("picture/" + product.getId() + "/" + fileName);

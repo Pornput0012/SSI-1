@@ -1,9 +1,20 @@
 <script setup>
+import { useRoute } from "vue-router";
 import NavBar from "./components/NavBar.vue";
+import { computed } from "vue";
+
+const route = useRoute();
+
+const authenFormPath = ['/register','/login','/verify-email']
+
+const hasNav = computed(()=>!authenFormPath.includes(route.path))
+
+console.log(route.path);
+
 </script>
 
 <template>
-  <NavBar />
+  <NavBar v-if="hasNav" />
   <RouterView />
 </template>
 

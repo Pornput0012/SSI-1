@@ -19,12 +19,17 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             "   OR (:storages IS NOT NULL AND p.storageGb IN :storages) " +
             ") " +
             "AND (:priceLower IS NULL OR p.price >= :priceLower) " +
-            "AND (:priceUpper IS NULL OR p.price <= :priceUpper)")
+            "AND (:priceUpper IS NULL OR p.price <= :priceUpper) " +
+            "AND (:searchKeyWord IS NULL OR " +
+            "     LOWER(p.description) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) " +
+            "     OR LOWER(p.model) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) " +
+            "     OR LOWER(p.color) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) )")
     Page<Product> findFilteredProducts(
             List<String> brandNames,
             List<Integer> storages,
             Integer priceLower,
             Integer priceUpper,
+            String searchKeyWord,
             Pageable pageable
     );
 
@@ -32,10 +37,15 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
                     "WHERE " +
                     "(:brandNames IS NULL OR brand.name IN :brandNames) " +
                     "AND (:priceLower IS NULL OR p.price >= :priceLower) " +
-                    "AND (:priceUpper IS NULL OR p.price <= :priceUpper)")
+                    "AND (:priceUpper IS NULL OR p.price <= :priceUpper)" +
+            "AND (:searchKeyWord IS NULL OR " +
+            "     LOWER(p.description) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) " +
+            "     OR LOWER(p.model) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) " +
+            "     OR LOWER(p.color) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) )")
     Page<Product> findFilteredProducts(
                     List<String> brandNames,
                     Integer priceLower,
                     Integer priceUpper,
+                    String searchKeyWord,
                     Pageable pageable);
 }

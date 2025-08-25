@@ -51,7 +51,7 @@ public class ProductService {
 
     public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
             List<String> filterBrands, List<Integer> filterStorages,
-            Integer filterPriceLower, Integer filterPriceUpper) {
+            Integer filterPriceLower, Integer filterPriceUpper, String searchKeyWord) {
         ProductPageDTO productPage;
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
@@ -73,8 +73,8 @@ public class ProductService {
 
         // Logic สำหรับกรณี filterStorages
         if (filterStorages != null && !filterStorages.isEmpty()) {
-            boolean hasZero = filterStorages.stream().anyMatch(ele -> ele == 0);
-            List<Integer> nonZeroStorages = filterStorages.stream().filter(ele -> ele != 0).toList();
+            boolean hasZero = filterStorages.stream().anyMatch(ele -> ele == -1);
+            List<Integer> nonZeroStorages = filterStorages.stream().filter(ele -> ele != -1).toList();
 
             if (hasZero && !nonZeroStorages.isEmpty()) {
                 // กรณีมี 0 และเลขอื่น
@@ -84,6 +84,7 @@ public class ProductService {
                         nonZeroStorages,
                         filterPriceLower,
                         filterPriceUpper,
+                        searchKeyWord,
                         pageable);
                 // Query รอบสองด้วย [0]
                 Page<Product> pageResult2 = productRepository.findFilteredProducts(
@@ -91,6 +92,7 @@ public class ProductService {
                         null,
                         filterPriceLower,
                         filterPriceUpper,
+                        searchKeyWord,
                         pageable);
                 // รวมผลลัพธ์
                 List<Product> combinedList = new ArrayList<>();
@@ -112,6 +114,7 @@ public class ProductService {
                         null,
                         filterPriceLower,
                         filterPriceUpper,
+                        searchKeyWord,
                         pageable);
                 productPage = modelMapper.map(pageResult, ProductPageDTO.class);
                 productPage
@@ -125,6 +128,7 @@ public class ProductService {
                         filterStorages,
                         filterPriceLower,
                         filterPriceUpper,
+                        searchKeyWord,
                         pageable);
                 productPage = modelMapper.map(pageResult, ProductPageDTO.class);
                 productPage
@@ -138,6 +142,7 @@ public class ProductService {
                     (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
                     filterPriceLower,
                     filterPriceUpper,
+                    searchKeyWord,
                     pageable);
             productPage = modelMapper.map(pageResult, ProductPageDTO.class);
             productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
