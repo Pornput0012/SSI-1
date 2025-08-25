@@ -562,7 +562,7 @@ const uploadImage = (event) => {
   if (availableSlots === 0) {
     errorTitle.value = "No Available Slots";
     errorMessage.value =
-      "All 4 image slots are occupied. Please remove some images first.";
+      "Maximum 4 pictures are allowed";
     showModal.value = true;
     event.target.value = "";
     return;

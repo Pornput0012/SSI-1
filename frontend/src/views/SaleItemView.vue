@@ -70,7 +70,7 @@ const hasError = ref("");
 const showFilterDropdown = ref(false);
 const showCreatedModal = ref(false);
 const brandOptions = ref([]);
-const storageOptions = ref([32, 64, 128, 256, 512, 1024, 0]);
+const storageOptions = ref([32, 64, 128, 256, 512, 1024, -1]);
 const priceRangeOptions = ref([
   { label: "0 – 5,000", min: 0, max: 5000 },
   { label: "5,001 – 10,000", min: 5001, max: 10000 },
@@ -157,7 +157,7 @@ const applyFilter = async () => {
       size: pageSize.value,
       sortField: sortField.value,
       sortDirection: sortDirection.value,
-      keyword: searchKeyword.value,
+      searchKeyWord: searchKeyword.value,
     });
 
     saveToLocalStorage();
@@ -289,7 +289,7 @@ const initializeSaleItems = async (pageInfo) => {
       size: pageInfo?.size ?? 10,
       sortField: pageInfo?.sortField ?? null,
       sortDirection: pageInfo?.sortDirection ?? null,
-      keyword: searchKeyword.value,
+      searchKeyWord: searchKeyword.value,
     });
 
     if (response.error) {
@@ -327,10 +327,11 @@ onMounted(async () => {
   }
 });
 
-const clearSearchKeyword = () => {
+const clearSearchKeyword = async () => {
   searchInput.value = "";
   setSearchKeyword("");
   sessionStorage.setItem(STORAGE_KEYS.SEARCH_KEYWORD, JSON.stringify(""));
+  await applyFilter()
 };
 
 const windowWidth = ref(window.innerWidth);
@@ -503,7 +504,7 @@ const updateWidth = () => {
                 class="itbms-storage-size-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
                 {{
-                  typeof storage === "number" && storage != 0
+                  typeof storage === "number" && storage != -1
                     ? storage + " GB"
                     : "Not specified"
                 }}
@@ -663,7 +664,7 @@ const updateWidth = () => {
           class="itbms-storage-size-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
           <span class="itbms-storage-size-filter">{{
-            storage === 0 ? "Not specified" : storage + " GB"
+            storage === -1 ? "Not specified" : storage + " GB"
           }}</span>
           <button
             class="itbms-storage-size-item-clear font-bold cursor-pointer"
