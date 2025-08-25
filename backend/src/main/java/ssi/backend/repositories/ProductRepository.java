@@ -20,7 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
             ") " +
             "AND (:priceLower IS NULL OR p.price >= :priceLower) " +
             "AND (:priceUpper IS NULL OR p.price <= :priceUpper) " +
-            "AND (:keyword IS NULL OR " +
+            "AND (:searchKeyWord IS NULL OR " +
             "     LOWER(p.description) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) " +
             "     OR LOWER(p.model) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) " +
             "     OR LOWER(p.color) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) )")
