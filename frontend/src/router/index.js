@@ -9,6 +9,7 @@ import SaleItemListView from "@/views/SaleItemListView.vue";
 import SaleItemView from "@/views/SaleItemView.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import RegisterView from "@/views/RegisterView.vue";
+import VerifyTokenView from "@/views/VerifyTokenView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -68,6 +69,11 @@ const router = createRouter({
       path: "/register",
       component: RegisterView,
       name: "register",
+    },
+    {
+      path: "/verify-email",
+      component: VerifyTokenView,
+      name: "verify-email",
     },
   ],
 });
