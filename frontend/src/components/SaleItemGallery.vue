@@ -2,7 +2,6 @@
 import { ref, computed, onMounted, watch } from "vue";
 import ContainerList from "./ContainerList.vue";
 import SaleItemGalleryModel from "./SaleItemGalleryModel.vue";
-
 const props = defineProps({
   saleItems: {
     type: [Array, null],
@@ -122,6 +121,8 @@ watch(
   },
   { deep: true }
 );
+
+
 </script>
 
 <template>
@@ -155,6 +156,7 @@ watch(
     >
       <template v-slot="{ itemInList }">
         <SaleItemGalleryModel
+          :fileName="itemInList.saleItemImages[0]"
           :brand="itemInList.brandName"
           :model="itemInList.model"
           :price="itemInList.price"
