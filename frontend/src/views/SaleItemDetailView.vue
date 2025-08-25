@@ -4,40 +4,74 @@ import arrowleft from "../assets/icons/arrowleft.svg";
 import dot from "../assets/icons/dot.svg";
 import heart from "../assets/icons/heart.svg";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, onBeforeUnmount } from "vue";
 import {
   getSaleItemById,
   deleteSaleItemById,
+  getSaleItemById_v2,
+  getImageByFileName,
 } from "@/services/SaleItemService";
 import Breadcrumbs from "../components/Breadcrumbs.vue";
 import { useNotiStore } from "@/stores/NotiStore";
 import MessageModal from "@/components/MessageModal.vue";
+import noImage from "@/assets/No_image_available.png";
 
 const route = useRoute();
 const router = useRouter();
-
 const saleItemStore = useSaleItemStore();
-
 const saleItemId = route.params.id;
-
 const selectSaleItem = ref(null);
-
 const isNotFound = ref(false);
 const errorMessage = ref("");
 
-const showDeleteModal = ref(false);
+// เพิ่ม state สำหรับจัดการรูปภาพ
+const currentImageIndex = ref(0);
+const imageUrls = ref([]);
 
-const deleteSuccess = ref(false);
+// ฟังก์ชันสำหรับโหลดรูปภาพ
+const loadImages = async (imageFileNames) => {
+  if (!imageFileNames || imageFileNames.length === 0) {
+    imageUrls.value = [noImage, noImage, noImage, noImage];
+    return;
+  }
+
+  const urls = [];
+  for (const fileName of imageFileNames) {
+    try {
+      const imageBlob = await getImageByFileName(fileName);
+      const imageUrl = URL.createObjectURL(imageBlob);
+      urls.push(imageUrl);
+    } catch (error) {
+      console.error(`Failed to load image ${fileName}:`, error);
+      urls.push(noImage);
+    }
+  }
+  
+  // เติม noImage ให้ครบ 4 รูปถ้าไม่ครบ
+  while (urls.length < 4) {
+    urls.push(noImage);
+  }
+  
+  imageUrls.value = urls.slice(0, 4); // จำกัดไม่เกิน 4 รูป
+};
+
+// ฟังก์ชันสำหรับเปลี่ยนรูปหลัก
+const changeMainImage = (index) => {
+  currentImageIndex.value = index;
+};
 
 const fetchSaleItemById = async () => {
   try {
     if (!saleItemId) {
       throw new Error("Invalid ID");
     }
-
-    const response = await getSaleItemById(saleItemId);
+    const response = await getSaleItemById_v2(saleItemId);
     if (!response.error) {
       selectSaleItem.value = response;
+      console.log(response);
+      
+      // โหลดรูปภาพ
+      await loadImages(response.saleItemImages);
     } else {
       throw new Error("The requested sale item does not exist.");
     }
@@ -49,37 +83,12 @@ const fetchSaleItemById = async () => {
 
 onMounted(fetchSaleItemById);
 
-const handleDelete = async (id) => {
-  try {
-    if (selectSaleItem.value && selectSaleItem.value.id) {
-      const response = await deleteSaleItemById(selectSaleItem.value.id);
-      showDeleteModal.value = false;
-      if (response.success) {
-        //saleItemStore.deleteSaleItemById(selectSaleItem.value.id);
-        deleteSuccess.value = true;
-        selectSaleItem.value = null;
-      } else {
-        throw new Error("The requested sale item does not exist.");
-      }
+onBeforeUnmount(() => {
+  imageUrls.value.forEach(url => {
+    if (url !== noImage && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
     }
-  } catch (e) {
-    errorMessage.value = e.message;
-    isNotFound.value = true;
-  }
-};
-
-const successOk = () => {
-  deleteSuccess.value = false;
-  router.push({ name: "sale-items" });
-};
-
-const notiStore = useNotiStore();
-const showUpdatedModal = ref(false);
-onMounted(() => {
-  if (notiStore.updateSuccess) {
-    showUpdatedModal.value = true;
-    notiStore.updateSuccess = false;
-  }
+  });
 });
 </script>
 
@@ -105,9 +114,35 @@ onMounted(() => {
             </button>
           </div>
         </div>
+        
         <div class="itbms-picture w-full md:w-[50%]">
-          <img src="/pictures/iPhone15Pro.png" class="w-full object-cover" />
+          <!-- รูปหลัก -->
+          <div class="w-full mb-4 aspect-square max-w-md mx-auto">
+            <img 
+              :src="imageUrls[currentImageIndex] || noImage" 
+              class="w-full h-full object-cover rounded-lg border border-gray-200"
+              :alt="selectSaleItem.model"
+            />
+          </div>
+          
+          <!-- รูปย่อ (แสดงทั้งหมด 4 รูป) -->
+          <div class="flex gap-2 justify-center max-w-md mx-auto">
+            <div
+              v-for="(imageUrl, index) in imageUrls"
+              :key="index"
+              class="flex-1 aspect-square cursor-pointer rounded-lg overflow-hidden border-2 transition-all max-w-[80px]"
+              :class="currentImageIndex === index ? 'border-purple-700' : 'border-gray-300 hover:border-gray-400'"
+              @click="changeMainImage(index)"
+            >
+              <img
+                :src="imageUrl"
+                class="w-full h-full object-cover"
+                :alt="`${selectSaleItem.model} image ${index + 1}`"
+              />
+            </div>
+          </div>
         </div>
+        
         <div class="w-full md:w-[50%]">
           <div class="mb-[10px] hidden md:block">
             <div class="flex justify-between items-center">
@@ -122,7 +157,6 @@ onMounted(() => {
               </button>
             </div>
           </div>
-
           <p
             class="itbms-model text-[24px] md:text-[28px] lg:text-[32px] text-black mb-[4px]"
           >
@@ -132,8 +166,10 @@ onMounted(() => {
             <div
               class="itbms-price font-bold text-[18px] md:text-[20px] lg:text-[24px] text-purple-700"
             >
-              {{ selectSaleItem.price.toLocaleString()
-              }}<span class="itbms-price-unit">฿</span>
+              {{ selectSaleItem.price.toLocaleString() }}<span
+                class="itbms-price-unit"
+                >฿</span
+              >
             </div>
             <button class="cursor-pointer">
               <img :src="heart" class="w-[25px] md:w-[25px] lg:w-[30px]" />
@@ -150,17 +186,17 @@ onMounted(() => {
             </div>
             <div class="itbms-description">
               <p class="font-semibold">Description:</p>
-              <span :class="{ 'text-gray-400': !selectSaleItem.description }">{{
-                selectSaleItem.description || "No description provided"
-              }}</span>
+              <span
+                :class="{ 'text-gray-400': !selectSaleItem.description }"
+                >{{
+                  selectSaleItem.description || "No description provided"
+                }}</span
+              >
             </div>
             <div class="itbms-ramGb-unit">
               <span class="font-semibold">Ram: </span>
               <span
-                :class="{
-                  'text-gray-400':
-                    !selectSaleItem.ramGb && selectSaleItem.ramGb !== 0,
-                }"
+                :class="{ 'text-gray-400': !selectSaleItem.ramGb && selectSaleItem.ramGb !== 0, }"
               >
                 <span class="itbms-ramGb"
                   >{{ selectSaleItem.ramGb || "-" }}
@@ -171,25 +207,16 @@ onMounted(() => {
             <div class="itbms-screenSizeInch-unit">
               <span class="font-semibold">Screen Size: </span>
               <span
-                :class="{
-                  'text-gray-400':
-                    !selectSaleItem.screenSizeInch &&
-                    selectSaleItem.screenSizeInch !== 0,
-                }"
+                :class="{ 'text-gray-400': !selectSaleItem.screenSizeInch && selectSaleItem.screenSizeInch !== 0, }"
               >
-                <span class="itbms-screenSizeInch">{{
-                  selectSaleItem.screenSizeInch || "-"
-                }}</span>
+                <span class="itbms-screenSizeInch">{{ selectSaleItem.screenSizeInch || "-" }}</span>
                 <span class="itbms-screenSizeInch-unit">Inches</span>
               </span>
             </div>
             <div class="itbms-storageGb-unit">
               <span class="font-semibold">Storage: </span>
               <span
-                :class="{
-                  'text-gray-400':
-                    !selectSaleItem.storageGb && selectSaleItem.storageGb !== 0,
-                }"
+                :class="{ 'text-gray-400': !selectSaleItem.storageGb && selectSaleItem.storageGb !== 0, }"
               >
                 <span class="itbms-storageGb">
                   {{ selectSaleItem.storageGb || "-" }}
@@ -209,48 +236,6 @@ onMounted(() => {
                 {{ selectSaleItem.quantity }}
               </span>
             </div>
-            <div class="flex gap-4 mt-4">
-              <router-link
-                :to="{ name: 'edit-sale-item', params: { id: saleItemId } }"
-                class="itbms-edit-button btn btn-warning btn-outline"
-                >Edit</router-link
-              >
-              <button
-                @click="showDeleteModal = true"
-                class="itbms-delete-button btn btn-error btn-outline"
-              >
-                Delete
-              </button>
-              <dialog
-                class="modal"
-                :open="showDeleteModal"
-                v-if="showDeleteModal"
-              >
-                <div class="modal-box">
-                  <h3 class="text-lg font-bold">Delete Confirmation</h3>
-
-                  <p class="itbms-message py-4">
-                    Do you want to delete this sale item?
-                  </p>
-                  <div class="modal-action">
-                    <form method="dialog">
-                      <button
-                        @click="showDeleteModal = false"
-                        class="btn btn-error itbms-cancel-button"
-                      >
-                        Cancel
-                      </button>
-                    </form>
-                    <button
-                      @click="handleDelete"
-                      class="btn btn-success itbms-confirm-button"
-                    >
-                      Confirm
-                    </button>
-                  </div>
-                </div>
-              </dialog>
-            </div>
           </div>
         </div>
       </div>
@@ -263,48 +248,6 @@ onMounted(() => {
     :title="'Product Not Found'"
     :message="errorMessage"
   />
-
-  <div v-if="deleteSuccess" class="modal modal-open">
-    <div class="modal-box text-center">
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The sale item has been deleted.
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button @click="successOk" class="btn btn-primary bg-purple-700">
-          OK
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <MessageModal
-    v-if="showUpdatedModal"
-    :handle-ok="() => (showUpdatedModal = false)"
-    :title="'Successfully!'"
-    :message="'The sale item has been updated.'"
-    :type-modal="'text-success'"
-  />
-
-  <!-- <div v-if="showUpdatedModal" class="modal modal-open">
-    <div class="modal-box text-center">
-      <h3
-        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
-      >
-        Successfully!
-      </h3>
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The sale item has been updated.
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button
-          @click="showUpdatedModal = false"
-          class="btn btn-primary bg-purple-700"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div> -->
 </template>
 
 <style scoped></style>

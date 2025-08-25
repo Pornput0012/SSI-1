@@ -1,4 +1,5 @@
 <script setup>
+import noImage from "@/assets/No_image_available.png";
 
 const props = defineProps({
   id: {
@@ -20,7 +21,23 @@ const props = defineProps({
     required: true,
   },
   color: String,
+  fileName: {
+    type: String,
+    required: false,
+  },
 });
+
+const loadImages = async (imageFileNames) => {
+  try {
+    if (imageFileNames != null || imageFileNames != "") {
+      const imageBlob = await getImageByFileName(imageFileNames);
+      const imageUrl = URL.createObjectURL(imageBlob);
+      return imageUrl;
+    }
+  } catch (error) {
+    console.error(`Failed to load image ${fileName}:`, error);
+  }
+};
 </script>
 
 <template>
@@ -35,9 +52,10 @@ const props = defineProps({
         class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
       >
         <img
-          src="../assets/bg.jpg"
+          :src="fileName ? loadImages(fileName) : noImage"
           alt="Product image"
-          class="w-full h-full object-cover object-center"
+          class="w-full h-full object-center"
+          :class="fileName ? 'object-cover' : 'object-contain'"
         />
       </div>
 
@@ -58,7 +76,7 @@ const props = defineProps({
               <p class="itbms-storageGb">{{ storageGb }}</p>
             </div>
             <p v-else class="itbms-storageGb mx-1">-</p>
-            <p class="itbms-storageGb-unit ">GB</p>
+            <p class="itbms-storageGb-unit">GB</p>
           </div>
 
           <p v-if="color" class="itbms-color text-gray-600">
