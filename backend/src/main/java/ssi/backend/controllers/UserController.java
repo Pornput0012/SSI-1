@@ -13,6 +13,7 @@ import java.text.ParseException;
 
 @RestController
 @RequestMapping("/itb-mshop")
+@CrossOrigin(origins = "${app.cors.allowedOrigins}")
 public class UserController {
     private final JwtService jwtService;
     private final UserService userService;

@@ -43,9 +43,8 @@ public class Buyer {
     private String fullName;
 
 
-    @ColumnDefault("'INACTIVE'")
     @Column(name = "status")
-    private String status;
+    private String status = "INACTIVE";
 
     @JsonIgnore
     @ColumnDefault("CURRENT_TIMESTAMP")

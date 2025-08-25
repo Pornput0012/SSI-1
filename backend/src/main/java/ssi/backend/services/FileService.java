@@ -63,7 +63,7 @@ public class FileService {
     }
 
     public String saveFile(MultipartFile image, Product product) {
-        String fileName = StringUtils.cleanPath(image.getOriginalFilename());
+        String fileName = getUniqueFileName(image.getOriginalFilename());
 
         try {
             if (fileName.contains("..")) {
@@ -96,7 +96,7 @@ public class FileService {
 
 
     public String saveFile(MultipartFile image) {
-        String fileName = StringUtils.cleanPath(image.getOriginalFilename());
+        String fileName = getUniqueFileName(image.getOriginalFilename());
 
         try {
             if (fileName.contains("..")) {
@@ -189,6 +189,32 @@ public class FileService {
             throw new RuntimeException("File operation error: " + fileName, ex);
         }
     }
+
+    private String getUniqueFileName(String originalFileName) {
+        String fileName = StringUtils.cleanPath(originalFileName);
+
+        String name = fileName;
+        String extension = "";
+
+        int dotIndex = fileName.lastIndexOf(".");
+        if (dotIndex > 0) {
+            name = fileName.substring(0, dotIndex);
+            extension = fileName.substring(dotIndex);
+        }
+
+        Path targetLocation = this.fileStorageLocation.resolve(fileName);
+        int counter = 1;
+
+        // ถ้ามีไฟล์ชื่อเดียวกันอยู่แล้ว -> ต่อ (1), (2), ...
+        while (Files.exists(targetLocation)) {
+            fileName = name + "(" + counter + ")" + extension;
+            targetLocation = this.fileStorageLocation.resolve(fileName);
+            counter++;
+        }
+
+        return fileName;
+    }
+
 
     public void removeFile(String fileName) {
         try {
