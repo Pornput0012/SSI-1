@@ -43,34 +43,34 @@ CREATE TABLE IF NOT EXISTS sale_item_images (
 );
 
 
-
-CREATE TABLE buyers (
-  buyers_id INT AUTO_INCREMENT PRIMARY KEY,
-  nickname VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  fullname VARCHAR(40) NOT NULL,
-  status enum('ACTIVE','INACTIVE') DEFAULT 'INACTIVE',
-  createdOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS buyers (
+buyers_id INTEGER AUTO_INCREMENT PRIMARY KEY,
+nickname VARCHAR(255) NOT NULL, 
+email VARCHAR(255) UNIQUE NOT NULL, 
+password VARCHAR(255) NOT NULL, 
+fullname VARCHAR(40) NOT NULL, 
+status ENUM('ACTIVE', 'INACTIVE') default 'INACTIVE',
+createdOn datetime not null default current_timestamp, 
+updatedOn datetime not null default current_timestamp on update current_timestamp
 );
 
-CREATE TABLE sellers (
-  sellers_id INT AUTO_INCREMENT PRIMARY KEY,
-  nickname VARCHAR(255) NOT NULL,
-  email VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  fullname VARCHAR(40) NOT NULL,
-  status enum('ACTIVE','INACTIVE') DEFAULT 'INACTIVE',
-  mobileNumber varchar(255) not null,
-  bankAccountNumber varchar(255) not null,
-  bankName varchar(255) not null,
-  nationalIdNumber varchar(255) not null,
-  nationalIdPhotoFront varchar(255) not null,
-  nationalIdPhotoBack varchar(255) not null,
-  createdOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS sellers (
+sellers_id INT AUTO_INCREMENT PRIMARY KEY, 
+nickname VARCHAR(255) NOT NULL, 
+email VARCHAR(255) UNIQUE NOT NULL, 
+password VARCHAR(255) NOT NULL, 
+fullname VARCHAR(40) NOT NULL, 
+mobileNumber VARCHAR(255) NOT NULL, 
+bankAccountNumber VARCHAR(255) NOT NULL,
+bankName VARCHAR(255) NOT NULL,
+nationalIdNumber VARCHAR(255) NOT NULL, 
+nationalIdPhotoFront varchar(255) NOT NULL,
+nationalIdPhotoBack varchar(255) NOT NULL,
+status ENUM('ACTIVE', 'INACTIVE') default 'INACTIVE',
+createdOn datetime not null default current_timestamp, 
+updatedOn datetime not null default current_timestamp on update current_timestamp
 );
+
 
 INSERT INTO brands (name, countryOfOrigin, websiteUrl, isActive) VALUES
 ('Samsung', 'South Korea', 'https://www.samsung.com', 1),
@@ -155,6 +155,3 @@ INSERT INTO products (product_id, brand_id, model, description, price, ramGb, sc
 (83, 10, 'Find X5 Lite', 'Previous gen lite', 14850, 8, 6.43, 128, 'Starry Black', 8),
 (84, 10, 'A77', 'Budget friendly', 8250, 6, 6.56, 128, 'Ocean Blue', 20),
 (85, 10, 'Reno6 Pro', 'Classic premium', 16500, 12, 6.55, 256, 'Arctic Blue', 7);
-
-
-
