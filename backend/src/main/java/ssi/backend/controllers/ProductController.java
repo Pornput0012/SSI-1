@@ -41,10 +41,10 @@ public class ProductController {
             @RequestParam(required = false) List<Integer> filterStorages,
             @RequestParam(required = false) Integer filterPriceLower,
             @RequestParam(required = false) Integer filterPriceUpper,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String searchKeyWord) {
 
         ProductPageDTO productPageDTO = productService.getAllProductsV2(page, size, sortField, sortDirection,
-                filterBrands, filterStorages, filterPriceLower, filterPriceUpper, keyword);
+                filterBrands, filterStorages, filterPriceLower, filterPriceUpper, searchKeyWord);
         return ResponseEntity.ok(productPageDTO);
     }
 

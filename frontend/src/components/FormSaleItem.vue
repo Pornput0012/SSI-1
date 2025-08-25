@@ -562,7 +562,7 @@ const uploadImage = (event) => {
   if (availableSlots === 0) {
     errorTitle.value = "No Available Slots";
     errorMessage.value =
-      "All 4 image slots are occupied. Please remove some images first.";
+      "Maximum 4 pictures are allowed";
     showModal.value = true;
     event.target.value = "";
     return;
@@ -582,7 +582,7 @@ const uploadImage = (event) => {
   const checkSizeAndUploadFile = (file, i) => {
     if (file && file.size > MAX_SIZE_BYTES) {
       errorTitle.value = "File Size Too Large";
-      errorMessage.value = `File "${file.name}" exceeds the 2MB limit.`;
+      errorMessage.value = `The picture file "${file.name}" size cannot be larger than 2MB.`;
       showModal.value = true;
     } else {
       const reader = new FileReader();
