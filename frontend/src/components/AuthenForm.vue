@@ -351,7 +351,7 @@ watchEffect(() => {
               :id="field.label"
               class="input w-64 lg:w-80"
               :class="'itbms-' + field.label"
-              v-model="formDataBuyer[field.model]"
+              v-model.trim="formDataBuyer[field.model]"
             />
           </div>
         </div>
@@ -382,7 +382,7 @@ watchEffect(() => {
               :id="field.label"
               class="itbms-model input w-64 lg:w-80"
               :class="'itbms-' + field.label"
-              v-model="formDataSeller[field.model]"
+              v-model.trim="formDataSeller[field.model]"
             />
           </div>
         </div>
