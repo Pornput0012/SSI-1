@@ -12,11 +12,12 @@ public class RegisterRequestDTO {
     private String password;
     private String fullName;
 
+    private String userType;
 
 
     // ฟิลด์ที่จำเป็นเฉพาะ Seller
-    private String mobileNumber;
+    private String phoneNumber;
     private String bankAccountNumber;
     private String bankName;
-    private String nationalIdNumber;
+    private String idCardNumber;
 }

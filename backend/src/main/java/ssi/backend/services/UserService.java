@@ -87,9 +87,9 @@ public class UserService {
         if (fileNames != null && !fileNames.isEmpty()) {
             fileNames.stream().forEach(fileName -> {
                 if (fileName.contains("_fs_")) {
-                    creatingSeller.setNationalIdPhotoFront(fileName);
+                    creatingSeller.setIdCardImageFront(fileName);
                 } else if (fileName.contains("_bs_")) {
-                    creatingSeller.setNationalIdPhotoBack(fileName);
+                    creatingSeller.setIdCardImageBack(fileName);
                 } else {
                     throw new BadRequestException("Invalid file name side: " + fileName);
                 }

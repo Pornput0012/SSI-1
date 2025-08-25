@@ -24,7 +24,7 @@ public class Buyer {
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "nickname", nullable = false)
+    @Column(name = "nickName", nullable = false)
     private String nickName;
 
     @Size(max = 255)
@@ -39,7 +39,7 @@ public class Buyer {
 
     @Size(max = 40)
     @NotNull
-    @Column(name = "fullname", nullable = false, length = 40)
+    @Column(name = "fullName", nullable = false, length = 40)
     private String fullName;
 
 

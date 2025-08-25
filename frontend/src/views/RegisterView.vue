@@ -27,6 +27,7 @@ const handleSubmit = async (payload) => {
           : await createUser(payload.userDetail, payload.userType);
       if (!response.error) {
         createSuccess();
+        
       } else {
         throw new Error(response.error);
       }

@@ -579,48 +579,42 @@ const uploadImage = (event) => {
     } files were skipped.`;
   }
 
-  const checkSizeAndUploadFile = (file, i) => {
-    if (file && file.size > MAX_SIZE_BYTES) {
-      errorTitle.value = "File Size Too Large";
-      errorMessage.value = `The picture file "${file.name}" size cannot be larger than 2MB.`;
-      showModal.value = true;
+const checkSizeAndUploadFile = (file, i) => {
+  if (file && file.size > MAX_SIZE_BYTES) {
+    errorTitle.value = "File Size Too Large";
+    errorMessage.value = `File "${file.name}" exceeds the 2MB limit.`;
+    showModal.value = true;
+  } else {
+    const fileName = generateUniqueFileName(file.name);
+    const objectURL = URL.createObjectURL(file);
+
+    const image = {
+      imageName: fileName,
+      src: objectURL,
+      file,
+      isOriginal: false,
+      isDeleted: false,
+    };
+
+    let insertIndex = images.value.findIndex((img) => img.isDeleted);
+
+    if (insertIndex === -1) {
+      images.value.push(image);
+      insertIndex = images.value.length - 1;
     } else {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const fileName = generateUniqueFileName(file.name);
-
-        const image = {
-          imageName: fileName,
-          src: e.target.result,
-          file,
-          isOriginal: false, // รูปใหม่
-          isDeleted: false,
-        };
-
-        // หาช่องว่างแรกที่ถูกลบหรือเพิ่มที่ท้าย
-        let insertIndex = images.value.findIndex((img) => img.isDeleted);
-
-        if (insertIndex === -1) {
-          // ไม่มีช่องว่างที่ถูกลบ ให้เพิ่มที่ท้าย
-          images.value.push(image);
-          insertIndex = images.value.length - 1;
-        } else {
-          // มีช่องว่างที่ถูกลบ ให้แทนที่ช่องนั้น
-          images.value[insertIndex] = image;
-        }
-
-        // แสดงรูปแรกที่อัปโหลดถ้าไม่มีรูปที่แสดงอยู่
-        if (
-          showImageIndex.value === -1 ||
-          images.value[showImageIndex.value]?.isDeleted
-        ) {
-          showImageIndex.value = insertIndex;
-          showImage.value = e.target.result;
-        }
-      };
-      reader.readAsDataURL(file);
+      images.value[insertIndex] = image;
     }
-  };
+
+    if (
+      showImageIndex.value === -1 ||
+      images.value[showImageIndex.value]?.isDeleted
+    ) {
+      showImageIndex.value = insertIndex;
+      showImage.value = objectURL;
+    }
+  }
+};
+
 
   filesToProcess.forEach((file, i) => {
     checkSizeAndUploadFile(file, i);

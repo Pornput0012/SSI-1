@@ -717,7 +717,7 @@ const updateWidth = () => {
         }}
       </p>
       <div class="itbms-button modal-action justify-center">
-        <button @click="showCreatedModal = false" class="btn btn-primary">
+        <button @click="closeModal" class="btn btn-primary">
           OK
         </button>
       </div>

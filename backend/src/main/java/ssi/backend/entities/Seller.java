@@ -24,7 +24,7 @@ public class Seller {
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "nickname", nullable = false)
+    @Column(name = "nickName", nullable = false)
     private String nickName;
 
     @Size(max = 255)
@@ -39,13 +39,13 @@ public class Seller {
 
     @Size(max = 40)
     @NotNull
-    @Column(name = "fullname", nullable = false, length = 40)
+    @Column(name = "fullName", nullable = false, length = 40)
     private String fullName;
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "mobileNumber", nullable = false)
-    private String mobileNumber;
+    @Column(name = "phoneNumber", nullable = false)
+    private String phoneNumber;
 
     @Size(max = 255)
     @NotNull
@@ -59,18 +59,18 @@ public class Seller {
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "nationalIdNumber", nullable = false)
-    private String nationalIdNumber;
+    @Column(name = "idCardNumber", nullable = false)
+    private String idCardNumber;
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "nationalIdPhotoFront", nullable = false)
-    private String nationalIdPhotoFront;
+    @Column(name = "idCardImageFront", nullable = false)
+    private String idCardImageFront;
 
     @Size(max = 255)
     @NotNull
-    @Column(name = "nationalIdPhotoBack", nullable = false)
-    private String nationalIdPhotoBack;
+    @Column(name = "idCardImageBack", nullable = false)
+    private String idCardImageBack;
 
 
     @Column(name = "status")
