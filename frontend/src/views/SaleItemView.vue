@@ -157,7 +157,7 @@ const applyFilter = async () => {
       size: pageSize.value,
       sortField: sortField.value,
       sortDirection: sortDirection.value,
-      keyword: searchKeyword.value,
+      searchKeyWord: searchKeyword.value,
     });
 
     saveToLocalStorage();
@@ -289,7 +289,7 @@ const initializeSaleItems = async (pageInfo) => {
       size: pageInfo?.size ?? 10,
       sortField: pageInfo?.sortField ?? null,
       sortDirection: pageInfo?.sortDirection ?? null,
-      keyword: searchKeyword.value,
+      searchKeyWord: searchKeyword.value,
     });
 
     if (response.error) {
