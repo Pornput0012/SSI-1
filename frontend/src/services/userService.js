@@ -16,24 +16,24 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
       for (const [key, image] of Object.entries(nationalIdPhoto)) {
         
         if (image) {
-          const fieldName =
-            key === "front" ? "nationalIdPhotoFront" : "nationalIdPhotoBack";
 
           const ext = image.name.includes(".")
             ? image.name.substring(image.name.lastIndexOf("."))
             : ""; 
 
           const baseName = image.name.replace(ext, ""); 
-          const fileName = baseName + (key === "front" ? "_fs_" : "_bs_") + ext;
+          const fileName = baseName + (key === "idCardImageFront" ? "_fs_" : "_bs_") + ext;
           
           formData.append("images", image, fileName);
         }
       }
     }
+
+    formData.append('userType',userType)
     
 
     const response = await fetch(
-      `${USER_API_URL}` + "?userType=" + `${userType.toLowerCase()}`,
+      `${USER_API_URL}`,
       {
         method: "POST",
         body: formData,

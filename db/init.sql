@@ -1,8 +1,5 @@
 
 drop database if exists  int221;
--- require for production
-SET GLOBAL time_zone = 'Asia/Bangkok';
-SET time_zone = 'Asia/Bangkok';
 
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 create database if not exists INT221 CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -45,10 +42,10 @@ CREATE TABLE IF NOT EXISTS sale_item_images (
 
 CREATE TABLE IF NOT EXISTS buyers (
 buyers_id INTEGER AUTO_INCREMENT PRIMARY KEY,
-nickname VARCHAR(255) NOT NULL, 
+nickName VARCHAR(255) NOT NULL, 
 email VARCHAR(255) UNIQUE NOT NULL, 
 password VARCHAR(255) NOT NULL, 
-fullname VARCHAR(40) NOT NULL, 
+fullName VARCHAR(40) NOT NULL, 
 status ENUM('ACTIVE', 'INACTIVE') default 'INACTIVE',
 createdOn datetime not null default current_timestamp, 
 updatedOn datetime not null default current_timestamp on update current_timestamp
@@ -56,16 +53,16 @@ updatedOn datetime not null default current_timestamp on update current_timestam
 
 CREATE TABLE IF NOT EXISTS sellers (
 sellers_id INT AUTO_INCREMENT PRIMARY KEY, 
-nickname VARCHAR(255) NOT NULL, 
+nickName VARCHAR(255) NOT NULL, 
 email VARCHAR(255) UNIQUE NOT NULL, 
 password VARCHAR(255) NOT NULL, 
-fullname VARCHAR(40) NOT NULL, 
-mobileNumber VARCHAR(255) NOT NULL, 
+fullName VARCHAR(40) NOT NULL, 
+phoneNumber VARCHAR(255) NOT NULL, 
 bankAccountNumber VARCHAR(255) NOT NULL,
 bankName VARCHAR(255) NOT NULL,
-nationalIdNumber VARCHAR(255) NOT NULL, 
-nationalIdPhotoFront varchar(255) NOT NULL,
-nationalIdPhotoBack varchar(255) NOT NULL,
+idCardNumber VARCHAR(255) NOT NULL, 
+idCardImageFront varchar(255) NOT NULL,
+idCardImageBack varchar(255) NOT NULL,
 status ENUM('ACTIVE', 'INACTIVE') default 'INACTIVE',
 createdOn datetime not null default current_timestamp, 
 updatedOn datetime not null default current_timestamp on update current_timestamp

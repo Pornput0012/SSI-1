@@ -43,10 +43,10 @@ public class RegisterController {
 
     @PostMapping("")
     public ResponseEntity<Object> registerUser(@Valid @ModelAttribute RegisterRequestDTO user,
-                                          @RequestParam(required = false) List<MultipartFile> images,@RequestParam String userType) {
-        if ("BUYER".equalsIgnoreCase(userType)) {
+                                          @RequestParam(required = false) List<MultipartFile> images) {
+        if ("BUYER".equalsIgnoreCase(user.getUserType())) {
             return ResponseEntity.status(HttpStatus.CREATED).body(registerService.createBuyer(user));
-        } else if ("SELLER".equalsIgnoreCase(userType)) {
+        } else if ("SELLER".equalsIgnoreCase(user.getUserType())) {
             return ResponseEntity.status(HttpStatus.CREATED).body(registerService.createSeller(user,images));
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

@@ -6,7 +6,7 @@ import { useRoute, useRouter } from "vue-router";
 
 const route = useRoute();
 const router =useRouter()
-
+const success = ref(false)
 const errorTitle = ref('')
 const errorMessage = ref('')
 const showModal = ref(false)
@@ -18,7 +18,7 @@ onMounted(async () => {
     if (response.error) {
       throw new Error(response.error);
     }
-
+    success.value = true
     router.push({name :'home'})
   } catch (error) {
     errorTitle.value = 'Failed to verify token'
@@ -41,6 +41,15 @@ function returnHome() {
     :handle-ok="returnHome"
     :title="errorTitle"
     :message="errorMessage"
+  />
+  </div>
+
+  <div>
+    <MessageModal
+    v-if="success"
+    :handle-ok="returnHome"
+    :title="'Success'"
+    :message="'verify email successful'"
   />
   </div>
 </template>

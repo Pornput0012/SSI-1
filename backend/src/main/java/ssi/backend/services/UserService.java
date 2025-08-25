@@ -59,9 +59,9 @@ public class UserService {
         Buyer savedBuyer = buyerRepository.save(creatingBuyer);
 
         try {
-            String token = jwtService.generateToken(creatingBuyer.getId(), creatingBuyer.getFullname(), creatingBuyer.getEmail(), "BUYER");
+            String token = jwtService.generateToken(creatingBuyer.getId(), creatingBuyer.getFullName(), creatingBuyer.getEmail(), "BUYER");
             emailService.sendEmail(savedBuyer.getEmail(), "Welcome to ITB-MSHOP!",
-                    "สวัสดีคุณ " + savedBuyer.getFullname()
+                    "สวัสดีคุณ " + savedBuyer.getFullName()
                             + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
                             + "http://localhost:5173/verify-email?jwtToken=" + token
                             + "\n\nขอบคุณที่เข้าร่วมกับเรา!");
@@ -87,9 +87,9 @@ public class UserService {
         if (fileNames != null && !fileNames.isEmpty()) {
             fileNames.stream().forEach(fileName -> {
                 if (fileName.contains("_fs_")) {
-                    creatingSeller.setNationalIdPhotoFront(fileName);
+                    creatingSeller.setIdCardImageFront(fileName);
                 } else if (fileName.contains("_bs_")) {
-                    creatingSeller.setNationalIdPhotoBack(fileName);
+                    creatingSeller.setIdCardImageBack(fileName);
                 } else {
                     throw new BadRequestException("Invalid file name side: " + fileName);
                 }
@@ -101,9 +101,9 @@ public class UserService {
         try {
             sellerRes = sellerRepository.save(creatingSeller);
             try {
-                String token = jwtService.generateToken(sellerRes.getId(), sellerRes.getFullname(), sellerRes.getEmail(), "SELLER");
+                String token = jwtService.generateToken(sellerRes.getId(), sellerRes.getFullName(), sellerRes.getEmail(), "SELLER");
                 emailService.sendEmail(sellerRes.getEmail(), "Welcome to ITB-MSHOP!",
-                        "สวัสดีคุณ " + sellerRes.getFullname()
+                        "สวัสดีคุณ " + sellerRes.getFullName()
                                 + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
                                 + "http://localhost:5173/verify-email?jwtToken=" + token
                                 + "\n\nขอบคุณที่เข้าร่วมกับเรา!");

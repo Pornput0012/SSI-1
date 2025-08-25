@@ -28,10 +28,10 @@ const formDataBuyer = ref({
 
 const formDataSeller = ref({
   ...formDataBuyer.value,
-  mobileNumber: "",
+  phoneNumber: "",
   bankAccountNumber: "",
   bankName: "",
-  nationalIdNumber: "",
+  idCardNumber: "",
 });
 
 const formConstraints = {
@@ -76,7 +76,7 @@ const formConstraints = {
     {
       title: "Mobile number",
       label: "mobile",
-      model: "mobileNumber",
+      model: "phoneNumber",
       constraint: { type: "string", required: true },
     },
     {
@@ -94,7 +94,7 @@ const formConstraints = {
     {
       title: "National ID number",
       label: "card-no",
-      model: "nationalIdNumber",
+      model: "idCardNumber",
       constraint: { type: "string", required: true },
     },
   ],
@@ -124,9 +124,15 @@ function uploadImage(event, side) {
     fileName.endsWith(".png")
   ) {
     if (side === "front") {
-      frontImage.value = { fileName: fileName, file: {src :previewBinaryFile(file) ,image : file}};
+      frontImage.value = {
+        fileName: fileName,
+        file: { src: previewBinaryFile(file), image: file },
+      };
     } else {
-      backImage.value = { fileName: fileName, file:{src :previewBinaryFile(file) ,image : file} };
+      backImage.value = {
+        fileName: fileName,
+        file: { src: previewBinaryFile(file), image: file },
+      };
     }
   } else {
     console.log("invalid type");
@@ -144,7 +150,10 @@ const handleSubmit = () => {
   if (userType.value === "Seller") {
     emit("onSubmit", {
       userDetail: formDataSeller.value,
-      images: { front: frontImage.value?.file.image, back: backImage.value?.file.image },
+      images: {
+        idCardImageFront: frontImage.value?.file.image,
+        idCardImageBack: backImage.value?.file.image,
+      },
       userType: "Seller",
     });
   } else {
@@ -170,10 +179,10 @@ function clearData(role = null) {
   if (onToggle && role === "Buyer") {
     formDataSeller.value = {
       ...formDataBuyer.value,
-      mobileNumber: "",
+      phoneNumber: "",
       bankAccountNumber: "",
       bankName: "",
-      nationalIdNumber: "",
+      idCardNumber: "",
     };
     return;
   }
@@ -187,10 +196,10 @@ function clearData(role = null) {
 
   formDataSeller.value = {
     ...formDataBuyer.value,
-    mobileNumber: "",
+    phoneNumber: "",
     bankAccountNumber: "",
     bankName: "",
-    nationalIdNumber: "",
+    idCardNumber: "",
   };
 }
 
@@ -225,27 +234,25 @@ watchEffect(() => {
   console.log(isValid);
   console.log(emptyFields);
   console.log(hasImage);
-  
-  
-  
+
   isCanNotSave.value = !isValid;
 
   console.log(isCanNotSave.value);
-  
+
   console.log(props.disableSaveBtn);
 });
-
-
 </script>
 
 <template>
-  <div class="relative w-full h-full min-h-screen flex">
+  <div
+    class="relative w-full h-full min-h-screen flex justify-center "
+  >
     <div
-      class="absolute inset-0 w-1/2 min-h-screen h-full bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700"
+      class="absolute inset-0 w-1/2 min-h-screen h-full bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 hidden lg:block"
     ></div>
     <!-- Left Banner Section -->
     <div
-      class="w-1/2 h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 flex flex-col justify-center items-center text-white"
+      class="w-1/2 h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 hidden lg:flex lg:flex-col lg:justify-center lg:items-center text-white"
     >
       <!-- Main Content -->
       <div class="z-10 text-center px-12">
@@ -291,7 +298,7 @@ watchEffect(() => {
       </div>
     </div>
     <div
-      class="w-1/2 min-h-screen flex flex-col justify-center items-center gap-4 py-16"
+      class="w-full lg:w-1/2 min-h-screen flex flex-col justify-center items-center gap-4 py-16"
     >
       <h1 class="text-3xl mb-6 text-indigo-700 font-medium">Create account</h1>
       <div
@@ -334,9 +341,15 @@ watchEffect(() => {
 
           <div class="flex-col">
             <input
-              :type="field.label === 'Password'? 'password' : 'text'"
+              :type="
+                field.label == 'password'
+                  ? 'password'
+                  : field.label == 'email'
+                  ? 'email'
+                  : 'text'
+              "
               :id="field.label"
-              class="input w-48 sm:w-64 md:w-80"
+              class="input w-64 lg:w-80"
               :class="'itbms-' + field.label"
               v-model="formDataBuyer[field.model]"
             />
@@ -359,9 +372,15 @@ watchEffect(() => {
 
           <div class="flex-col">
             <input
-              type="text"
+              :type="
+                field.label == 'password'
+                  ? 'password'
+                  : field.label == 'email'
+                  ? 'email'
+                  : 'text'
+              "
               :id="field.label"
-              class="itbms-model input w-48 sm:w-64 md:w-80"
+              class="itbms-model input w-64 lg:w-80"
               :class="'itbms-' + field.label"
               v-model="formDataSeller[field.model]"
             />
@@ -376,7 +395,7 @@ watchEffect(() => {
           <p class="my-2 text-sm text-purple-900/70">Front</p>
           <div class="flex-col mb-4">
             <div
-              class="w-80 h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
+              class="w-64 h-44 lg:w-80 lg:h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
             >
               <!-- Image Preview or Placeholder -->
               <div v-if="frontImage?.file.src" class="relative">
@@ -396,7 +415,7 @@ watchEffect(() => {
               <!-- Placeholder when no image -->
               <div
                 v-else
-                class="w-80 h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
+                class="w-64 h-44 lg:w-80 lg:h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
               >
                 <svg
                   class="w-12 h-12 mb-2"
@@ -412,7 +431,7 @@ watchEffect(() => {
                   ></path>
                 </svg>
                 <p class="text-sm">Click to upload front side</p>
-                <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+                <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 2MB</p>
               </div>
 
               <!-- Hidden file input -->
@@ -430,7 +449,7 @@ watchEffect(() => {
           <p class="my-2 text-sm text-purple-900/70">Back</p>
           <div class="flex-col">
             <div
-              class="w-80 h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
+              class="w-64 h-44 lg:w-80 lg:h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
             >
               <!-- Image Preview or Placeholder -->
               <div v-if="backImage?.file.src" class="relative">
@@ -450,7 +469,7 @@ watchEffect(() => {
               <!-- Placeholder when no image -->
               <div
                 v-else
-                class="w-80 h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
+                class="w-64 h-44 lg:w-80 lg:h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
               >
                 <svg
                   class="w-12 h-12 mb-2"
@@ -466,7 +485,7 @@ watchEffect(() => {
                   ></path>
                 </svg>
                 <p class="text-sm">Click to upload back side</p>
-                <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+                <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 2MB</p>
               </div>
 
               <!-- Hidden file input -->
@@ -481,7 +500,7 @@ watchEffect(() => {
           </div>
         </div>
       </div>
-      <div class="flex gap-3 mt-6 w-48 sm:w-64 md:w-80 justify-end">
+      <div class="flex gap-3 mt-6 w-64 lg:w-80 justify-end">
         <button
           class="itbms-submit-button btn btn-primary"
           :class="disableSaveBtn ? 'cursor-not-allowed' : ''"
