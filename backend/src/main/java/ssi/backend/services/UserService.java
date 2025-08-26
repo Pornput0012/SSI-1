@@ -4,6 +4,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ssi.backend.configuration.HostProperties;
 import ssi.backend.dtos.EmailVerifyDTO;
 import ssi.backend.dtos.RegisterRequestDTO;
 import ssi.backend.dtos.UserResponseDTO;
@@ -31,6 +32,8 @@ public class UserService {
     private EmailService emailService;
     @Autowired
     private JwtService jwtService;
+    @Autowired
+    private HostProperties hostProperties;
 
     public List<Buyer> getAllBuyers() {
         return buyerRepository.findAll();
@@ -63,7 +66,8 @@ public class UserService {
             emailService.sendEmail(savedBuyer.getEmail(), "Welcome to ITB-MSHOP!",
                     "สวัสดีคุณ " + savedBuyer.getFullName()
                             + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
-                            + "http://localhost:5173/verify-email?jwtToken=" + token
+                            + hostProperties.getUrl()
+                            + "/verify-email?jwtToken=" + token
                             + "\n\nขอบคุณที่เข้าร่วมกับเรา!");
         } catch (Exception e) {
             System.err.println("❌ ส่งอีเมลไปยัง Buyer ไม่สำเร็จ: " + e.getMessage());
@@ -105,7 +109,8 @@ public class UserService {
                 emailService.sendEmail(sellerRes.getEmail(), "Welcome to ITB-MSHOP!",
                         "สวัสดีคุณ " + sellerRes.getFullName()
                                 + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
-                                + "http://localhost:5173/verify-email?jwtToken=" + token
+                                + hostProperties.getUrl()
+                                + "verify-email?jwtToken=" + token
                                 + "\n\nขอบคุณที่เข้าร่วมกับเรา!");
             } catch (Exception e) {
                 System.err.println("❌ ส่งอีเมลไปยัง Seller ไม่สำเร็จ: " + e.getMessage());
