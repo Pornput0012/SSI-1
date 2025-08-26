@@ -19,7 +19,7 @@ onMounted(async () => {
       throw new Error(response.error);
     }
     success.value = true
-    router.push({name :'home'})
+    
   } catch (error) {
     errorTitle.value = 'Failed to verify token'
     errorMessage.value =  error.message
@@ -50,6 +50,7 @@ function returnHome() {
     :handle-ok="returnHome"
     :title="'Success'"
     :message="'verify email successful'"
+    :type-modal="'text-green-500'"
   />
   </div>
 </template>
