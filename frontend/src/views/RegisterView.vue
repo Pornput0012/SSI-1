@@ -8,7 +8,6 @@ import router from "@/router";
 import { ref } from "vue";
 import { useNotiStore } from "@/stores/NotiStore";
 
-
 const errorTitle = ref("");
 const errorMessage = ref("");
 const showModal = ref(false);
@@ -27,7 +26,6 @@ const handleSubmit = async (payload) => {
           : await createUser(payload.userDetail, payload.userType);
       if (!response.error) {
         createSuccess();
-        
       } else {
         throw new Error(response.error);
       }
@@ -43,7 +41,7 @@ const handleSubmit = async (payload) => {
 const notiStore = useNotiStore();
 const createSuccess = () => {
   notiStore.createUserSuccess = true;
-  router.push({name : 'sale-items'});
+  router.push({ name: "sale-items" });
 };
 </script>
 

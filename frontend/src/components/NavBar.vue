@@ -35,9 +35,7 @@ const menu = [
           ITB MShop
         </RouterLink>
         <div class="flex gap-2">
-          <RouterLink
-            :to="{ name: 'register' }"
-            >
+          <RouterLink :to="{ name: 'register' }">
             <button
               class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
             >
@@ -45,7 +43,9 @@ const menu = [
             </button>
           </RouterLink>
           <div class="border border-l-1 border-base-300"></div>
-          <button class="btn btn-primary px-4 py-1">Log in</button>
+          <router-link :to="{ name: 'login' }" class="btn btn-primary px-4 py-1"
+            >Login</router-link
+          >
         </div>
       </div>
     </div>
