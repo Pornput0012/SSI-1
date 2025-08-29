@@ -151,6 +151,7 @@ const menu = [
         >
         <RouterLink
           active-class="border-b-1"
+          :to="{ name: 'signin'}"
           to="l"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Log in</RouterLink
