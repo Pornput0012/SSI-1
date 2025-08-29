@@ -3,7 +3,6 @@ package ssi.backend.controllers;
 import com.nimbusds.jose.JOSEException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ssi.backend.dtos.EmailVerifyDTO;
 import ssi.backend.dtos.UserResponseDTO;
 import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.services.JwtService;
@@ -31,7 +30,7 @@ public class UserController {
         if (jwtToken == null || jwtToken.isEmpty()) {
             return ResponseEntity.badRequest().body("Token is missing.");
         }
-        jwtService.validateToken(jwtToken);
+        jwtService.validateVerifyEmailToken(jwtToken);
 
         return ResponseEntity.ok("Successfully verified");
     }
@@ -42,7 +41,7 @@ public class UserController {
             throw new BadRequestException("Token is missing.");
         }
         
-        jwtService.validateToken(jwtToken);
+        jwtService.validateVerifyEmailToken(jwtToken);
 
         UserResponseDTO user = userService.verifyEmail(jwtToken);
 
