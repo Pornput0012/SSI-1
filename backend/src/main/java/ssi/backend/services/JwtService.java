@@ -30,7 +30,7 @@ public class JwtService {
         this.jwtProperties = jwtProperties;
     }
 
-    public String generateVerifyEmailToken(Integer user_id,String username, String email, String userType) throws JOSEException {
+    public String generateVerifyEmailToken(Integer user_id, String username, String email, String userType) throws JOSEException {
 
         if (username == null || email == null) {
             throw new IllegalArgumentException("Username and email cannot be null");
@@ -158,12 +158,24 @@ public class JwtService {
         String userType = signedJWT.getJWTClaimsSet().getClaim("role").toString();
         Long user_id = (Long) signedJWT.getJWTClaimsSet().getClaim("id");
 
-        Integer user_id_int =  user_id.intValue();
+        Integer user_id_int = user_id.intValue();
         JwtClaimDTO emailVerifyDTO = new JwtClaimDTO();
         emailVerifyDTO.setEmail(email);
         emailVerifyDTO.setRole(userType);
         emailVerifyDTO.setUserId(user_id_int);
 
         return emailVerifyDTO;
+    }
+
+    // ================== GET NEW ACCESS TOKEN FROM REFRESH TOKEN ==================
+    public String getAccessTokenFromRefreshToken(String refreshToken, String nickname, String role)
+            throws ParseException, JOSEException {
+        validateRefreshToken(refreshToken);
+
+        SignedJWT signedJWT = SignedJWT.parse(refreshToken);
+        Integer userId = ((Long) signedJWT.getJWTClaimsSet().getClaim("id")).intValue();
+        String email = signedJWT.getJWTClaimsSet().getSubject();
+
+        return generateAccessToken(userId, nickname, email, role);
     }
 }
