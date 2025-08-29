@@ -2,6 +2,7 @@ package ssi.backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.configuration.HostProperties;
@@ -34,6 +35,8 @@ public class UserService {
     private JwtService jwtService;
     @Autowired
     private HostProperties hostProperties;
+    @Autowired
+    private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 8, 1024*128, 2);
 
     public List<Buyer> getAllBuyers() {
         return buyerRepository.findAll();
@@ -56,9 +59,13 @@ public class UserService {
                 getAllSellerEmails().contains(buyer.getEmail())) {
             throw new BadRequestException("Email already exists: " + buyer.getEmail());
         }
+        if (buyer.getPassword() == null || buyer.getPassword().isBlank()) {
+            throw new BadRequestException("Password is required");
+        }
 
         Buyer creatingBuyer = modelMapper.map(buyer, Buyer.class);
         creatingBuyer.setId(null);
+        creatingBuyer.setPassword(passwordEncoder.encode(buyer.getPassword()));
         Buyer savedBuyer = buyerRepository.save(creatingBuyer);
 
         try {
@@ -79,6 +86,9 @@ public class UserService {
         if (getAllBuyerEmails().contains(seller.getEmail()) ||
                 getAllSellerEmails().contains(seller.getEmail())) {
             throw new BadRequestException("Email already exists: " + seller.getEmail());
+        }
+        if (seller.getPassword() == null || seller.getPassword().isBlank()) {
+            throw new BadRequestException("Password is required");
         }
 
         Seller creatingSeller = modelMapper.map(seller, Seller.class);
@@ -101,6 +111,7 @@ public class UserService {
         }
 
         creatingSeller.setId(null);
+        creatingSeller.setPassword(passwordEncoder.encode(seller.getPassword()));
         Seller sellerRes = new Seller();
         try {
             sellerRes = sellerRepository.save(creatingSeller);
