@@ -2,10 +2,20 @@ package ssi.backend.controllers;
 
 import com.nimbusds.jose.JOSEException;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import ssi.backend.dtos.LoginRequestDTO;
 import ssi.backend.dtos.UserResponseDTO;
+import ssi.backend.entities.Buyer;
+import ssi.backend.entities.Seller;
 import ssi.backend.exceptions.BadRequestException;
+import ssi.backend.repositories.BuyerRepository;
+import ssi.backend.repositories.SellerRepository;
 import ssi.backend.services.JwtService;
 import ssi.backend.services.UserService;
 
@@ -17,6 +27,13 @@ import java.text.ParseException;
 public class UserController {
     private final JwtService jwtService;
     private final UserService userService;
+
+    @Autowired
+    private BuyerRepository buyerRepository;
+    @Autowired
+    private SellerRepository sellerRepository;
+    @Autowired
+    private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 8, 1024 * 128, 2);
 
     public UserController(JwtService jwtService, UserService userService) {
         this.jwtService = jwtService;
@@ -34,16 +51,52 @@ public class UserController {
     }
 
     @PostMapping("/v2/user/verify-email")
-    public ResponseEntity<UserResponseDTO> verifyEmail(@RequestParam String jwtToken) throws ParseException, JOSEException {
+    public ResponseEntity<UserResponseDTO> verifyEmail(@RequestParam String jwtToken)
+            throws ParseException, JOSEException {
         if (jwtToken == null || jwtToken.isEmpty()) {
             throw new BadRequestException("Token is missing.");
         }
-        
+
         jwtService.validateVerifyEmailToken(jwtToken);
 
         UserResponseDTO user = userService.verifyEmail(jwtToken);
 
         return ResponseEntity.ok(user);
+    }
+
+    @PostMapping("/v2/user/authentications")
+    public ResponseEntity<Object> authenticateUser(@RequestBody LoginRequestDTO dto) {
+        String email = dto.getEmail();
+        String rawPassword = dto.getPassword();
+
+        Buyer buyer = buyerRepository.findByEmail(email);
+        if (buyer != null) {
+            if (!"ACTIVE".equalsIgnoreCase(buyer.getStatus())) {
+                throw new BadRequestException("Account is not active");
+            }
+            if (passwordEncoder.matches(rawPassword, buyer.getPassword())) {
+                return ResponseEntity.ok().body("Login Successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Username or Password is incorrect");
+            }
+        }
+
+        Seller seller = sellerRepository.findByEmail(email);
+        if (seller != null) {
+            if (!"ACTIVE".equalsIgnoreCase(seller.getStatus())) {
+                throw new BadRequestException("Account is not active");
+            }
+            if (passwordEncoder.matches(rawPassword, seller.getPassword())) {
+                return ResponseEntity.ok().body("Login Successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Username or Password is incorrect");
+            }
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body("Username or Password is incorrect");
     }
 
 }
