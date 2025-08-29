@@ -1,6 +1,7 @@
 package ssi.backend.controllers;
 
 import com.nimbusds.jose.JOSEException;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ssi.backend.dtos.EmailVerifyDTO;
@@ -22,9 +23,6 @@ public class UserController {
         this.jwtService = jwtService;
         this.userService = userService;
     }
-
-
-
 
     @PostMapping("/v2/user/verify-token")
     public ResponseEntity<String> verifyToken(@RequestParam String jwtToken) throws ParseException, JOSEException {
