@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.configuration.HostProperties;
-import ssi.backend.dtos.EmailVerifyDTO;
+import ssi.backend.dtos.JwtClaimDTO;
 import ssi.backend.dtos.RegisterRequestDTO;
 import ssi.backend.dtos.UserResponseDTO;
 import ssi.backend.entities.Buyer;
@@ -62,7 +62,7 @@ public class UserService {
         Buyer savedBuyer = buyerRepository.save(creatingBuyer);
 
         try {
-            String token = jwtService.generateToken(creatingBuyer.getId(), creatingBuyer.getFullName(), creatingBuyer.getEmail(), "BUYER");
+            String token = jwtService.generateVerifyEmailToken(creatingBuyer.getId(), creatingBuyer.getFullName(), creatingBuyer.getEmail(), "BUYER");
             emailService.sendEmail(savedBuyer.getEmail(), "Welcome to ITB-MSHOP!",
                     "สวัสดีคุณ " + savedBuyer.getFullName()
                             + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
@@ -105,7 +105,7 @@ public class UserService {
         try {
             sellerRes = sellerRepository.save(creatingSeller);
             try {
-                String token = jwtService.generateToken(sellerRes.getId(), sellerRes.getFullName(), sellerRes.getEmail(), "SELLER");
+                String token = jwtService.generateVerifyEmailToken(sellerRes.getId(), sellerRes.getFullName(), sellerRes.getEmail(), "SELLER");
                 emailService.sendEmail(sellerRes.getEmail(), "Welcome to ITB-MSHOP!",
                         "สวัสดีคุณ " + sellerRes.getFullName()
                                 + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
@@ -127,9 +127,9 @@ public class UserService {
     }
 
     public UserResponseDTO verifyEmail(String token) throws ParseException {
-        EmailVerifyDTO emailVerifyDTO = jwtService.extractClaims(token);
-        if (emailVerifyDTO.getUserType().equalsIgnoreCase("buyer")) {
-            Buyer buyer = buyerRepository.findByIdAndEmail(emailVerifyDTO.getUser_id(), emailVerifyDTO.getEmail());
+        JwtClaimDTO emailVerifyClaim = jwtService.extractUserClaims(token);
+        if (emailVerifyClaim.getRole().equalsIgnoreCase("buyer")) {
+            Buyer buyer = buyerRepository.findByIdAndEmail(emailVerifyClaim.getUserId(), emailVerifyClaim.getEmail());
 
             if (buyer == null) {
                 throw new BadRequestException("Invalid email or User id");
@@ -140,17 +140,17 @@ public class UserService {
             }
 
             buyer.setStatus("ACTIVE");
-            buyer.setId(emailVerifyDTO.getUser_id());
+            buyer.setId(emailVerifyClaim.getUserId());
             buyerRepository.save(buyer);
 
             UserResponseDTO userResponseDTO = modelMapper.map(buyer, UserResponseDTO.class);
-            userResponseDTO.setUserType(emailVerifyDTO.getUserType());
+            userResponseDTO.setUserType(emailVerifyClaim.getRole());
             userResponseDTO.setIsActive(true);
 
             return userResponseDTO;
 
-        } else if (emailVerifyDTO.getUserType().equalsIgnoreCase("seller")) {
-            Seller seller = sellerRepository.findByIdAndEmail(emailVerifyDTO.getUser_id(), emailVerifyDTO.getEmail());
+        } else if (emailVerifyClaim.getRole().equalsIgnoreCase("seller")) {
+            Seller seller = sellerRepository.findByIdAndEmail(emailVerifyClaim.getUserId(), emailVerifyClaim.getEmail());
 
             if (seller == null) {
                 throw new BadRequestException("Invalid email or User id");
@@ -164,7 +164,7 @@ public class UserService {
             sellerRepository.save(seller);
 
             UserResponseDTO userResponseDTO = modelMapper.map(seller, UserResponseDTO.class);
-            userResponseDTO.setUserType(emailVerifyDTO.getUserType());
+            userResponseDTO.setUserType(emailVerifyClaim.getRole());
             userResponseDTO.setIsActive(true);
 
             return userResponseDTO;

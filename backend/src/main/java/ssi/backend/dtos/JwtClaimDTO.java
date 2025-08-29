@@ -5,9 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class EmailVerifyDTO {
+public class JwtClaimDTO {
     private String email;
-    private String userType;
-    private Integer user_id;
-    private String type;
+    private String role;
+    private Integer userId;
 }

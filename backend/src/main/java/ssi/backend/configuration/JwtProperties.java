@@ -8,5 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Getter
 @Setter
 public class JwtProperties {
-    private String secret;
+    private String secretVerifyEmail;
+    private String secretAccess;
+    private String secretRefresh;
 }
