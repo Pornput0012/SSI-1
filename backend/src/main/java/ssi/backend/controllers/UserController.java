@@ -65,7 +65,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/v2/user/authentications")
+    @PostMapping("/v2/users/authentications")
     public ResponseEntity<Object> authenticateUser(@RequestBody LoginRequestDTO dto) {
         String email = dto.getEmail();
         String rawPassword = dto.getPassword();
@@ -79,7 +79,7 @@ public class UserController {
                 return ResponseEntity.ok().body("Login Successfully");
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Username or Password is incorrect");
+                        .body("Email or Password is incorrect");
             }
         }
 
@@ -92,12 +92,12 @@ public class UserController {
                 return ResponseEntity.ok().body("Login Successfully");
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Username or Password is incorrect");
+                        .body("Email or Password is incorrect");
             }
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body("Username or Password is incorrect");
+            .body("Email or Password is incorrect");
     }
 
 }

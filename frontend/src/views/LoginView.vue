@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import { login } from '@/services/userService'
 import { useNotiStore } from '@/stores/NotiStore'
+import MessageModal from "@/components/MessageModal.vue";
 import router from '@/router'
 
 const email = ref('')
@@ -94,7 +95,7 @@ const loginSuccess = () => {
       <h1 class="text-3xl mb-6 text-indigo-700 font-medium">Sign In</h1>
 
       <form @submit.prevent="handleLogin" class="w-full max-w-md space-y-6">
-        <div class="space-y-2">
+        <div class="space-y-2 itbms-email">
           <label for="email" class="block text-sm font-medium text-gray-700">
             Email Address
           </label>
@@ -108,7 +109,7 @@ const loginSuccess = () => {
           />
         </div>
 
-        <div class="space-y-2">
+        <div class="space-y-2 itbms-password">
           <label for="password" class="block text-sm font-medium text-gray-700">
             Password
           </label>

@@ -12,6 +12,8 @@ const errorTitle = ref("");
 const errorMessage = ref("");
 const showModal = ref(false);
 const isSaving = ref(false);
+
+const clearData = ref("false")
 const handleSubmit = async (payload) => {
   try {
     isSaving.value = true;
@@ -26,6 +28,7 @@ const handleSubmit = async (payload) => {
           : await createUser(payload.userDetail, payload.userType);
       if (!response.error) {
         createSuccess();
+        clearData.value = true
       } else {
         throw new Error(response.error);
       }
@@ -52,6 +55,7 @@ const createSuccess = () => {
     :handle-ok="() => (showModal = false)"
     :title="errorTitle"
     :message="errorMessage"
+    :clearData="clearData"
   />
 </template>
 

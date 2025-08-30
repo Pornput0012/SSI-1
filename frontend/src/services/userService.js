@@ -73,9 +73,9 @@ const login = async (email, password) => {
       if (response.status === 200) {
         return { success: true }
       } else if (response.status === 401) {
-        throw new Error("Username or Password is incorrect!")
+        throw new Error("Email or Password is incorrect!")
       } else {
-        throw new Error("Something went wrong!");
+        throw new Error(`Failed to log in. Server responded with status ${response.status}`);
       }
   } catch (error) {
     return {
