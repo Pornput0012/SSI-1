@@ -7,10 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import ssi.backend.dtos.ErrorResponseDTO;
-import ssi.backend.exceptions.BadRequestException;
-import ssi.backend.exceptions.ConfilctResourceException;
-import ssi.backend.exceptions.ItemNotFoundException;
-import ssi.backend.exceptions.UnauthorizedException;
+import ssi.backend.exceptions.*;
 
 @RestControllerAdvice
 public class GlobalExceptionController {
@@ -69,6 +66,17 @@ public class GlobalExceptionController {
 
         return new ErrorResponseDTO(
                 HttpStatus.UNAUTHORIZED.value(),
+                exception.getMessage(),
+                request.getDescription(false));
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponseDTO handleException(
+            ForbiddenException exception, WebRequest request) {
+
+        return new ErrorResponseDTO(
+                HttpStatus.FORBIDDEN.value(),
                 exception.getMessage(),
                 request.getDescription(false));
     }

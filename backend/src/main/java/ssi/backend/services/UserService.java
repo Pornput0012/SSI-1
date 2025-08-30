@@ -1,5 +1,7 @@
 package ssi.backend.services;
 
+import com.nimbusds.jose.JOSEException;
+import org.apache.catalina.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.bouncycastle.crypto.params.Argon2Parameters;
@@ -9,10 +11,12 @@ import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.configuration.HostProperties;
 import ssi.backend.dtos.JwtClaimDTO;
 import ssi.backend.dtos.RegisterRequestDTO;
+import ssi.backend.dtos.UserProfileResponseDTO;
 import ssi.backend.dtos.UserResponseDTO;
 import ssi.backend.entities.Buyer;
 import ssi.backend.entities.Seller;
 import ssi.backend.exceptions.ConfilctResourceException;
+import ssi.backend.exceptions.ForbiddenException;
 import ssi.backend.repositories.BuyerRepository;
 import ssi.backend.repositories.SellerRepository;
 import ssi.backend.exceptions.BadRequestException;
@@ -182,5 +186,33 @@ public class UserService {
             return userResponseDTO;
         }
         return null;
+    }
+
+    public UserProfileResponseDTO getUserProfile(String token) throws ParseException, JOSEException {
+        jwtService.validateAccessToken(token);
+
+        JwtClaimDTO profileClaim = jwtService.extractUserClaims(token);
+        if (profileClaim.getRole().equalsIgnoreCase("BUYER")) {
+            Buyer buyer = buyerRepository.findByIdAndEmail(profileClaim.getUserId(), profileClaim.getEmail());
+            if (buyer == null) {
+                throw new BadRequestException("Invalid email or User id");
+            }
+            if (buyer.getStatus().equalsIgnoreCase("inactive")) {
+                throw new ForbiddenException("You need activate your account before signing in.");
+            }
+            return modelMapper.map(buyer, UserProfileResponseDTO.class);
+        }
+        else if (profileClaim.getRole().equalsIgnoreCase("SELLER")) {
+            Seller seller = sellerRepository.findByIdAndEmail(profileClaim.getUserId(), profileClaim.getEmail());
+            if (seller == null) {
+                throw new BadRequestException("Invalid email or User id");
+            }
+            if (seller.getStatus().equalsIgnoreCase("inactive")) {
+                throw new ForbiddenException("You need activate your account before signing in.");
+            }
+            return modelMapper.map(seller, UserProfileResponseDTO.class);
+        }
+
+        throw new BadRequestException("Invalid token");
     }
 }
