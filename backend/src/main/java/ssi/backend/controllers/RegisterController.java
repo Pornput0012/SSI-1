@@ -14,7 +14,7 @@ import ssi.backend.entities.Seller;
 import ssi.backend.services.UserService;
 
 @RestController
-@RequestMapping("/itb-mshop/v1/register")
+@RequestMapping("/itb-mshop/v2/users")
 @CrossOrigin(origins = "${app.cors.allowedOrigins}")
 public class RegisterController {
 
@@ -41,7 +41,7 @@ public class RegisterController {
         return ResponseEntity.ok(registerService.getAllSellerEmails());
     }
 
-    @PostMapping("")
+    @PostMapping("/register")
     public ResponseEntity<Object> registerUser(@Valid @ModelAttribute RegisterRequestDTO user,
                                           @RequestParam(required = false) List<MultipartFile> images) {
         if ("BUYER".equalsIgnoreCase(user.getUserType())) {

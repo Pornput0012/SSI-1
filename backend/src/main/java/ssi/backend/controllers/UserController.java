@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import ssi.backend.dtos.LoginRequestDTO;
@@ -33,7 +34,7 @@ public class UserController {
     @Autowired
     private SellerRepository sellerRepository;
     @Autowired
-    private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 8, 1024 * 128, 2);
+    private PasswordEncoder passwordEncoder;
 
     public UserController(JwtService jwtService, UserService userService) {
         this.jwtService = jwtService;
@@ -64,7 +65,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/v2/user/authentications")
+    @PostMapping("/v2/users/authentications")
     public ResponseEntity<Object> authenticateUser(@RequestBody LoginRequestDTO dto) {
         String email = dto.getEmail();
         String rawPassword = dto.getPassword();
@@ -78,7 +79,7 @@ public class UserController {
                 return ResponseEntity.ok().body("Login Successfully");
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Username or Password is incorrect");
+                        .body("Email or Password is incorrect");
             }
         }
 
@@ -91,12 +92,12 @@ public class UserController {
                 return ResponseEntity.ok().body("Login Successfully");
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Username or Password is incorrect");
+                        .body("Email or Password is incorrect");
             }
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body("Username or Password is incorrect");
+            .body("Email or Password is incorrect");
     }
 
 }
