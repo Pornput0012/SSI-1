@@ -1,25 +1,28 @@
 <script setup>
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import SaleItemGallery from '@/components/SaleItemGallery.vue'
-import { getAllBrands } from '@/services/BrandService'
-import { getAllSaleItems_v2 } from '@/services/SaleItemService'
-import { useFilterStore } from '@/stores/FilterStore'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { useNotiStore } from '@/stores/NotiStore'
-import { computed, onMounted, ref } from 'vue'
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import SaleItemGallery from "@/components/SaleItemGallery.vue";
+import { getAllBrands } from "@/services/BrandService";
+import { getAllSaleItems_v2 } from "@/services/SaleItemService";
+import { useFilterStore } from "@/stores/FilterStore";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useNotiStore } from "@/stores/NotiStore";
+import { computed, onMounted, ref } from "vue";
+import { useUserStore } from "@/stores/UserStore";
+import { getProfile } from "@/services/userService";
 
-const PAGE_SIZE_OPTIONS = [5, 10, 20]
+const PAGE_SIZE_OPTIONS = [5, 10, 20];
 const STORAGE_KEYS = {
-  SELECTED_BRANDS: 'selectedBrands',
-  SELECTED_STORAGES: 'selectedStorages',
-  SELECTED_PRICES: 'selectedPrices',
-  PAGE_INFO: 'pageInfo',
-  SEARCH_KEYWORD: 'searchKeyword',
-}
+  SELECTED_BRANDS: "selectedBrands",
+  SELECTED_STORAGES: "selectedStorages",
+  SELECTED_PRICES: "selectedPrices",
+  PAGE_INFO: "pageInfo",
+  SEARCH_KEYWORD: "searchKeyword",
+};
 
-const filterStore = useFilterStore()
-const saleItemStore = useSaleItemStore()
-const notiStore = useNotiStore()
+const filterStore = useFilterStore();
+const saleItemStore = useSaleItemStore();
+const notiStore = useNotiStore();
+const userStore = useUserStore();
 
 const {
   getFilterList,
@@ -45,58 +48,57 @@ const {
   setSelectedPrice,
   removePrice,
   setSearchKeyword,
-} = filterStore
+} = filterStore;
 
-const { getSaleItemsPage } = saleItemStore
+const { getSaleItemsPage } = saleItemStore;
+const sortField = computed(() => filterStore.sortField);
+const sortDirection = computed(() => filterStore.sortDirection);
+const currentPage = computed(() => filterStore.currentPage);
+const pageSize = computed(() => filterStore.pageSize);
+const selectedBrands = computed(() => filterStore.selectedBrands);
+const selectedStorages = computed(() => filterStore.selectedStorages);
+const selectedPrices = computed(() => filterStore.selectedPrices);
+const searchKeyword = computed(() => filterStore.searchKeyword);
 
-const sortField = computed(() => filterStore.sortField)
-const sortDirection = computed(() => filterStore.sortDirection)
-const currentPage = computed(() => filterStore.currentPage)
-const pageSize = computed(() => filterStore.pageSize)
-const selectedBrands = computed(() => filterStore.selectedBrands)
-const selectedStorages = computed(() => filterStore.selectedStorages)
-const selectedPrices = computed(() => filterStore.selectedPrices)
-const searchKeyword = computed(() => filterStore.searchKeyword)
+const filterBrands = computed(() => getFilterList().brands);
+const filterStorages = computed(() => getFilterList().storages);
+const filterPrices = computed(() => getFilterList().prices);
 
-const filterBrands = computed(() => getFilterList().brands)
-const filterStorages = computed(() => getFilterList().storages)
-const filterPrices = computed(() => getFilterList().prices)
+const saleItems = computed(() => getSaleItemsPage());
 
-const saleItems = computed(() => getSaleItemsPage())
+const searchInput = ref("");
 
-const searchInput = ref('')
-
-const hasError = ref('')
-const showFilterDropdown = ref(false)
-const showCreatedModal = ref(false)
-const brandOptions = ref([])
-const storageOptions = ref([32, 64, 128, 256, 512, 1024, -1])
+const hasError = ref("");
+const showFilterDropdown = ref(false);
+const showCreatedModal = ref(false);
+const brandOptions = ref([]);
+const storageOptions = ref([32, 64, 128, 256, 512, 1024, -1]);
 const priceRangeOptions = ref([
-  { label: '0 – 5,000', min: 0, max: 5000 },
-  { label: '5,001 – 10,000', min: 5001, max: 10000 },
-  { label: '10,001 – 20,000', min: 10001, max: 20000 },
-  { label: '20,001 – 30,000', min: 20001, max: 30000 },
-  { label: '30,001 – 40,000', min: 30001, max: 40000 },
-  { label: '40,001 – 50,000', min: 40001, max: 50000 },
-])
+  { label: "0 – 5,000", min: 0, max: 5000 },
+  { label: "5,001 – 10,000", min: 5001, max: 10000 },
+  { label: "10,001 – 20,000", min: 10001, max: 20000 },
+  { label: "20,001 – 30,000", min: 20001, max: 30000 },
+  { label: "30,001 – 40,000", min: 30001, max: 40000 },
+  { label: "40,001 – 50,000", min: 40001, max: 50000 },
+]);
 
 const saveToLocalStorage = () => {
   sessionStorage.setItem(
     STORAGE_KEYS.SELECTED_BRANDS,
     JSON.stringify(selectedBrands.value)
-  )
+  );
   sessionStorage.setItem(
     STORAGE_KEYS.SEARCH_KEYWORD,
     JSON.stringify(searchKeyword.value)
-  )
+  );
   sessionStorage.setItem(
     STORAGE_KEYS.SELECTED_STORAGES,
     JSON.stringify(selectedStorages.value)
-  )
+  );
   sessionStorage.setItem(
     STORAGE_KEYS.SELECTED_PRICES,
     JSON.stringify(selectedPrices.value)
-  )
+  );
   sessionStorage.setItem(
     STORAGE_KEYS.PAGE_INFO,
     JSON.stringify({
@@ -105,23 +107,23 @@ const saveToLocalStorage = () => {
       sortField: sortField.value,
       sortDirection: sortDirection.value,
     })
-  )
-}
+  );
+};
 
 const getFromLocalStorage = () => {
   const selectedBrands = JSON.parse(
     sessionStorage.getItem(STORAGE_KEYS.SELECTED_BRANDS)
-  )
+  );
   const selectedStorages = JSON.parse(
     sessionStorage.getItem(STORAGE_KEYS.SELECTED_STORAGES)
-  )
+  );
   const selectedPrices = JSON.parse(
     sessionStorage.getItem(STORAGE_KEYS.SELECTED_PRICES)
-  )
+  );
   const searchKeyword = JSON.parse(
     sessionStorage.getItem(STORAGE_KEYS.SEARCH_KEYWORD)
-  )
-  const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO))
+  );
+  const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO));
 
   return {
     selectedBrands,
@@ -129,22 +131,22 @@ const getFromLocalStorage = () => {
     selectedPrices,
     pageInfo,
     searchKeyword,
-  }
-}
+  };
+};
 
 const setDefaultStoreValues = (pageInfo) => {
   const { selectedBrands, selectedStorages, selectedPrices, searchKeyword } =
-    getFromLocalStorage()
-  setSearchKeyword(searchKeyword ?? '')
-  searchInput.value = searchKeyword
-  setSelectedBrand(Array.isArray(selectedBrands) ? selectedBrands : [])
-  setSelectedStorage(Array.isArray(selectedStorages) ? selectedStorages : [])
-  setSelectedPrice(selectedPrices ?? { min: null, max: null })
-  setCurrentPage(pageInfo?.page ?? 0)
-  setPageSize(pageInfo?.size ?? 10)
-  setSortField(pageInfo?.sortField ?? null)
-  setSortDirection(pageInfo?.sortDirection ?? null)
-}
+    getFromLocalStorage();
+  setSearchKeyword(searchKeyword ?? "");
+  searchInput.value = searchKeyword;
+  setSelectedBrand(Array.isArray(selectedBrands) ? selectedBrands : []);
+  setSelectedStorage(Array.isArray(selectedStorages) ? selectedStorages : []);
+  setSelectedPrice(selectedPrices ?? { min: null, max: null });
+  setCurrentPage(pageInfo?.page ?? 0);
+  setPageSize(pageInfo?.size ?? 10);
+  setSortField(pageInfo?.sortField ?? null);
+  setSortDirection(pageInfo?.sortDirection ?? null);
+};
 
 const applyFilter = async () => {
   try {
@@ -158,123 +160,125 @@ const applyFilter = async () => {
       sortField: sortField.value,
       sortDirection: sortDirection.value,
       searchKeyWord: searchKeyword.value,
-    })
+    });
 
-    saveToLocalStorage()
+    saveToLocalStorage();
 
     if (response.error) {
-      throw new Error(response?.error)
+      throw new Error(response?.error);
     }
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-}
+};
 
 const handleSearchKeyword = async () => {
-  setSearchKeyword(searchInput.value)
-  handlePageChange(0)
-  await applyFilter()
-}
+  setSearchKeyword(searchInput.value);
+  handlePageChange(0);
+  await applyFilter();
+};
 
 const selectBrand = async (brand) => {
-  setSelectBrand(brand)
-  showFilterDropdown.value = false
-  resetCurrentPage()
-  await applyFilter(true)
-}
+  setSelectBrand(brand);
+  showFilterDropdown.value = false;
+  resetCurrentPage();
+  await applyFilter(true);
+};
 
 const removeBrandAndApply = async (brand) => {
-  removeBrand(brand)
-  resetCurrentPage()
-  await applyFilter()
-}
+  removeBrand(brand);
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const selectStorage = async (storage) => {
-  setSelectStorage(storage)
-  showFilterDropdown.value = false
-  resetCurrentPage()
-  await applyFilter(true)
-}
+  setSelectStorage(storage);
+  showFilterDropdown.value = false;
+  resetCurrentPage();
+  await applyFilter(true);
+};
 
 const removeStorageAndApply = async (storage) => {
-  removeStorage(storage)
-  resetCurrentPage()
-  await applyFilter()
-}
+  removeStorage(storage);
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const selectPriceRange = async (range) => {
-  setSelectPrice(range.min, range.max)
-  showFilterDropdown.value = false
-  resetCurrentPage()
-  await applyFilter(true)
-}
+  setSelectPrice(range.min, range.max);
+  showFilterDropdown.value = false;
+  resetCurrentPage();
+  await applyFilter(true);
+};
 
-const customMin = ref(null)
-const customMax = ref(null)
+const customMin = ref(null);
+const customMax = ref(null);
 
 const applyCustomPrice = async () => {
   // validate input
-  if (customMin.value === null && customMax.value === null) return
+  if (customMin.value === null && customMax.value === null) return;
 
   setSelectPrice(
     customMin.value !== null ? customMin.value : null,
     customMax.value !== null ? customMax.value : null
-  )
-  showFilterDropdown.value = false
-  resetCurrentPage()
-  await applyFilter(true)
+  );
+  showFilterDropdown.value = false;
+  resetCurrentPage();
+  await applyFilter(true);
 
   // เคลียร์ input หลัง apply
-  customMin.value = null
-  customMax.value = null
-}
+  customMin.value = null;
+  customMax.value = null;
+};
 
 const removePriceAndApply = async () => {
-  removePrice()
-  resetCurrentPage()
-  await applyFilter()
-}
+  removePrice();
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const clearAll = async () => {
-  clearAllFilters()
-  resetCurrentPage()
-  await applyFilter()
-}
+  clearAllFilters();
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const handlePageChange = async (pageIndex) => {
-  setCurrentPage(pageIndex)
-  await applyFilter()
-}
+  setCurrentPage(pageIndex);
+  await applyFilter();
+};
 
 const handlePageSizeChange = async (event) => {
-  setPageSize(event.target.value)
-  resetCurrentPage()
-  await applyFilter()
-}
+  setPageSize(event.target.value);
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const handleSortChange = async (sortType) => {
   if (sortType) {
-    setSortBrand(sortType)
+    setSortBrand(sortType);
   } else {
-    setSortBrand('')
+    setSortBrand("");
   }
 
-  resetCurrentPage()
-  await applyFilter()
-}
+  resetCurrentPage();
+  await applyFilter();
+};
 
 const initializeBrands = async () => {
   try {
-    const response = await getAllBrands()
+    const response = await getAllBrands();
     if (!response.error) {
-      brandOptions.value = response.sort((a, b) => a.name.localeCompare(b.name))
+      brandOptions.value = response.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
     } else {
-      throw new Error(response?.error)
+      throw new Error(response?.error);
     }
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-}
+};
 
 const initializeSaleItems = async (pageInfo) => {
   try {
@@ -288,15 +292,15 @@ const initializeSaleItems = async (pageInfo) => {
       sortField: pageInfo?.sortField ?? null,
       sortDirection: pageInfo?.sortDirection ?? null,
       searchKeyWord: searchKeyword.value,
-    })
+    });
 
     if (response.error) {
-      throw new Error(response?.error)
+      throw new Error(response?.error);
     }
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-}
+};
 
 const showSuccessModal = () => {
   if (
@@ -304,44 +308,50 @@ const showSuccessModal = () => {
     notiStore.createUserSuccess ||
     notiStore.loginUserSuccess
   ) {
-    showCreatedModal.value = true
+    showCreatedModal.value = true;
   }
-}
+};
 
 function closeModal() {
-  showCreatedModal.value = false
-  notiStore.createSuccess = false
-  notiStore.createUserSuccess = false
-  notiStore.loginUserSuccess = false
+  showCreatedModal.value = false;
+  notiStore.createSuccess = false;
+  notiStore.createUserSuccess = false;
+  notiStore.loginUserSuccess = false;
 }
 
 onMounted(async () => {
-  window.addEventListener('resize', updateWidth)
+  window.addEventListener("resize", updateWidth);
 
   try {
-    const { pageInfo } = getFromLocalStorage()
+    const { pageInfo } = getFromLocalStorage();
 
-    setDefaultStoreValues(pageInfo)
-    await initializeBrands()
-    await initializeSaleItems(pageInfo)
-    showSuccessModal()
+    setDefaultStoreValues(pageInfo);
+    await initializeBrands();
+    await initializeSaleItems(pageInfo);
+    showSuccessModal();
+
+    const userInfo = await getProfile();
+    if (userInfo.logined) {
+      userStore.setUserInfo(userInfo?.data);
+    }
+    
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-})
+});
 
 const clearSearchKeyword = async () => {
-  searchInput.value = ''
-  setSearchKeyword('')
-  sessionStorage.setItem(STORAGE_KEYS.SEARCH_KEYWORD, JSON.stringify(''))
-  await applyFilter()
-}
+  searchInput.value = "";
+  setSearchKeyword("");
+  sessionStorage.setItem(STORAGE_KEYS.SEARCH_KEYWORD, JSON.stringify(""));
+  await applyFilter();
+};
 
-const windowWidth = ref(window.innerWidth)
+const windowWidth = ref(window.innerWidth);
 
 const updateWidth = () => {
-  windowWidth.value = window.innerWidth
-}
+  windowWidth.value = window.innerWidth;
+};
 </script>
 
 <template>
@@ -507,9 +517,9 @@ const updateWidth = () => {
                 class="itbms-storage-size-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
                 {{
-                  typeof storage === 'number' && storage != -1
-                    ? storage + ' GB'
-                    : 'Not specified'
+                  typeof storage === "number" && storage != -1
+                    ? storage + " GB"
+                    : "Not specified"
                 }}
               </li>
             </ul>
@@ -647,7 +657,7 @@ const updateWidth = () => {
           class="itbms-price-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
           <span>
-            {{ selectedPrices.min ?? 0 }} – {{ selectedPrices.max ?? '∞' }} Baht
+            {{ selectedPrices.min ?? 0 }} – {{ selectedPrices.max ?? "∞" }} Baht
           </span>
           <button
             class="itbms-price-clear font-bold cursor-pointer"
@@ -667,7 +677,7 @@ const updateWidth = () => {
           class="itbms-storage-size-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
           <span class="itbms-storage-size-filter">{{
-            storage === -1 ? 'Not specified' : storage + ' GB'
+            storage === -1 ? "Not specified" : storage + " GB"
           }}</span>
           <button
             class="itbms-storage-size-item-clear font-bold cursor-pointer"
@@ -715,10 +725,10 @@ const updateWidth = () => {
       <p class="py-4 itbms-message">
         {{
           notiStore.createUserSuccess
-            ? 'The user account has been successfully registered.'
+            ? "The user account has been successfully registered."
             : notiStore.createSuccess
-            ? 'The sale item has been successfully added.'
-            : 'The user account has been successfully logged in.'
+            ? "The sale item has been successfully added."
+            : "The user account has been successfully logged in."
         }}
       </p>
       <div class="itbms-button modal-action justify-center">

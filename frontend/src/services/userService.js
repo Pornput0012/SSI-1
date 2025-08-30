@@ -59,6 +59,7 @@ const login = async (email, password) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
+      credentials: "include",
     });
 
     if (response.status === 200) {
@@ -79,4 +80,32 @@ const login = async (email, password) => {
   }
 };
 
-export { createUser, login };
+const getProfile = async () => {
+  try {
+    const response = await fetch(USER_API_URL, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (response.status === 403) {
+      return {
+        logined: false,
+      };
+    } else if (response.status != 200) {
+      throw new Error(
+        `Failed to get Profile. Server responded with status ${response.status}`
+      );
+    }
+    const data = await response.json();
+    return {
+      logined: true,
+      data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+export { createUser, login, getProfile };
