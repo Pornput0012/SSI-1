@@ -43,7 +43,7 @@ const menu = [
             </button>
           </RouterLink>
           <div class="border border-l-1 border-base-300"></div>
-          <router-link :to="{ name: 'login' }" class="btn btn-primary px-4 py-1"
+          <router-link :to="{ name: 'signin' }" class="btn btn-primary px-4 py-1"
             >Login</router-link
           >
         </div>

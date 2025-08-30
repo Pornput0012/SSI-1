@@ -715,11 +715,10 @@ const updateWidth = () => {
       <p class="py-4 itbms-message">
         {{
           notiStore.createUserSuccess
-            ? "The user account has been successfully registered."
+            ? 'The user account has been successfully registered.'
             : notiStore.createSuccess
-            ? "The sale item has been successfully added."
-            : notiStore.loginUserSuccess
-            ? "The user account has been successfully logged in."
+            ? 'The sale item has been successfully added.'
+            : 'The user account has been successfully logged in.'
         }}
       </p>
       <div class="itbms-button modal-action justify-center">
