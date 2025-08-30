@@ -10,6 +10,7 @@ import ssi.backend.dtos.ErrorResponseDTO;
 import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ConfilctResourceException;
 import ssi.backend.exceptions.ItemNotFoundException;
+import ssi.backend.exceptions.UnauthorizedException;
 
 @RestControllerAdvice
 public class GlobalExceptionController {
@@ -21,8 +22,7 @@ public class GlobalExceptionController {
         return new ErrorResponseDTO(
                 HttpStatus.NOT_FOUND.value(),
                 exception.getMessage(),
-                request.getDescription(false)
-        );
+                request.getDescription(false));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -31,8 +31,7 @@ public class GlobalExceptionController {
         return new ErrorResponseDTO(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Validation failed",
-                request.getDescription(false)
-        );
+                request.getDescription(false));
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -41,8 +40,7 @@ public class GlobalExceptionController {
         return new ErrorResponseDTO(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Validation failed",
-                request.getDescription(false)
-        );
+                request.getDescription(false));
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -53,8 +51,7 @@ public class GlobalExceptionController {
         return new ErrorResponseDTO(
                 HttpStatus.BAD_REQUEST.value(),
                 exception.getMessage(),
-                request.getDescription(false)
-        );
+                request.getDescription(false));
     }
 
     @ExceptionHandler(ConfilctResourceException.class)
@@ -64,4 +61,16 @@ public class GlobalExceptionController {
 
         return exception.getMessage();
     }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponseDTO handleException(
+            UnauthorizedException exception, WebRequest request) {
+
+        return new ErrorResponseDTO(
+                HttpStatus.UNAUTHORIZED.value(),
+                exception.getMessage(),
+                request.getDescription(false));
+    }
+
 }

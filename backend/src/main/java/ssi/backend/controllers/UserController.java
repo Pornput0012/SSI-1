@@ -15,6 +15,7 @@ import ssi.backend.dtos.UserResponseDTO;
 import ssi.backend.entities.Buyer;
 import ssi.backend.entities.Seller;
 import ssi.backend.exceptions.BadRequestException;
+import ssi.backend.exceptions.UnauthorizedException;
 import ssi.backend.repositories.BuyerRepository;
 import ssi.backend.repositories.SellerRepository;
 import ssi.backend.services.JwtService;
@@ -78,8 +79,7 @@ public class UserController {
             if (passwordEncoder.matches(rawPassword, buyer.getPassword())) {
                 return ResponseEntity.ok().body("Login Successfully");
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Email or Password is incorrect");
+                throw new UnauthorizedException("Email or Password is incorrect");
             }
         }
 
@@ -91,13 +91,11 @@ public class UserController {
             if (passwordEncoder.matches(rawPassword, seller.getPassword())) {
                 return ResponseEntity.ok().body("Login Successfully");
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Email or Password is incorrect");
+                throw new UnauthorizedException("Email or Password is incorrect");
             }
         }
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body("Email or Password is incorrect");
+        throw new UnauthorizedException("Email or Password is incorrect");
     }
 
 }
