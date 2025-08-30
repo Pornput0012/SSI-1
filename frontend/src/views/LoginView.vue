@@ -1,45 +1,139 @@
 <script setup>
-import { ref } from 'vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import { login } from '@/services/userService'
-import { useNotiStore } from '@/stores/NotiStore'
+import { onMounted, ref, watch, watchEffect } from "vue";
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { login } from "@/services/userService";
+import { useNotiStore } from "@/stores/NotiStore";
 import MessageModal from "@/components/MessageModal.vue";
-import router from '@/router'
+import router from "@/router";
 
-const email = ref('')
-const password = ref('')
-const showPassword = ref(false)
 
-const errorTitle = ref('')
-const errorMessage = ref('')
-const showModal = ref(false)
-const notiStore = useNotiStore()
+const email = ref("");
+const password = ref("");
+const showPassword = ref(false);
 
+const errorTitle = ref("");
+const errorMessage = ref("");
+const showModal = ref(false);
+const notiStore = useNotiStore();
+const disableSaveBtn = ref(true);
+const onSubmit = ref(false);
 const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value
-}
+  showPassword.value = !showPassword.value;
+};
+
+
 
 const handleLogin = async () => {
+  onSubmit.value = true;
   try {
-    const response = await login(email.value, password.value)
-
+    const response = await login(email.value, password.value);
+    onSubmit.value =false
+    disableSaveBtn.value = true
+    
     if (response.success) {
-      loginSuccess()
-      console.log('Login success!')
+      loginSuccess();
+      console.log("Login success!");
     } else {
-      throw new Error(response.error)
+      throw new Error(response.error);
     }
   } catch (error) {
-    errorTitle.value = 'Failed to log in'
-    errorMessage.value = error.message
-    showModal.value = true
+    errorTitle.value = "Failed to log in";
+    errorMessage.value = error.message;
+    showModal.value = true;
   }
+};
+
+const validate = ref({
+  email: { invalid: false, msg: "" },
+  password: { invalid: false, msg: "" },
+});
+
+const checkPassword = () => {
+  if (!password.value) {
+    validate.value.password.invalid = true;
+    validate.value.password.msg = `Password must be filled`;
+    return;
+  }
+
+  if (typeof password.value !== "string") {
+    validate.value.password.invalid = true;
+    validate.value.password.msg = `Password must be text`;
+    return;
+  }
+
+  if (password.length > 14) {
+    validate.value.password.invalid = true;
+    validate.value.password.msg = `Password must be at least ${passwordConstraint.minLength} characters`;
+    return;
+  }
+
+  validate.value.password.invalid = false;
+  validate.value.password.msg = ``;
+};
+
+const checkEmail = () => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!email.value) {
+    validate.value.email.invalid = true;
+    validate.value.email.msg = `Email must be filled.`;
+    return;
+  }
+
+  if (email.value.length > 50) {
+    validate.value.email.invalid = true;
+    validate.value.email.msg = `Email must be less than 50 characters.`;
+    return;
+  }
+
+  if (!emailRegex.test(email.value)) {
+    validate.value.email.invalid = true;
+    validate.value.email.msg = `Email format is invalid.`;
+    return;
+  }
+
+  validate.value.email.invalid = false;
+  validate.value.email.msg = ``;
+};
+
+const closeModal =()=> {
+  showModal.value = false
+  router.push()
 }
 
+watch(
+  () => password.value,
+  () => {
+    checkPassword();
+  }
+);
+
+watch(
+  () => email.value,
+  () => {
+    checkEmail();
+  }
+);
+watchEffect(() => {
+  disableSaveBtn.value = true;
+
+  if (!email.value || !password.value) {
+    return;
+  }
+  for (const [key, value] of Object.entries(validate.value)) {
+    if (value.invalid) {
+      disableSaveBtn.value = true;
+      return;
+    } 
+  }
+
+  disableSaveBtn.value = false
+});
+
 const loginSuccess = () => {
-  notiStore.loginUserSuccess = true
-  router.push({ name: 'sale-items' })
-}
+  notiStore.loginUserSuccess = true;
+  router.push({ name: "sale-items" });
+};
 </script>
 
 <template>
@@ -102,11 +196,20 @@ const loginSuccess = () => {
           <input
             id="email"
             v-model="email"
+            maxlength="50"
             type="email"
             required
             class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
             placeholder="Enter your email"
           />
+          <div
+            class="text-red-500 mt-2 flex gap-2 text-sm"
+            v-if="validate.email.invalid"
+          >
+            <span class="font-extralight itbms-message">{{
+              validate.email.msg
+            }}</span>
+          </div>
         </div>
 
         <div class="space-y-2 itbms-password">
@@ -117,11 +220,20 @@ const loginSuccess = () => {
             <input
               id="password"
               v-model="password"
+              maxlength="14"
               :type="showPassword ? 'text' : 'password'"
               required
               class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors"
               placeholder="Enter your password"
             />
+            <div
+              class="text-red-500 mt-2 flex gap-2 text-sm"
+              v-if="validate.password.invalid"
+            >
+              <span class="font-extralight itbms-message">{{
+                validate.password.msg
+              }}</span>
+            </div>
             <button
               type="button"
               @click="togglePasswordVisibility"
@@ -183,8 +295,34 @@ const loginSuccess = () => {
 
         <button
           type="submit"
-          class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform hover:scale-105"
+          :disabled="disableSaveBtn || onSubmit"
+          :class="[
+            disableSaveBtn || onSubmit
+              ? 'flex items-center justify-center gap-2 w-full text-white py-3 px-4 rounded-lg font-medium  cursor-not-allowed bg-gray-300 '
+              : 'w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform hover:scale-105',
+          ]"
         >
+          <svg
+            v-if="onSubmit"
+            class="animate-spin h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
+          </svg>
           Sign In
         </button>
 

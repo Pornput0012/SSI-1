@@ -21,6 +21,8 @@ import ssi.backend.services.JwtService;
 import ssi.backend.services.UserService;
 
 import java.text.ParseException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/itb-mshop")
@@ -69,6 +71,10 @@ public class UserController {
     public ResponseEntity<Object> authenticateUser(@RequestBody LoginRequestDTO dto) {
         String email = dto.getEmail();
         String rawPassword = dto.getPassword();
+
+        if (!Pattern.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", email)) {
+            throw new BadRequestException("Invalid email format");
+        }
 
         Buyer buyer = buyerRepository.findByEmail(email);
         if (buyer != null) {
