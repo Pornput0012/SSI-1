@@ -1,11 +1,15 @@
 <script setup>
-import { ref } from "vue";
+import { useUserStore } from "@/stores/UserStore";
+import { computed, ref } from "vue";
 
 const openHamburger = ref(false);
 
 function setOpenHamburger() {
   openHamburger.value = !openHamburger.value;
 }
+
+const userStore = useUserStore();
+const nickName = computed(() => userStore.getNickName());
 
 const menu = [
   {
@@ -34,7 +38,7 @@ const menu = [
           <img src="/logo.png" class="h-14 aspect-square" alt="logo" />
           ITB MShop
         </RouterLink>
-        <div class="flex gap-2">
+        <div class="flex items-center gap-2">
           <RouterLink :to="{ name: 'register' }">
             <button
               class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
@@ -43,9 +47,12 @@ const menu = [
             </button>
           </RouterLink>
           <div class="border border-l-1 border-base-300"></div>
-          <router-link :to="{ name: 'signin' }" class="btn btn-primary px-4 py-1"
+          <router-link
+            :to="{ name: 'signin' }"
+            class="btn btn-primary px-4 py-1"
             >Login</router-link
           >
+          Hello, {{ nickName }}
         </div>
       </div>
     </div>
@@ -151,7 +158,7 @@ const menu = [
         >
         <RouterLink
           active-class="border-b-1"
-          :to="{ name: 'signin'}"
+          :to="{ name: 'signin' }"
           to="l"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Log in</RouterLink

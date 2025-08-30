@@ -10,38 +10,30 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
       formData.append(key, value);
     }
 
-    console.log(nationalIdPhoto);
-    
     if (nationalIdPhoto) {
       for (const [key, image] of Object.entries(nationalIdPhoto)) {
-        
         if (image) {
-
           const ext = image.name.includes(".")
             ? image.name.substring(image.name.lastIndexOf("."))
-            : ""; 
+            : "";
 
-          const baseName = image.name.replace(ext, ""); 
-          const fileName = baseName + (key === "idCardImageFront" ? "_fs_" : "_bs_") + ext;
-          
+          const baseName = image.name.replace(ext, "");
+          const fileName =
+            baseName + (key === "idCardImageFront" ? "_fs_" : "_bs_") + ext;
+
           formData.append("images", image, fileName);
         }
       }
     }
 
-    formData.append('userType',userType)
-    
+    formData.append("userType", userType);
 
-    const response = await fetch(
-      `${USER_API_URL}/register`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const response = await fetch(`${USER_API_URL}/register`, {
+      method: "POST",
+      body: formData,
+    });
 
     if (!response.ok) {
-      console.log(response);
       throw new Error(
         `Failed to create user. Server responded with status ${response.status}`
       );
@@ -53,36 +45,67 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
       error: `Error creating user: ${error.message}`,
     };
   }
-  
 };
 
 const login = async (email, password) => {
   try {
     if (!email || !password) {
       throw new Error("Please enter your email and password!");
-      }
+    }
 
-      const response = await fetch(`${USER_API_URL}/authentications`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({email, password})
-      })
+    const response = await fetch(`${USER_API_URL}/authentications`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+      credentials: "include",
+    });
 
-      if (response.status === 200) {
-        return { success: true }
-      } else if (response.status === 401) {
-        throw new Error("Email or Password is incorrect!")
-      } else {
-        throw new Error(`Failed to log in. Server responded with status ${response.status}`);
-      }
+    if (response.status === 200) {
+      return { success: true };
+    } else if (response.status === 401 || response.status === 403) {
+      const { message } = await response.json();
+      throw new Error(message);
+    } else {
+      throw new Error(
+        `Failed to log in. Server responded with status ${response.status}`
+      );
+    }
   } catch (error) {
     return {
       success: false,
-      error: error.message
-    }
+      error: error.message,
+    };
   }
-}
+};
 
-export { createUser, login };
+const getProfile = async () => {
+  try {
+    const response = await fetch(USER_API_URL, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (response.status === 403) {
+      return {
+        logined: false,
+      };
+    } else if (response.status != 200) {
+      throw new Error(
+        `Failed to get Profile. Server responded with status ${response.status}`
+      );
+    }
+    const data = await response.json();
+    return {
+      logined: true,
+      data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+export { createUser, login, getProfile };
