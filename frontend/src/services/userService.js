@@ -1,6 +1,6 @@
 const USER_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
-}/itb-mshop/v1/register`;
+}/itb-mshop/v2/users`;
 
 const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
   try {
@@ -33,7 +33,7 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
     
 
     const response = await fetch(
-      `${USER_API_URL}`,
+      `${USER_API_URL}/register`,
       {
         method: "POST",
         body: formData,
@@ -56,4 +56,33 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
   
 };
 
-export { createUser };
+const login = async (email, password) => {
+  try {
+    if (!email || !password) {
+      throw new Error("Please enter your email and password!");
+      }
+
+      const response = await fetch(`${USER_API_URL}/authentications`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({email, password})
+      })
+
+      if (response.status === 200) {
+        return { success: true }
+      } else if (response.status === 401) {
+        throw new Error("Username or Password is incorrect!")
+      } else {
+        throw new Error("Something went wrong!");
+      }
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message
+    }
+  }
+}
+
+export { createUser, login };

@@ -1,21 +1,44 @@
 <script setup>
-import { ref } from "vue";
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { ref } from 'vue'
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import { login } from '@/services/userService'
+import { useNotiStore } from '@/stores/NotiStore'
+import router from '@/router'
 
-const email = ref("");
-const password = ref("");
-const showPassword = ref(false);
+const email = ref('')
+const password = ref('')
+const showPassword = ref(false)
+
+const errorTitle = ref('')
+const errorMessage = ref('')
+const showModal = ref(false)
+const notiStore = useNotiStore()
 
 const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value;
-};
+  showPassword.value = !showPassword.value
+}
 
-const handleLogin = () => {
-  console.log("Login attempt with:", {
-    email: email.value,
-    password: password.value,
-  });
-};
+const handleLogin = async () => {
+  try {
+    const response = await login(email.value, password.value)
+
+    if (response.success) {
+      loginSuccess()
+      console.log('Login success!')
+    } else {
+      throw new Error(response.error)
+    }
+  } catch (error) {
+    errorTitle.value = 'Failed to log in'
+    errorMessage.value = error.message
+    showModal.value = true
+  }
+}
+
+const loginSuccess = () => {
+  notiStore.loginUserSuccess = true
+  router.push({ name: 'sale-items' })
+}
 </script>
 
 <template>
@@ -176,6 +199,12 @@ const handleLogin = () => {
           </p>
         </div>
       </form>
+      <MessageModal
+        v-if="showModal"
+        :handle-ok="() => (showModal = false)"
+        :title="errorTitle"
+        :message="errorMessage"
+      />
     </div>
   </div>
 </template>

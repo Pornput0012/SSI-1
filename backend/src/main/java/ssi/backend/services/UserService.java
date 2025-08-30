@@ -2,7 +2,7 @@ package ssi.backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.configuration.HostProperties;
@@ -36,7 +36,7 @@ public class UserService {
     @Autowired
     private HostProperties hostProperties;
     @Autowired
-    private Argon2PasswordEncoder passwordEncoder = new Argon2PasswordEncoder(16, 32, 8, 1024*128, 2);
+    private PasswordEncoder passwordEncoder;
 
     public List<Buyer> getAllBuyers() {
         return buyerRepository.findAll();
