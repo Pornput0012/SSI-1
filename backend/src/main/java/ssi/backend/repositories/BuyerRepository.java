@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface BuyerRepository extends JpaRepository<Buyer, Integer> {
-    List<Buyer> findByEmail(String email);
+    Buyer findByEmail(String email);
 
     @Query("SELECT b.email FROM Buyer b")
     List<String> findAllEmailsBuyer();

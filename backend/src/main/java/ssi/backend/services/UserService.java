@@ -1,16 +1,22 @@
 package ssi.backend.services;
 
+import com.nimbusds.jose.JOSEException;
+import org.apache.catalina.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.bouncycastle.crypto.params.Argon2Parameters;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.configuration.HostProperties;
-import ssi.backend.dtos.EmailVerifyDTO;
+import ssi.backend.dtos.JwtClaimDTO;
 import ssi.backend.dtos.RegisterRequestDTO;
+import ssi.backend.dtos.UserProfileResponseDTO;
 import ssi.backend.dtos.UserResponseDTO;
 import ssi.backend.entities.Buyer;
 import ssi.backend.entities.Seller;
 import ssi.backend.exceptions.ConfilctResourceException;
+import ssi.backend.exceptions.ForbiddenException;
 import ssi.backend.repositories.BuyerRepository;
 import ssi.backend.repositories.SellerRepository;
 import ssi.backend.exceptions.BadRequestException;
@@ -34,6 +40,8 @@ public class UserService {
     private JwtService jwtService;
     @Autowired
     private HostProperties hostProperties;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<Buyer> getAllBuyers() {
         return buyerRepository.findAll();
@@ -56,13 +64,17 @@ public class UserService {
                 getAllSellerEmails().contains(buyer.getEmail())) {
             throw new BadRequestException("Email already exists: " + buyer.getEmail());
         }
+        if (buyer.getPassword() == null || buyer.getPassword().isBlank()) {
+            throw new BadRequestException("Password is required");
+        }
 
         Buyer creatingBuyer = modelMapper.map(buyer, Buyer.class);
         creatingBuyer.setId(null);
+        creatingBuyer.setPassword(passwordEncoder.encode(buyer.getPassword()));
         Buyer savedBuyer = buyerRepository.save(creatingBuyer);
 
         try {
-            String token = jwtService.generateToken(creatingBuyer.getId(), creatingBuyer.getFullName(), creatingBuyer.getEmail(), "BUYER");
+            String token = jwtService.generateVerifyEmailToken(creatingBuyer.getId(), creatingBuyer.getFullName(), creatingBuyer.getEmail(), "BUYER");
             emailService.sendEmail(savedBuyer.getEmail(), "Welcome to ITB-MSHOP!",
                     "สวัสดีคุณ " + savedBuyer.getFullName()
                             + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
@@ -79,6 +91,9 @@ public class UserService {
         if (getAllBuyerEmails().contains(seller.getEmail()) ||
                 getAllSellerEmails().contains(seller.getEmail())) {
             throw new BadRequestException("Email already exists: " + seller.getEmail());
+        }
+        if (seller.getPassword() == null || seller.getPassword().isBlank()) {
+            throw new BadRequestException("Password is required");
         }
 
         Seller creatingSeller = modelMapper.map(seller, Seller.class);
@@ -101,11 +116,12 @@ public class UserService {
         }
 
         creatingSeller.setId(null);
+        creatingSeller.setPassword(passwordEncoder.encode(seller.getPassword()));
         Seller sellerRes = new Seller();
         try {
             sellerRes = sellerRepository.save(creatingSeller);
             try {
-                String token = jwtService.generateToken(sellerRes.getId(), sellerRes.getFullName(), sellerRes.getEmail(), "SELLER");
+                String token = jwtService.generateVerifyEmailToken(sellerRes.getId(), sellerRes.getFullName(), sellerRes.getEmail(), "SELLER");
                 emailService.sendEmail(sellerRes.getEmail(), "Welcome to ITB-MSHOP!",
                         "สวัสดีคุณ " + sellerRes.getFullName()
                                 + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
@@ -127,9 +143,9 @@ public class UserService {
     }
 
     public UserResponseDTO verifyEmail(String token) throws ParseException {
-        EmailVerifyDTO emailVerifyDTO = jwtService.extractClaims(token);
-        if (emailVerifyDTO.getUserType().equalsIgnoreCase("buyer")) {
-            Buyer buyer = buyerRepository.findByIdAndEmail(emailVerifyDTO.getUser_id(), emailVerifyDTO.getEmail());
+        JwtClaimDTO emailVerifyClaim = jwtService.extractUserClaims(token);
+        if (emailVerifyClaim.getRole().equalsIgnoreCase("buyer")) {
+            Buyer buyer = buyerRepository.findByIdAndEmail(emailVerifyClaim.getUserId(), emailVerifyClaim.getEmail());
 
             if (buyer == null) {
                 throw new BadRequestException("Invalid email or User id");
@@ -140,17 +156,17 @@ public class UserService {
             }
 
             buyer.setStatus("ACTIVE");
-            buyer.setId(emailVerifyDTO.getUser_id());
+            buyer.setId(emailVerifyClaim.getUserId());
             buyerRepository.save(buyer);
 
             UserResponseDTO userResponseDTO = modelMapper.map(buyer, UserResponseDTO.class);
-            userResponseDTO.setUserType(emailVerifyDTO.getUserType());
+            userResponseDTO.setUserType(emailVerifyClaim.getRole());
             userResponseDTO.setIsActive(true);
 
             return userResponseDTO;
 
-        } else if (emailVerifyDTO.getUserType().equalsIgnoreCase("seller")) {
-            Seller seller = sellerRepository.findByIdAndEmail(emailVerifyDTO.getUser_id(), emailVerifyDTO.getEmail());
+        } else if (emailVerifyClaim.getRole().equalsIgnoreCase("seller")) {
+            Seller seller = sellerRepository.findByIdAndEmail(emailVerifyClaim.getUserId(), emailVerifyClaim.getEmail());
 
             if (seller == null) {
                 throw new BadRequestException("Invalid email or User id");
@@ -164,11 +180,39 @@ public class UserService {
             sellerRepository.save(seller);
 
             UserResponseDTO userResponseDTO = modelMapper.map(seller, UserResponseDTO.class);
-            userResponseDTO.setUserType(emailVerifyDTO.getUserType());
+            userResponseDTO.setUserType(emailVerifyClaim.getRole());
             userResponseDTO.setIsActive(true);
 
             return userResponseDTO;
         }
         return null;
+    }
+
+    public UserProfileResponseDTO getUserProfile(String token) throws ParseException, JOSEException {
+        jwtService.validateAccessToken(token);
+
+        JwtClaimDTO profileClaim = jwtService.extractUserClaims(token);
+        if (profileClaim.getRole().equalsIgnoreCase("BUYER")) {
+            Buyer buyer = buyerRepository.findByIdAndEmail(profileClaim.getUserId(), profileClaim.getEmail());
+            if (buyer == null) {
+                throw new BadRequestException("Invalid email or User id");
+            }
+            if (buyer.getStatus().equalsIgnoreCase("inactive")) {
+                throw new ForbiddenException("You need activate your account before signing in.");
+            }
+            return modelMapper.map(buyer, UserProfileResponseDTO.class);
+        }
+        else if (profileClaim.getRole().equalsIgnoreCase("SELLER")) {
+            Seller seller = sellerRepository.findByIdAndEmail(profileClaim.getUserId(), profileClaim.getEmail());
+            if (seller == null) {
+                throw new BadRequestException("Invalid email or User id");
+            }
+            if (seller.getStatus().equalsIgnoreCase("inactive")) {
+                throw new ForbiddenException("You need activate your account before signing in.");
+            }
+            return modelMapper.map(seller, UserProfileResponseDTO.class);
+        }
+
+        throw new BadRequestException("Invalid token");
     }
 }

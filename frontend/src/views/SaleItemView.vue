@@ -7,6 +7,8 @@ import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
+import { useUserStore } from "@/stores/UserStore";
+import { getProfile } from "@/services/userService";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
 const STORAGE_KEYS = {
@@ -20,6 +22,7 @@ const STORAGE_KEYS = {
 const filterStore = useFilterStore();
 const saleItemStore = useSaleItemStore();
 const notiStore = useNotiStore();
+const userStore = useUserStore();
 
 const {
   getFilterList,
@@ -48,7 +51,6 @@ const {
 } = filterStore;
 
 const { getSaleItemsPage } = saleItemStore;
-
 const sortField = computed(() => filterStore.sortField);
 const sortDirection = computed(() => filterStore.sortDirection);
 const currentPage = computed(() => filterStore.currentPage);
@@ -301,7 +303,11 @@ const initializeSaleItems = async (pageInfo) => {
 };
 
 const showSuccessModal = () => {
-  if (notiStore.createSuccess || notiStore.createUserSuccess) {
+  if (
+    notiStore.createSuccess ||
+    notiStore.createUserSuccess ||
+    notiStore.loginUserSuccess
+  ) {
     showCreatedModal.value = true;
   }
 };
@@ -310,6 +316,7 @@ function closeModal() {
   showCreatedModal.value = false;
   notiStore.createSuccess = false;
   notiStore.createUserSuccess = false;
+  notiStore.loginUserSuccess = false;
 }
 
 onMounted(async () => {
@@ -322,6 +329,12 @@ onMounted(async () => {
     await initializeBrands();
     await initializeSaleItems(pageInfo);
     showSuccessModal();
+
+    const userInfo = await getProfile();
+    if (userInfo.logined) {
+      userStore.setUserInfo(userInfo?.data);
+    }
+    
   } catch (error) {
     hasError.value = error.message;
   }
@@ -331,7 +344,7 @@ const clearSearchKeyword = async () => {
   searchInput.value = "";
   setSearchKeyword("");
   sessionStorage.setItem(STORAGE_KEYS.SEARCH_KEYWORD, JSON.stringify(""));
-  await applyFilter()
+  await applyFilter();
 };
 
 const windowWidth = ref(window.innerWidth);
@@ -713,13 +726,13 @@ const updateWidth = () => {
         {{
           notiStore.createUserSuccess
             ? "The user account has been successfully registered."
-            : "The sale item has been successfully added."
+            : notiStore.createSuccess
+            ? "The sale item has been successfully added."
+            : "The user account has been successfully logged in."
         }}
       </p>
       <div class="itbms-button modal-action justify-center">
-        <button @click="closeModal" class="btn btn-primary">
-          OK
-        </button>
+        <button @click="closeModal" class="btn btn-primary">OK</button>
       </div>
     </div>
   </div>
