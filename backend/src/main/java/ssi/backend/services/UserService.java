@@ -126,7 +126,7 @@ public class UserService {
                         "สวัสดีคุณ " + sellerRes.getFullName()
                                 + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
                                 + hostProperties.getUrl()
-                                + "verify-email?jwtToken=" + token
+                                + "/verify-email?jwtToken=" + token
                                 + "\n\nขอบคุณที่เข้าร่วมกับเรา!");
             } catch (Exception e) {
                 System.err.println("❌ ส่งอีเมลไปยัง Seller ไม่สำเร็จ: " + e.getMessage());
