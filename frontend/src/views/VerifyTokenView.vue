@@ -48,8 +48,8 @@ function returnHome() {
     <MessageModal
     v-if="success"
     :handle-ok="returnHome"
-    :title="'Success'"
-    :message="'verify email successful'"
+    :title="'Successfully!'"
+    :message="'The user account has been successfully registered.'"
     :type-modal="'text-green-500'"
   />
   </div>
