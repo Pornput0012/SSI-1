@@ -73,7 +73,6 @@ public class UserController {
     public ResponseEntity<AccessAndRefreshTokenDTO> authenticateUser(@RequestBody LoginRequestDTO dto) throws JOSEException {
         String email = dto.getEmail();
         String rawPassword = dto.getPassword();
-
         if (!Pattern.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", email)) {
             throw new BadRequestException("Invalid email format");
         }
