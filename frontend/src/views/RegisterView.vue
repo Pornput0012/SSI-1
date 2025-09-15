@@ -2,16 +2,18 @@
 import AuthenForm from "@/components/AuthenForm.vue";
 import MessageModal from "@/components/MessageModal.vue";
 import { createUser } from "@/services/userService";
-import { useNotiStore } from "@/stores/์NotiStore";
+
 import router from "@/router";
 
 import { ref } from "vue";
-
+import { useNotiStore } from "@/stores/NotiStore";
 
 const errorTitle = ref("");
 const errorMessage = ref("");
 const showModal = ref(false);
 const isSaving = ref(false);
+
+const clearData = ref("false")
 const handleSubmit = async (payload) => {
   try {
     isSaving.value = true;
@@ -20,12 +22,13 @@ const handleSubmit = async (payload) => {
         payload.userType === "Seller"
           ? await createUser(
               payload.userDetail,
-              payload.images,
-              payload.userType
+              payload.userType,
+              payload.images
             )
           : await createUser(payload.userDetail, payload.userType);
       if (!response.error) {
         createSuccess();
+        clearData.value = true
       } else {
         throw new Error(response.error);
       }
@@ -40,8 +43,8 @@ const handleSubmit = async (payload) => {
 
 const notiStore = useNotiStore();
 const createSuccess = () => {
-  notiStore.createSuccess = true;
-  router.back();
+  notiStore.createUserSuccess = true;
+  router.push({ name: "sale-items" });
 };
 </script>
 
@@ -52,6 +55,7 @@ const createSuccess = () => {
     :handle-ok="() => (showModal = false)"
     :title="errorTitle"
     :message="errorMessage"
+    :clearData="clearData"
   />
 </template>
 

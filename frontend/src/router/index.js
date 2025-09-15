@@ -9,6 +9,8 @@ import SaleItemListView from "@/views/SaleItemListView.vue";
 import SaleItemView from "@/views/SaleItemView.vue";
 import { createRouter, createWebHistory } from "vue-router";
 import RegisterView from "@/views/RegisterView.vue";
+import VerifyTokenView from "@/views/VerifyTokenView.vue";
+import LoginView from "@/views/LoginView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,7 +52,7 @@ const router = createRouter({
     {
       path: "/brands",
       component: BrandListView,
-      name: "brands"
+      name: "brands",
     },
     {
       path: "/brands/add",
@@ -63,11 +65,20 @@ const router = createRouter({
       component: EditBrandView,
       name: "edit-brand",
     },
-
-     {
+    {
       path: "/register",
       component: RegisterView,
       name: "register",
+    },
+    {
+      path: "/signin",
+      component: LoginView,
+      name: "signin",
+    },
+    {
+      path: "/verify-email",
+      component: VerifyTokenView,
+      name: "verify-email",
     },
   ],
 });

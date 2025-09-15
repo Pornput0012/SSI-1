@@ -5,16 +5,13 @@ import { computed } from "vue";
 
 const route = useRoute();
 
-const authenFormPath = ['/register','/login']
+const authenFormPath = ['/register','/signin','/verify-email']
 
 const hasNav = computed(()=>!authenFormPath.includes(route.path))
-
-console.log(route.path);
-
 </script>
 
 <template>
-  <NavBar v-if="hasNav" />
+  <NavBar />
   <RouterView />
 </template>
 

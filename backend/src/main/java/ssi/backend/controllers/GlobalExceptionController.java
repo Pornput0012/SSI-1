@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import ssi.backend.dtos.ErrorResponseDTO;
-import ssi.backend.exceptions.BadRequestException;
-import ssi.backend.exceptions.ItemNotFoundException;
+import ssi.backend.exceptions.*;
 
 @RestControllerAdvice
 public class GlobalExceptionController {
@@ -20,8 +19,7 @@ public class GlobalExceptionController {
         return new ErrorResponseDTO(
                 HttpStatus.NOT_FOUND.value(),
                 exception.getMessage(),
-                request.getDescription(false)
-        );
+                request.getDescription(false));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -30,8 +28,7 @@ public class GlobalExceptionController {
         return new ErrorResponseDTO(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Validation failed",
-                request.getDescription(false)
-        );
+                request.getDescription(false));
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -40,11 +37,10 @@ public class GlobalExceptionController {
         return new ErrorResponseDTO(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Validation failed",
-                request.getDescription(false)
-        );
+                request.getDescription(false));
     }
 
-    @ExceptionHandler(ssi.backend.exceptions.BadRequestException.class)
+    @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponseDTO handleException(
             BadRequestException exception, WebRequest request) {
@@ -52,7 +48,37 @@ public class GlobalExceptionController {
         return new ErrorResponseDTO(
                 HttpStatus.BAD_REQUEST.value(),
                 exception.getMessage(),
-                request.getDescription(false)
-        );
+                request.getDescription(false));
     }
+
+    @ExceptionHandler(ConfilctResourceException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public String handleException(
+            ConfilctResourceException exception, WebRequest request) {
+
+        return exception.getMessage();
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponseDTO handleException(
+            UnauthorizedException exception, WebRequest request) {
+
+        return new ErrorResponseDTO(
+                HttpStatus.UNAUTHORIZED.value(),
+                exception.getMessage(),
+                request.getDescription(false));
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponseDTO handleException(
+            ForbiddenException exception, WebRequest request) {
+
+        return new ErrorResponseDTO(
+                HttpStatus.FORBIDDEN.value(),
+                exception.getMessage(),
+                request.getDescription(false));
+    }
+
 }

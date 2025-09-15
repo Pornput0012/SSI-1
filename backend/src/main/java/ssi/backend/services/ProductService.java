@@ -49,10 +49,10 @@ public class ProductService {
                 ProductItemDTO.class, modelMapper);
     }
 
-    public ProductPageDTO getAllProductsV2(int page, int size, String sortField, String sortDirection,
+    public ProductPageDtoV2 getAllProductsV2(int page, int size, String sortField, String sortDirection,
             List<String> filterBrands, List<Integer> filterStorages,
-            Integer filterPriceLower, Integer filterPriceUpper, String keyword) {
-        ProductPageDTO productPage;
+            Integer filterPriceLower, Integer filterPriceUpper, String searchKeyWord) {
+        ProductPageDtoV2 productPage;
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
         boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
@@ -84,7 +84,7 @@ public class ProductService {
                         nonZeroStorages,
                         filterPriceLower,
                         filterPriceUpper,
-                        keyword,
+                        searchKeyWord,
                         pageable);
                 // Query รอบสองด้วย [0]
                 Page<Product> pageResult2 = productRepository.findFilteredProducts(
@@ -92,7 +92,7 @@ public class ProductService {
                         null,
                         filterPriceLower,
                         filterPriceUpper,
-                        keyword,
+                        searchKeyWord,
                         pageable);
                 // รวมผลลัพธ์
                 List<Product> combinedList = new ArrayList<>();
@@ -101,9 +101,9 @@ public class ProductService {
 
                 Page<Product> combinedPage = new PageImpl<>(combinedList, pageable,
                         combinedList.size());
-                productPage = modelMapper.map(combinedPage, ProductPageDTO.class);
+                productPage = modelMapper.map(combinedPage, ProductPageDtoV2.class);
                 productPage
-                        .setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+                        .setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class, modelMapper));
                 productPage.setSort(
                         (sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
                 return productPage;
@@ -114,11 +114,11 @@ public class ProductService {
                         null,
                         filterPriceLower,
                         filterPriceUpper,
-                        keyword,
+                        searchKeyWord,
                         pageable);
-                productPage = modelMapper.map(pageResult, ProductPageDTO.class);
+                productPage = modelMapper.map(pageResult, ProductPageDtoV2.class);
                 productPage
-                        .setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+                        .setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class, modelMapper));
                 productPage.setSort(
                         (sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
                 return productPage;
@@ -128,11 +128,11 @@ public class ProductService {
                         filterStorages,
                         filterPriceLower,
                         filterPriceUpper,
-                        keyword,
+                        searchKeyWord,
                         pageable);
-                productPage = modelMapper.map(pageResult, ProductPageDTO.class);
+                productPage = modelMapper.map(pageResult, ProductPageDtoV2.class);
                 productPage
-                        .setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+                        .setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class, modelMapper));
                 productPage.setSort(
                         (sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
                 return productPage;
@@ -142,10 +142,15 @@ public class ProductService {
                     (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
                     filterPriceLower,
                     filterPriceUpper,
-                    keyword,
+                    searchKeyWord,
                     pageable);
-            productPage = modelMapper.map(pageResult, ProductPageDTO.class);
-            productPage.setContent(listMapper.mapList(productPage.getContent(), ProductDetailDTO.class, modelMapper));
+            productPage = modelMapper.map(pageResult, ProductPageDtoV2.class);
+            productPage.setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class, modelMapper));
+            productPage.getContent().forEach(dto -> {
+                if (dto.getSaleItemImages() != null && !dto.getSaleItemImages().isEmpty()) {
+                    dto.setSaleItemImages(List.of(dto.getSaleItemImages().get(0)));
+                }
+            });
             productPage
                     .setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
             return productPage;

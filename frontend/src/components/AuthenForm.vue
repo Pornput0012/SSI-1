@@ -1,17 +1,19 @@
 <script setup>
-import { ref, useAttrs, watchEffect } from "vue";
+import { ref, watch, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import MessageModal from "./MessageModal.vue";
+
 
 const emit = defineEmits(["onSubmit"]);
 const props = defineProps({
   disableSaveBtn: Boolean,
+  clearData:Boolean
 });
 
 const isCanNotSave = ref(true);
-const userType = ref("Buyer");
 
 let roles = ["Buyer", "Seller"];
+const userType = ref(roles[0]);
 
 const router = useRouter();
 
@@ -20,18 +22,36 @@ const errorMessage = ref("");
 const showModal = ref(false);
 
 const formDataBuyer = ref({
-  nickname: "",
+  nickName: "",
   email: "",
   password: "",
-  fullname: "",
+  fullName: "",
 });
 
 const formDataSeller = ref({
   ...formDataBuyer.value,
-  mobileNumber: "",
+  phoneNumber: "",
   bankAccountNumber: "",
   bankName: "",
-  nationalIdNumber: "",
+  idCardNumber: "",
+});
+
+const buyerValidate = ref({
+  nickName: { invalid: false, msg: "" },
+  email: { invalid: false, msg: "" },
+  password: { invalid: false, msg: "" },
+  fullName: { invalid: false, msg: "" },
+});
+
+const sellerValidate = ref({
+  nickName: { invalid: false, msg: "" },
+  email: { invalid: false, msg: "" },
+  password: { invalid: false, msg: "" },
+  fullName: { invalid: false, msg: "" },
+  phoneNumber: { invalid: false, msg: "" },
+  bankAccountNumber: { invalid: false, msg: "" },
+  bankName: { invalid: false, msg: "" },
+  idCardNumber: { invalid: false, msg: "" },
 });
 
 const formConstraints = {
@@ -39,7 +59,7 @@ const formConstraints = {
     {
       title: "Nickname",
       label: "nickname",
-      model: "nickname",
+      model: "nickName",
       constraint: { type: "string", required: true },
     },
     {
@@ -62,7 +82,7 @@ const formConstraints = {
     {
       title: "Fullname",
       label: "fullname",
-      model: "fullname",
+      model: "fullName",
       constraint: {
         type: "string",
         required: true,
@@ -76,7 +96,7 @@ const formConstraints = {
     {
       title: "Mobile number",
       label: "mobile",
-      model: "mobileNumber",
+      model: "phoneNumber",
       constraint: { type: "string", required: true },
     },
     {
@@ -94,10 +114,82 @@ const formConstraints = {
     {
       title: "National ID number",
       label: "card-no",
-      model: "nationalIdNumber",
+      model: "idCardNumber",
       constraint: { type: "string", required: true },
     },
   ],
+};
+
+const validateField = () => {};
+
+const checkPassword = (password, userType) => {
+  const validateState = {
+    Buyer: buyerValidate,
+    Seller: sellerValidate,
+  };
+
+  const targetValidate = validateState[userType]; // เลือก state ที่ต้องใช้
+  const passwordConstraint = formConstraints.Buyer[2].constraint;
+
+  const rules = {
+    lower: /[a-z]/,
+    upper: /[A-Z]/,
+    number: /[0-9]/,
+    special: /[^A-Za-z0-9]/,
+  };
+
+  if (passwordConstraint.required && !password) {
+    targetValidate.value.password.invalid = true;
+    targetValidate.value.password.msg = `Password must be filled`;
+    return;
+  }
+
+  if (password.length < passwordConstraint.minLength) {
+    targetValidate.value.password.invalid = true;
+    targetValidate.value.password.msg = `Password must be at least ${passwordConstraint.minLength} characters`;
+    return;
+  }
+
+  let failedRules = [];
+  for (let rule of passwordConstraint.rules) {
+    if (!rules[rule].test(password)) {
+      failedRules.push(rule);
+    }
+  }
+
+  if (failedRules.length > 0) {
+    targetValidate.value.password.invalid = true;
+    targetValidate.value.password.msg = `Password must contain at least one ${failedRules.join(
+      ", "
+    )} character`;
+  } else {
+    targetValidate.value.password.invalid = false;
+    targetValidate.value.password.msg = ``;
+  }
+};
+
+const checkEmail = (email, userType) => {
+  const emailConstraint = formConstraints.Buyer[1].constraint;
+
+  const validate =
+    userType === "Seller" ? sellerValidate.value : buyerValidate.value;
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (emailConstraint.required && !email) {
+    validate.email.invalid = true;
+    validate.email.msg = `Email must be filled`;
+    return;
+  }
+
+  if (!emailRegex.test(email)) {
+    validate.email.invalid = true;
+    validate.email.msg = `Email format is invalid`;
+    return;
+  }
+
+  validate.email.invalid = false;
+  validate.email.msg = ``;
 };
 
 const frontImage = ref(null);
@@ -124,9 +216,15 @@ function uploadImage(event, side) {
     fileName.endsWith(".png")
   ) {
     if (side === "front") {
-      frontImage.value = { fileName: fileName, file: previewBinaryFile(file) };
+      frontImage.value = {
+        fileName: fileName,
+        file: { src: previewBinaryFile(file), image: file },
+      };
     } else {
-      backImage.value = { fileName: fileName, file: previewBinaryFile(file) };
+      backImage.value = {
+        fileName: fileName,
+        file: { src: previewBinaryFile(file), image: file },
+      };
     }
   } else {
     console.log("invalid type");
@@ -142,17 +240,22 @@ function removeBackImage() {
 
 const handleSubmit = () => {
   if (userType.value === "Seller") {
-    formDataSeller.value.userType = "Seller";
     emit("onSubmit", {
       userDetail: formDataSeller.value,
-      images: { front: frontImage.value, back: backImage.value },
+      images: {
+        idCardImageFront: frontImage.value?.file.image,
+        idCardImageBack: backImage.value?.file.image,
+      },
       userType: "Seller",
     });
   } else {
     emit("onSubmit", { userDetail: formDataBuyer.value, userType: "Buyer" });
   }
 
-  clearData();
+  if (props.clearData) {
+    clearData()
+    
+  }
 };
 
 function clearData(role = null) {
@@ -160,54 +263,84 @@ function clearData(role = null) {
 
   if (onToggle && role === "Seller") {
     formDataBuyer.value = {
-      nickname: "",
+      nickName: "",
       email: "",
       password: "",
-      fullname: "",
+      fullName: "",
     };
+    removeBackImage()
+    removeFrontImage();
     return;
   }
 
   if (onToggle && role === "Buyer") {
     formDataSeller.value = {
       ...formDataBuyer.value,
-      mobileNumber: "",
+      phoneNumber: "",
       bankAccountNumber: "",
       bankName: "",
-      nationalIdNumber: "",
+      idCardNumber: "",
     };
     return;
   }
 
   formDataBuyer.value = {
-    nickname: "",
+    nickName: "",
     email: "",
     password: "",
-    fullname: "",
+    fullName: "",
   };
 
   formDataSeller.value = {
     ...formDataBuyer.value,
-    mobileNumber: "",
+    phoneNumber: "",
     bankAccountNumber: "",
     bankName: "",
-    nationalIdNumber: "",
+    idCardNumber: "",
   };
+  removeBackImage()
+    removeFrontImage();
 }
+
+watch(
+  [() => formDataSeller.value.password, () => formDataBuyer.value.password],
+  ([newSellerPassword, newBuyerPassword]) => {
+    checkPassword(newSellerPassword, "Seller");
+    checkPassword(newBuyerPassword, "Buyer");
+  }
+);
+
+watch(
+  [() => formDataSeller.value.email, () => formDataBuyer.value.email],
+  ([newSellerEmail, newBuyerEmail]) => {
+    checkEmail(newSellerEmail, "Seller");
+    checkEmail(newBuyerEmail, "Buyer");
+  }
+);
 
 watchEffect(() => {
   let isValid = true;
-
+  let validate = userType.value == "Seller" ? sellerValidate.value : buyerValidate.value
   let dataToCheck,
     imagesToSend = null;
   if (userType.value === "Seller") {
     dataToCheck = { ...formDataSeller.value, userType: "Seller" };
     imagesToSend = {
-      front: frontImage.value?.file,
-      back: backImage.value?.file,
+      front: frontImage.value?.file.src,
+      back: backImage.value?.file.src,
     };
+    for (const [key, value] of Object.entries(validate)) {
+      if (value.invalid) {
+        isValid = false;
+      }
+    }
   } else {
     dataToCheck = { ...formDataBuyer.value, userType: "Buyer" };
+    for (const [key, value] of Object.entries(validate)) {
+      if (value.invalid) {
+        isValid = false;
+      }
+    }
   }
 
   const hasImage = imagesToSend?.front && imagesToSend?.back;
@@ -223,30 +356,18 @@ watchEffect(() => {
     isValid = false;
   }
 
-  console.log(isValid);
-  console.log(emptyFields);
-  console.log(hasImage);
-  
-  
-  
   isCanNotSave.value = !isValid;
-
-  console.log(isCanNotSave.value);
-  
-  console.log(props.disableSaveBtn);
 });
-
-
 </script>
 
 <template>
-  <div class="relative w-full h-full min-h-screen flex">
+  <div class="relative w-full h-full min-h-screen flex justify-center">
     <div
-      class="absolute inset-0 w-1/2 min-h-screen h-full bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700"
+      class="absolute inset-0 w-1/2 min-h-screen h-full bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 hidden lg:block"
     ></div>
     <!-- Left Banner Section -->
     <div
-      class="w-1/2 h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 flex flex-col justify-center items-center text-white"
+      class="w-1/2 h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 hidden lg:flex lg:flex-col lg:justify-center lg:items-center text-white"
     >
       <!-- Main Content -->
       <div class="z-10 text-center px-12">
@@ -292,7 +413,7 @@ watchEffect(() => {
       </div>
     </div>
     <div
-      class="w-1/2 min-h-screen flex flex-col justify-center items-center gap-4 py-16"
+      class="w-full lg:w-1/2 min-h-screen flex flex-col justify-center items-center gap-4 py-16"
     >
       <h1 class="text-3xl mb-6 text-indigo-700 font-medium">Create account</h1>
       <div
@@ -335,12 +456,34 @@ watchEffect(() => {
 
           <div class="flex-col">
             <input
-              type="text"
+              :type="
+                field.label == 'password'
+                  ? 'password'
+                  : field.label == 'email'
+                  ? 'email'
+                  : 'text'
+              "
               :id="field.label"
-              class="input w-48 sm:w-64 md:w-80"
-              :class="'itbms-' + field.label"
-              v-model="formDataBuyer[field.model]"
+              class="input w-64 lg:w-80"
+              :class="[
+                'itbms-' + field.label,
+                {
+                  'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                    buyerValidate[field.model].invalid,
+                },
+              ]"
+              v-model.trim="formDataBuyer[field.model]"
             />
+            <div class="flex-col w-64 lg:w-80">
+              <div
+                class="text-red-500 mt-2 flex gap-2 text-sm"
+                v-if="buyerValidate[field.model].invalid"
+              >
+                <span class="font-extralight itbms-message">{{
+                  buyerValidate[field.model].msg
+                }}</span>
+              </div>
+            </div>
           </div>
         </div>
         <div
@@ -360,12 +503,34 @@ watchEffect(() => {
 
           <div class="flex-col">
             <input
-              type="text"
+              :type="
+                field.label == 'password'
+                  ? 'password'
+                  : field.label == 'email'
+                  ? 'email'
+                  : 'text'
+              "
               :id="field.label"
-              class="itbms-model input w-48 sm:w-64 md:w-80"
-              :class="'itbms-' + field.label"
-              v-model="formDataSeller[field.model]"
+              class="itbms-model input w-64 lg:w-80"
+              :class="[
+                'itbms-' + field.label,
+                {
+                  'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50':
+                    sellerValidate[field.model].invalid,
+                },
+              ]"
+              v-model.trim="formDataSeller[field.model]"
             />
+            <div class="flex-col w-64 lg:w-80">
+              <div
+                class="text-red-500 mt-2 flex gap-2 text-sm"
+                v-if="sellerValidate[field.model].invalid"
+              >
+                <span class="font-extralight itbms-message">{{
+                  sellerValidate[field.model].msg
+                }}</span>
+              </div>
+            </div>
           </div>
         </div>
         <div v-if="userType == 'Seller'">
@@ -377,12 +542,12 @@ watchEffect(() => {
           <p class="my-2 text-sm text-purple-900/70">Front</p>
           <div class="flex-col mb-4">
             <div
-              class="w-80 h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
+              class="w-64 h-44 lg:w-80 lg:h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
             >
               <!-- Image Preview or Placeholder -->
-              <div v-if="frontImage?.file" class="relative">
+              <div v-if="frontImage?.file.src" class="relative">
                 <img
-                  :src="frontImage?.file"
+                  :src="frontImage?.file.src"
                   alt="National ID Front"
                   class="w-full h-48 object-cover rounded-lg"
                 />
@@ -397,7 +562,7 @@ watchEffect(() => {
               <!-- Placeholder when no image -->
               <div
                 v-else
-                class="w-80 h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
+                class="w-64 h-44 lg:w-80 lg:h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
               >
                 <svg
                   class="w-12 h-12 mb-2"
@@ -413,7 +578,7 @@ watchEffect(() => {
                   ></path>
                 </svg>
                 <p class="text-sm">Click to upload front side</p>
-                <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+                <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 2MB</p>
               </div>
 
               <!-- Hidden file input -->
@@ -431,12 +596,12 @@ watchEffect(() => {
           <p class="my-2 text-sm text-purple-900/70">Back</p>
           <div class="flex-col">
             <div
-              class="w-80 h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
+              class="w-64 h-44 lg:w-80 lg:h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
             >
               <!-- Image Preview or Placeholder -->
-              <div v-if="backImage?.file" class="relative">
+              <div v-if="backImage?.file.src" class="relative">
                 <img
-                  :src="backImage?.file"
+                  :src="backImage?.file.src"
                   alt="National ID Back"
                   class="w-full h-48 object-cover rounded-lg"
                 />
@@ -451,7 +616,7 @@ watchEffect(() => {
               <!-- Placeholder when no image -->
               <div
                 v-else
-                class="w-80 h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
+                class="w-64 h-44 lg:w-80 lg:h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
               >
                 <svg
                   class="w-12 h-12 mb-2"
@@ -467,7 +632,7 @@ watchEffect(() => {
                   ></path>
                 </svg>
                 <p class="text-sm">Click to upload back side</p>
-                <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+                <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 2MB</p>
               </div>
 
               <!-- Hidden file input -->
@@ -482,13 +647,18 @@ watchEffect(() => {
           </div>
         </div>
       </div>
-      <div class="flex gap-3 mt-6 w-48 sm:w-64 md:w-80 justify-end">
+      <div class="flex gap-3 mt-6 w-64 lg:w-80 justify-end">
         <button
-          class="itbms-submit-button btn btn-primary"
+          class="itbms-submit-button btn btn-primary flex items-center justify-center gap-2"
+          :class="disableSaveBtn ? 'cursor-not-allowed' : ''"
           @click="handleSubmit"
           :disabled="isCanNotSave || disableSaveBtn"
         >
-          Submit
+          <svg v-if="disableSaveBtn" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+          <span>{{ disableSaveBtn ? 'Submitting...' : 'Submit' }}</span>
         </button>
         <button
           @click="$router.back()"

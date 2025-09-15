@@ -1,8 +1,8 @@
 const USER_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
-}/itb-mshop/v1/user`;
+}/itb-mshop/v2/users`;
 
-const createUser = async (userDetail, nationalIdPhoto = null,userType) => {
+const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
   try {
     const formData = new FormData();
 
@@ -11,14 +11,24 @@ const createUser = async (userDetail, nationalIdPhoto = null,userType) => {
     }
 
     if (nationalIdPhoto) {
-      for (const [key, value] of Object.entries(nationalIdPhoto)) {
-        if (value != null) {
-          formData.append(key == "front" ? "frontSide" : "backSide", value);
+      for (const [key, image] of Object.entries(nationalIdPhoto)) {
+        if (image) {
+          const ext = image.name.includes(".")
+            ? image.name.substring(image.name.lastIndexOf("."))
+            : "";
+
+          const baseName = image.name.replace(ext, "");
+          const fileName =
+            baseName + (key === "idCardImageFront" ? "_fs_" : "_bs_") + ext;
+
+          formData.append("images", image, fileName);
         }
       }
     }
 
-    const response = await fetch(`${USER_API_URL}`, {
+    formData.append("userType", userType);
+
+    const response = await fetch(`${USER_API_URL}/register`, {
       method: "POST",
       body: formData,
     });
@@ -37,7 +47,65 @@ const createUser = async (userDetail, nationalIdPhoto = null,userType) => {
   }
 };
 
+const login = async (email, password) => {
+  try {
+    if (!email || !password) {
+      throw new Error("Please enter your email and password!");
+    }
 
-export {
-  createUser
+    const response = await fetch(`${USER_API_URL}/authentications`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+      credentials: "include",
+    });
+
+    if (response.status === 200) {
+      return { success: true };
+    } else if (response.status === 401 || response.status === 403) {
+      const { message } = await response.json();
+      throw new Error(message);
+    } else {
+      throw new Error(
+        `Failed to log in. Server responded with status ${response.status}`
+      );
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
 };
+
+const getProfile = async () => {
+  try {
+    const response = await fetch(USER_API_URL, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (response.status === 403) {
+      return {
+        logined: false,
+      };
+    } else if (response.status != 200) {
+      throw new Error(
+        `Failed to get Profile. Server responded with status ${response.status}`
+      );
+    }
+    const data = await response.json();
+    return {
+      logined: true,
+      data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+export { createUser, login, getProfile };

@@ -7,6 +7,8 @@ import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
+import { useUserStore } from "@/stores/UserStore";
+import { getProfile } from "@/services/userService";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
 const STORAGE_KEYS = {
@@ -20,6 +22,7 @@ const STORAGE_KEYS = {
 const filterStore = useFilterStore();
 const saleItemStore = useSaleItemStore();
 const notiStore = useNotiStore();
+const userStore = useUserStore();
 
 const {
   getFilterList,
@@ -48,7 +51,6 @@ const {
 } = filterStore;
 
 const { getSaleItemsPage } = saleItemStore;
-
 const sortField = computed(() => filterStore.sortField);
 const sortDirection = computed(() => filterStore.sortDirection);
 const currentPage = computed(() => filterStore.currentPage);
@@ -70,7 +72,7 @@ const hasError = ref("");
 const showFilterDropdown = ref(false);
 const showCreatedModal = ref(false);
 const brandOptions = ref([]);
-const storageOptions = ref([32, 64, 128, 256, 512, 1024, 0]);
+const storageOptions = ref([32, 64, 128, 256, 512, 1024, -1]);
 const priceRangeOptions = ref([
   { label: "0 – 5,000", min: 0, max: 5000 },
   { label: "5,001 – 10,000", min: 5001, max: 10000 },
@@ -157,7 +159,7 @@ const applyFilter = async () => {
       size: pageSize.value,
       sortField: sortField.value,
       sortDirection: sortDirection.value,
-      keyword: searchKeyword.value,
+      searchKeyWord: searchKeyword.value,
     });
 
     saveToLocalStorage();
@@ -289,7 +291,7 @@ const initializeSaleItems = async (pageInfo) => {
       size: pageInfo?.size ?? 10,
       sortField: pageInfo?.sortField ?? null,
       sortDirection: pageInfo?.sortDirection ?? null,
-      keyword: searchKeyword.value
+      searchKeyWord: searchKeyword.value,
     });
 
     if (response.error) {
@@ -301,11 +303,21 @@ const initializeSaleItems = async (pageInfo) => {
 };
 
 const showSuccessModal = () => {
-  if (notiStore.createSuccess) {
+  if (
+    notiStore.createSuccess ||
+    notiStore.createUserSuccess ||
+    notiStore.loginUserSuccess
+  ) {
     showCreatedModal.value = true;
-    notiStore.createSuccess = false;
   }
 };
+
+function closeModal() {
+  showCreatedModal.value = false;
+  notiStore.createSuccess = false;
+  notiStore.createUserSuccess = false;
+  notiStore.loginUserSuccess = false;
+}
 
 onMounted(async () => {
   window.addEventListener("resize", updateWidth);
@@ -317,15 +329,22 @@ onMounted(async () => {
     await initializeBrands();
     await initializeSaleItems(pageInfo);
     showSuccessModal();
+
+    const userInfo = await getProfile();
+    if (userInfo.logined) {
+      userStore.setUserInfo(userInfo?.data);
+    }
+    
   } catch (error) {
     hasError.value = error.message;
   }
 });
 
-const clearSearchKeyword = () => {
+const clearSearchKeyword = async () => {
   searchInput.value = "";
   setSearchKeyword("");
   sessionStorage.setItem(STORAGE_KEYS.SEARCH_KEYWORD, JSON.stringify(""));
+  await applyFilter();
 };
 
 const windowWidth = ref(window.innerWidth);
@@ -498,7 +517,7 @@ const updateWidth = () => {
                 class="itbms-storage-size-item px-3 py-2 hover:bg-gray-100 cursor-pointer"
               >
                 {{
-                  typeof storage === "number" && storage != 0
+                  typeof storage === "number" && storage != -1
                     ? storage + " GB"
                     : "Not specified"
                 }}
@@ -658,7 +677,7 @@ const updateWidth = () => {
           class="itbms-storage-size-item badge badge-soft badge-primary px-3 py-1 flex items-center gap-1"
         >
           <span class="itbms-storage-size-filter">{{
-            storage === 0 ? "Not specified" : storage + " GB"
+            storage === -1 ? "Not specified" : storage + " GB"
           }}</span>
           <button
             class="itbms-storage-size-item-clear font-bold cursor-pointer"
@@ -704,12 +723,16 @@ const updateWidth = () => {
     <div class="modal-box text-center">
       <h3 class="font-bold text-success">Successfully!</h3>
       <p class="py-4 itbms-message">
-        The sale item has been successfully added.
+        {{
+          notiStore.createUserSuccess
+            ? "The user account has been successfully registered."
+            : notiStore.createSuccess
+            ? "The sale item has been successfully added."
+            : "The user account has been successfully logged in."
+        }}
       </p>
       <div class="itbms-button modal-action justify-center">
-        <button @click="showCreatedModal = false" class="btn btn-primary">
-          OK
-        </button>
+        <button @click="closeModal" class="btn btn-primary">OK</button>
       </div>
     </div>
   </div>
