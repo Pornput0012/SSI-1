@@ -1,17 +1,27 @@
 package ssi.backend.dtos;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 public class RegisterRequestDTO {
-    private Integer id;
+
+
+    @NotNull
     private String nickName;
+
+    @NotNull
     private String email;
+
+    @NotNull
     private String password;
+
+    @NotNull
     private String fullName;
 
+    @NotNull
     private String userType;
 
 
