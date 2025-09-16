@@ -1,30 +1,30 @@
 <script setup>
-import { useUserStore } from "@/stores/UserStore";
-import { computed, ref } from "vue";
+import { useUserStore } from '@/stores/UserStore'
+import { computed, ref } from 'vue'
 
-const openHamburger = ref(false);
+const openHamburger = ref(false)
 
 function setOpenHamburger() {
-  openHamburger.value = !openHamburger.value;
+  openHamburger.value = !openHamburger.value
 }
 
-const userStore = useUserStore();
-const nickName = computed(() => userStore.getNickName());
+const userStore = useUserStore()
+const nickName = computed(() => userStore.getNickName())
 
 const menu = [
   {
-    to: "home",
-    text: "Home",
+    to: 'home',
+    text: 'Home',
   },
   {
-    to: "sale-items",
-    text: "Sale Items",
+    to: 'sale-items',
+    text: 'Sale Items',
   },
   {
-    to: "brands",
-    text: "Manage Brand",
+    to: 'brands',
+    text: 'Manage Brand',
   },
-];
+]
 </script>
 
 <template>
@@ -101,24 +101,12 @@ const menu = [
         ITB MShop</RouterLink
       >
     </div> -->
-    <div class="">
-      <button class="btn btn-ghost btn-circle">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-      </button>
-      <button class="btn btn-ghost btn-circle">
+    <div class="dropdown dropdown-bottom dropdown-end">
+      <div
+        tabindex="0"
+        role="button"
+        class="btn btn-ghost btn-circle"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-5 w-5"
@@ -131,7 +119,14 @@ const menu = [
             clip-rule="evenodd"
           />
         </svg>
-      </button>
+      </div>
+      <ul
+        tabindex="0"
+        class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+      >
+        <RouterLink :to="{name: 'register'}"><li><a>Register</a></li></RouterLink>
+        <RouterLink :to="{name: 'signin'}"><li><a>Login</a></li></RouterLink>
+      </ul>
     </div>
   </div>
 
@@ -156,13 +151,13 @@ const menu = [
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Products</RouterLink
         >
-        <RouterLink
+        <!-- <RouterLink
           active-class="border-b-1"
           :to="{ name: 'signin' }"
           to="l"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Log in</RouterLink
-        >
+        > -->
       </div>
     </div>
   </div>
