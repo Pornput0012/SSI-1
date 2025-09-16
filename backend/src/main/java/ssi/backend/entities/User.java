@@ -51,12 +51,12 @@ public class User {
     private String status = "INACTIVE";
 
     @Size(max = 255)
-    @Column(name = "mobileNumber")
-    private String mobileNumber;
+    @Column(name = "phoneNumber ")
+    private String phoneNumber;
 
     @Size(max = 255)
-    @Column(name = "bankAccountNumber")
-    private String bankAccountNumber;
+    @Column(name = "bankAccount")
+    private String bankAccount;
 
     @Size(max = 255)
     @Column(name = "bankName")

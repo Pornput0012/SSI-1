@@ -3,11 +3,10 @@ import { ref, watch, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import MessageModal from "./MessageModal.vue";
 
-
 const emit = defineEmits(["onSubmit"]);
 const props = defineProps({
   disableSaveBtn: Boolean,
-  clearData:Boolean
+  clearData: Boolean,
 });
 
 const isCanNotSave = ref(true);
@@ -31,9 +30,9 @@ const formDataBuyer = ref({
 const formDataSeller = ref({
   ...formDataBuyer.value,
   phoneNumber: "",
-  bankAccountNumber: "",
+  bankAccount: "",
   bankName: "",
-  idCardNumber: "",
+  nationalIdNumber: "",
 });
 
 const buyerValidate = ref({
@@ -49,9 +48,9 @@ const sellerValidate = ref({
   password: { invalid: false, msg: "" },
   fullName: { invalid: false, msg: "" },
   phoneNumber: { invalid: false, msg: "" },
-  bankAccountNumber: { invalid: false, msg: "" },
+  bankAccount: { invalid: false, msg: "" },
   bankName: { invalid: false, msg: "" },
-  idCardNumber: { invalid: false, msg: "" },
+  nationalIdNumber: { invalid: false, msg: "" },
 });
 
 const formConstraints = {
@@ -102,7 +101,7 @@ const formConstraints = {
     {
       title: "Bank account number",
       label: "bank-account-number",
-      model: "bankAccountNumber",
+      model: "bankAccount",
       constraint: { type: "string", required: true },
     },
     {
@@ -114,13 +113,11 @@ const formConstraints = {
     {
       title: "National ID number",
       label: "card-no",
-      model: "idCardNumber",
+      model: "nationalIdNumber",
       constraint: { type: "string", required: true },
     },
   ],
 };
-
-const validateField = () => {};
 
 const checkPassword = (password, userType) => {
   const validateState = {
@@ -231,11 +228,21 @@ function uploadImage(event, side) {
   }
 }
 
+const frontUploadInput = ref(null);
+const backUploadInput = ref(null);
+
 function removeFrontImage() {
   frontImage.value = null;
+  if (frontUploadInput.value) {
+    frontUploadInput.value.value = "";
+  }
 }
+
 function removeBackImage() {
   backImage.value = null;
+  if (backUploadInput.value) {
+    backUploadInput.value.value = "";
+  }
 }
 
 const handleSubmit = () => {
@@ -253,8 +260,7 @@ const handleSubmit = () => {
   }
 
   if (props.clearData) {
-    clearData()
-    
+    clearData();
   }
 };
 
@@ -268,7 +274,7 @@ function clearData(role = null) {
       password: "",
       fullName: "",
     };
-    removeBackImage()
+    removeBackImage();
     removeFrontImage();
     return;
   }
@@ -277,9 +283,9 @@ function clearData(role = null) {
     formDataSeller.value = {
       ...formDataBuyer.value,
       phoneNumber: "",
-      bankAccountNumber: "",
+      bankAccount: "",
       bankName: "",
-      idCardNumber: "",
+      nationalIdNumber: "",
     };
     return;
   }
@@ -294,12 +300,12 @@ function clearData(role = null) {
   formDataSeller.value = {
     ...formDataBuyer.value,
     phoneNumber: "",
-    bankAccountNumber: "",
+    bankAccount: "",
     bankName: "",
-    idCardNumber: "",
+    nationalIdNumber: "",
   };
-  removeBackImage()
-    removeFrontImage();
+  removeBackImage();
+  removeFrontImage();
 }
 
 watch(
@@ -320,7 +326,8 @@ watch(
 
 watchEffect(() => {
   let isValid = true;
-  let validate = userType.value == "Seller" ? sellerValidate.value : buyerValidate.value
+  let validate =
+    userType.value == "Seller" ? sellerValidate.value : buyerValidate.value;
   let dataToCheck,
     imagesToSend = null;
   if (userType.value === "Seller") {
@@ -654,11 +661,28 @@ watchEffect(() => {
           @click="handleSubmit"
           :disabled="isCanNotSave || disableSaveBtn"
         >
-          <svg v-if="disableSaveBtn" class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          <svg
+            v-if="disableSaveBtn"
+            class="animate-spin h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+            ></path>
           </svg>
-          <span>{{ disableSaveBtn ? 'Submitting...' : 'Submit' }}</span>
+          <span>{{ disableSaveBtn ? "Submitting..." : "Submit" }}</span>
         </button>
         <button
           @click="$router.back()"

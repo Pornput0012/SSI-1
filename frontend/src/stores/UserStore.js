@@ -5,20 +5,29 @@ export const useUserStore = defineStore("user", () => {
   const userInfo = ref({});
 
   const getNickName = () => {
-    console.log(userInfo.value);
-    
-    return userInfo.value?.nickName
+    return userInfo.value?.nickName;
   };
   const getUserInfo = () => {
-    return userInfo.value
-  }
+    return userInfo.value;
+  };
+  const getUserType = () => {
+    return userInfo.value?.userType;
+  };
   const hasInfo = () => {
     return Object.keys(userInfo.value).length != 0;
-  }
-  const setUserInfo = (user) =>{
-    userInfo.value = user
-  }
-  return { getNickName, getUserInfo, hasInfo, setUserInfo };
+  };
+  const setUserInfo = (user) => {
+    userInfo.value = user;
+  };
+  const getUserId = () => userInfo.value.id;
+  return {
+    getNickName,
+    getUserInfo,
+    hasInfo,
+    setUserInfo,
+    getUserType,
+    getUserId,
+  };
 });
 
 if (import.meta.hot) {

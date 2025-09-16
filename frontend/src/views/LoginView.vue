@@ -1,11 +1,10 @@
 <script setup>
-import { onMounted, ref, watch, watchEffect } from "vue";
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import { login } from "@/services/userService";
+import { ref, watch, watchEffect } from "vue";
+import { getProfile, login } from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
 import MessageModal from "@/components/MessageModal.vue";
 import router from "@/router";
-
+import { useUserStore } from "@/stores/UserStore";
 
 const email = ref("");
 const password = ref("");
@@ -21,15 +20,13 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value;
 };
 
-
-
 const handleLogin = async () => {
   onSubmit.value = true;
   try {
     const response = await login(email.value, password.value);
-    onSubmit.value =false
-    disableSaveBtn.value = true
-    
+    onSubmit.value = false;
+    disableSaveBtn.value = true;
+
     if (response.success) {
       loginSuccess();
       console.log("Login success!");
@@ -96,10 +93,10 @@ const checkEmail = () => {
   validate.value.email.msg = ``;
 };
 
-const closeModal =()=> {
-  showModal.value = false
-  router.push()
-}
+const closeModal = () => {
+  showModal.value = false;
+  router.push();
+};
 
 watch(
   () => password.value,
@@ -124,14 +121,19 @@ watchEffect(() => {
     if (value.invalid) {
       disableSaveBtn.value = true;
       return;
-    } 
+    }
   }
 
-  disableSaveBtn.value = false
+  disableSaveBtn.value = false;
 });
+const userStore = useUserStore();
 
-const loginSuccess = () => {
+const loginSuccess = async () => {
   notiStore.loginUserSuccess = true;
+  const userInfo = await getProfile();
+  if (userInfo.logined) {
+    userStore.setUserInfo(userInfo?.data);
+  }
   router.push({ name: "sale-items" });
 };
 </script>

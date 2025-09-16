@@ -1,9 +1,12 @@
 package ssi.backend.services;
 
 import com.nimbusds.jose.JOSEException;
+import org.eclipse.angus.mail.imap.protocol.Item;
+import org.hibernate.annotations.NotFound;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.bouncycastle.crypto.params.Argon2Parameters;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,9 +16,7 @@ import ssi.backend.dtos.RegisterRequestDTO;
 import ssi.backend.dtos.UserProfileResponseDTO;
 import ssi.backend.dtos.UserResponseDTO;
 import ssi.backend.entities.User;
-import ssi.backend.exceptions.ConfilctResourceException;
-import ssi.backend.exceptions.ForbiddenException;
-import ssi.backend.exceptions.BadRequestException;
+import ssi.backend.exceptions.*;
 import ssi.backend.repositories.UserRepository;
 
 import java.text.ParseException;
@@ -63,8 +64,9 @@ public class UserService {
         if (user.getUserType() == null) {
             throw new BadRequestException("Role is required");
         }
-
+        System.out.println(user.getUserType());
         User creatingUser = modelMapper.map(user, User.class);
+        System.out.println(creatingUser.getId());
         creatingUser.setId(null);
         creatingUser.setPassword(passwordEncoder.encode(user.getPassword()));
 
@@ -127,7 +129,7 @@ public class UserService {
 
     public UserResponseDTO verifyEmail(String token) throws ParseException {
         JwtClaimDTO emailVerifyClaim = jwtService.extractUserClaims(token);
-        if (emailVerifyClaim.getRole() != null &&  !emailVerifyClaim.getRole().isEmpty()) {
+        if (emailVerifyClaim.getRole() != null && !emailVerifyClaim.getRole().isEmpty()) {
             User user = userRepository.findByIdAndEmail(emailVerifyClaim.getUserId(), emailVerifyClaim.getEmail());
 
             if (user == null) {
@@ -156,7 +158,7 @@ public class UserService {
         jwtService.validateAccessToken(token);
 
         JwtClaimDTO profileClaim = jwtService.extractUserClaims(token);
-        if (profileClaim.getRole()!= null &&  !profileClaim.getRole().isEmpty()) {
+        if (profileClaim.getRole() != null && !profileClaim.getRole().isEmpty()) {
             User user = userRepository.findByIdAndEmail(profileClaim.getUserId(), profileClaim.getEmail());
             if (user == null) {
                 throw new BadRequestException("Invalid email or User id");
@@ -168,5 +170,21 @@ public class UserService {
         }
 
         throw new BadRequestException("Invalid token");
+    }
+
+    public UserProfileResponseDTO getUserProfileById(Integer id, String token) throws ParseException, JOSEException {
+        jwtService.validateAccessToken(token);
+        JwtClaimDTO profileClaim = jwtService.extractUserClaims(token);
+
+        if (id == null || profileClaim.getUserId() == null || !id.equals(profileClaim.getUserId())) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        if(user.getStatus().equalsIgnoreCase("inactive")) {
+            throw new ConfilctResourceException("User is not active");
+        }
+
+        return modelMapper.map(user, UserProfileResponseDTO.class);
     }
 }
