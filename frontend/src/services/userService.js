@@ -108,4 +108,76 @@ const getProfile = async () => {
   }
 };
 
-export { createUser, login, getProfile };
+const getImageByFileName = async (fileName) => {
+  try {
+    if (!fileName) throw new Error("fileName is required.");
+    const response = await fetch(
+      `${import.meta.env.VITE_URL_API || "/ssi1"}/itb-mshop/users/${fileName}`,
+      {
+        mode: "cors",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP Error: ${response.status} - Failed to fetch image ${fileName}`
+      );
+    }
+
+    const data = await response.blob();
+    const url = URL.createObjectURL(data);
+
+    return url;
+  } catch (error) {
+    console.error(`Error fetching image ${fileName}:`, error);
+    return { error: error.message };
+  }
+};
+const getUserById = async (id) => {
+  try {
+    if (!id) throw new Error("User ID is required.");
+    const response = await fetch(`${USER_API_URL}/${id}`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const data = await response.json();
+
+    if (!data.id || !response.ok) {
+      throw new Error(`(${data.status || response.status}) ${data.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    return { error };
+  }
+};
+const logout = async () => {
+  try {
+    const response = await fetch(`${USER_API_URL}/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (response.ok) {
+      console.log("Success");
+      
+      return { success: true };
+    }
+    throw new Error("logout fail")
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+export {
+  createUser,
+  login,
+  getProfile,
+  getImageByFileName,
+  getUserById,
+  logout,
+};

@@ -330,10 +330,6 @@ onMounted(async () => {
     await initializeSaleItems(pageInfo);
     showSuccessModal();
 
-    const userInfo = await getProfile();
-    if (userInfo.logined) {
-      userStore.setUserInfo(userInfo?.data);
-    }
     
   } catch (error) {
     hasError.value = error.message;
