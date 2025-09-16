@@ -8,18 +8,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import ssi.backend.dtos.*;
-import ssi.backend.entities.Buyer;
-import ssi.backend.entities.Seller;
+import ssi.backend.entities.User;
 import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ForbiddenException;
 import ssi.backend.exceptions.UnauthorizedException;
-import ssi.backend.repositories.BuyerRepository;
-import ssi.backend.repositories.SellerRepository;
+import ssi.backend.repositories.UserRepository;
 import ssi.backend.services.JwtService;
 import ssi.backend.services.UserService;
 
 import java.text.ParseException;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @RestController
@@ -34,9 +31,7 @@ public class UserController {
     private static final long ACCESS_TOKEN_EXP = 30 * 60; // 30 นาที
     private static final long REFRESH_TOKEN_EXP = DEFAULT_EXPIRATION;
     @Autowired
-    private BuyerRepository buyerRepository;
-    @Autowired
-    private SellerRepository sellerRepository;
+    private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
@@ -78,46 +73,14 @@ public class UserController {
             throw new BadRequestException("Invalid email format");
         }
 
-        Buyer buyer = buyerRepository.findByEmail(email);
-        if (buyer != null) {
-            if (!"ACTIVE".equalsIgnoreCase(buyer.getStatus())) {
+        User user = userRepository.findByEmail(email);
+        if (user != null) {
+            if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
                 throw new ForbiddenException("You need activate your account before signing in.");
             }
-            if (passwordEncoder.matches(rawPassword, buyer.getPassword())) {
-                String accessToken = jwtService.generateAccessToken(buyer.getId(), buyer.getNickName(), buyer.getEmail(), "BUYER");
-                String refreshToken = jwtService.generateRefreshToken(buyer.getId(), buyer.getEmail(), "BUYER");
-
-                ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
-                        .httpOnly(true)
-                        .maxAge(REFRESH_TOKEN_EXP)
-                        .build();
-
-                ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
-                        .httpOnly(true)
-                        .maxAge(ACCESS_TOKEN_EXP)
-                        .build();
-
-                AccessAndRefreshTokenDTO dtoResponse = new AccessAndRefreshTokenDTO();
-                dtoResponse.setAccessToken(accessToken);
-                dtoResponse.setRefreshToken(refreshToken);
-
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                        .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
-                        .body(dtoResponse);
-            } else {
-                throw new UnauthorizedException("Email or Password is incorrect.");
-            }
-        }
-
-        Seller seller = sellerRepository.findByEmail(email);
-        if (seller != null) {
-            if (!"ACTIVE".equalsIgnoreCase(seller.getStatus())) {
-                throw new ForbiddenException("You need activate your account before signing in.");
-            }
-            if (passwordEncoder.matches(rawPassword, seller.getPassword())) {
-                String accessToken = jwtService.generateAccessToken(seller.getId(), seller.getNickName(), seller.getEmail(), "SELLER");
-                String refreshToken = jwtService.generateRefreshToken(seller.getId(), seller.getEmail(), "SELLER");
+            if (passwordEncoder.matches(rawPassword, user.getPassword())) {
+                String accessToken = jwtService.generateAccessToken(user.getId(), user.getNickname(), user.getEmail(), user.getUserType());
+                String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail(), user.getUserType());
 
                 ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
                         .httpOnly(true)
