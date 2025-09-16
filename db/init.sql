@@ -1,10 +1,6 @@
 
 drop database if exists  INT221;
 
--- require for production
-SET GLOBAL time_zone = 'Asia/Bangkok';
-SET time_zone = 'Asia/Bangkok';
-
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 create database if not exists INT221 CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 
@@ -55,8 +51,8 @@ CREATE TABLE users (
   status ENUM('ACTIVE','INACTIVE') DEFAULT 'INACTIVE',
   
   -- ฟิลด์เฉพาะของ seller
-  mobileNumber VARCHAR(255),
-  bankAccountNumber VARCHAR(255),
+  phoneNumber VARCHAR(255),
+  bankAccount VARCHAR(255),
   bankName VARCHAR(255),
   nationalIdNumber VARCHAR(255),
   nationalIdPhotoFront VARCHAR(255),
@@ -149,6 +145,12 @@ INSERT INTO products (product_id, brand_id, model, description, price, ramGb, sc
 (83, 10, 'Find X5 Lite', 'Previous gen lite', 14850, 8, 6.43, 128, 'Starry Black', 8),
 (84, 10, 'A77', 'Budget friendly', 8250, 6, 6.56, 128, 'Ocean Blue', 20),
 (85, 10, 'Reno6 Pro', 'Classic premium', 16500, 12, 6.55, 256, 'Arctic Blue', 7);
+
+INSERT INTO users VALUES (1,'BUYER','somchai','itbkk.somchai@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$oZOTlqBIjV9b28Ee9o5aow$U05TQCdL+mjHGw7Lv4mtpWyh6N2FGoVkwCEGWbjiG50','Somchai Jaidee','INACTIVE',NULL,NULL,NULL,NULL,NULL,NULL,'2025-09-16 13:16:16','2025-09-16 13:16:16');
+INSERT INTO users VALUES (3,'BUYER','Somkiat','itbkk.somkiat@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$StXVsNG8OI00rPlGRrc41w$bX3lcvWX/rUtCkazwE9dHafYT8wVsvZCGNljNJw4qmo','Somkiat Luckchart','INACTIVE',NULL,NULL,NULL,NULL,NULL,NULL,'2025-09-16 13:31:58','2025-09-16 13:31:58');
+INSERT INTO users VALUES (2,'SELLER','Somsuan','itbkk.somsuan@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$a3TaSfLQM3gJEIABGk5USQ$bsqL6Jsk3xpaC8UdP36Sj7aKV8NMgN0iOdD+nVWZahs','Somsuan Hundee','ACTIVE','0834567890','0371234567','Bankok Bank','1000111100222','1000111100222_front_fs_.png','1000111100222_back_bs_.png','2025-09-16 13:28:55','2025-09-16 13:28:55');
+INSERT INTO users VALUES (4,'SELLER','Somsuk','itbkk.somsuk@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$zE2OHe8k7/1bzF32LIP1VA$Xx/mKs/n7rf8zOjFerf0AhbBI/1NYIg2IpCY1AaOrHY','Somsuk Fundee','INACTIVE','0845678901','2371234567','Saim Commercial Bank','1000111100333','1000111100333_front_fs_.png','1000111100333_back_bs_.png','2025-09-16 13:41:59','2025-09-16 13:41:59');
+INSERT INTO users VALUES (6,'BUYER','Moomost','moomost123@gmail.com','$argon2id$v=19$m=131072,t=2,p=8$a8PUd8jOccuErX0zEFTh0A$gjbn8Q00Rn/ya5OXicoeCW2QQpdQ85lGuSBWO9OARzA','Moo Most123','ACTIVE',NULL,NULL,NULL,NULL,NULL,NULL,'2025-09-16 13:54:48','2025-09-16 13:54:57');
 
 
 
