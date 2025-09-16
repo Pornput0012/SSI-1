@@ -12,6 +12,7 @@ import RegisterView from "@/views/RegisterView.vue";
 import VerifyTokenView from "@/views/VerifyTokenView.vue";
 import LoginView from "@/views/LoginView.vue";
 import ProfileView from "@/views/ProfileView.vue";
+import EditProfileView from "@/views/EditProfileView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -85,7 +86,11 @@ const router = createRouter({
       path: "/profile",
       component: ProfileView,
       name: "profile",
-    },
+    },{
+      path : "/profile/edit",
+      component : EditProfileView,
+      name : "EditProfile"
+    }
   ],
 });
 

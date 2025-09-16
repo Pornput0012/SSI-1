@@ -41,7 +41,7 @@ watch(async () => {
           <h1 class="text-3xl font-bold text-base-content">โปรไฟล์</h1>
           <p class="text-base-content/70 mt-1">จัดการข้อมูลส่วนตัวของคุณ</p>
         </div>
-        <router-link to="/" class="btn btn-primary gap-2 min-w-fit">
+        <router-link :to="{name:'EditProfile'}" class="btn btn-primary gap-2 min-w-fit">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-4 w-4"
