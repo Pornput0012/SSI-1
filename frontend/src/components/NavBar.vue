@@ -106,7 +106,6 @@ const menu = [
         tabindex="0"
         role="button"
         class="btn btn-ghost btn-circle"
-        @click="isOpen = !isOpen"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
