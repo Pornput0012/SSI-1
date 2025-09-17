@@ -2,6 +2,10 @@ const USER_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v2/users`;
 
+const AUTH_API_URL = `${
+  import.meta.env.VITE_URL_API || "/ssi1"
+}/itb-mshop/v2/auth`;
+
 const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
   try {
     const formData = new FormData();
@@ -28,7 +32,7 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
 
     formData.append("userType", userType);
 
-    const response = await fetch(`${USER_API_URL}/register`, {
+    const response = await fetch(`${AUTH_API_URL}/register`, {
       method: "POST",
       body: formData,
     });
@@ -53,7 +57,7 @@ const login = async (email, password) => {
       throw new Error("Please enter your email and password!");
     }
 
-    const response = await fetch(`${USER_API_URL}/authentications`, {
+    const response = await fetch(`${AUTH_API_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -80,13 +84,35 @@ const login = async (email, password) => {
   }
 };
 
+const getAccessTokenFromRefreshToken = async () => {
+  try {
+    const response = await fetch(`${AUTH_API_URL}/refresh`, {
+      method: "GET",
+      credentials: "include",
+    });
+    const data = await response.json();
+
+    if (response.status != 200) {
+      throw new Error("get AccessToken not successful...");
+    }
+    return { ok: response.ok, accessToken: data.accessToken };
+  } catch (err) {
+    return { error: err };
+  }
+};
+
 const getProfile = async () => {
   try {
     const response = await fetch(USER_API_URL, {
       method: "GET",
       credentials: "include",
     });
+
     if (response.status === 403) {
+      const res = await getAccessTokenFromRefreshToken();
+      if (res.ok) {
+        return await getProfile();
+      }
       return {
         logined: false,
       };
@@ -154,17 +180,17 @@ const getUserById = async (id) => {
 };
 const logout = async () => {
   try {
-    const response = await fetch(`${USER_API_URL}/logout`, {
+    const response = await fetch(`${AUTH_API_URL}/logout`, {
       method: "POST",
       credentials: "include",
     });
 
     if (response.ok) {
       console.log("Success");
-      
+
       return { success: true };
     }
-    throw new Error("logout fail")
+    throw new Error("logout fail");
   } catch (error) {
     return {
       success: false,
