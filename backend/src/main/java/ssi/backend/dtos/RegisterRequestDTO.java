@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RegisterRequestDTO {
-
+    private Integer id = null;
 
     @NotNull
     private String nickName;
@@ -27,7 +27,7 @@ public class RegisterRequestDTO {
 
     // ฟิลด์ที่จำเป็นเฉพาะ Seller
     private String phoneNumber;
-    private String bankAccountNumber;
+    private String bankAccount;
     private String bankName;
-    private String idCardNumber;
+    private String nationalIdNumber;
 }

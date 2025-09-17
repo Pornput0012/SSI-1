@@ -10,7 +10,6 @@ const emit = defineEmits(["onSubmit"]);
 const { getBrands } = useBrandStore();
 const brands = computed(() => getBrands());
 const isSave = ref(true);
-const hasImageChanges = ref(false);
 
 const props = defineProps({
   saleItemDetail: {

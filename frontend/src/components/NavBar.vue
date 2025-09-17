@@ -1,15 +1,17 @@
 <script setup>
-import { useUserStore } from '@/stores/UserStore'
-import { computed, ref } from 'vue'
-
-const openHamburger = ref(false)
+import { getProfile, logout } from "@/services/userService";
+import { useUserStore } from "@/stores/UserStore";
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+const openHamburger = ref(false);
 
 function setOpenHamburger() {
   openHamburger.value = !openHamburger.value
 }
-
-const userStore = useUserStore()
-const nickName = computed(() => userStore.getNickName())
+const router = useRouter();
+const userStore = useUserStore();
+const nickName = computed(() => userStore.getNickName());
+console.log(userStore.getUserInfo());
 
 const menu = [
   {
@@ -24,7 +26,24 @@ const menu = [
     to: 'brands',
     text: 'Manage Brand',
   },
-]
+];
+
+const handleLogout = async () => {
+  const res = await logout();
+  if (res.success) {
+    userStore.setUserInfo(null);
+    router.push({ name: "home" });
+  } else {
+    alert("Logout Not Successful...");
+  }
+};
+
+onMounted(async () => {
+  const userInfo = await getProfile();
+  if (userInfo.logined) {
+    userStore.setUserInfo(userInfo?.data);
+  }
+});
 </script>
 
 <template>
@@ -39,20 +58,49 @@ const menu = [
           ITB MShop
         </RouterLink>
         <div class="flex items-center gap-2">
-          <RouterLink :to="{ name: 'register' }">
-            <button
-              class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
+          <div class="flex items-center gap-2" v-if="!nickName">
+            <router-link :to="{ name: 'register' }">
+              <button
+                class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
+              >
+                Register
+              </button>
+            </router-link>
+            <router-link
+              :to="{ name: 'signin' }"
+              class="btn btn-primary px-4 py-1"
+              >Login</router-link
             >
-              Register
-            </button>
-          </RouterLink>
-          <div class="border border-l-1 border-base-300"></div>
-          <router-link
-            :to="{ name: 'signin' }"
-            class="btn btn-primary px-4 py-1"
-            >Login</router-link
-          >
-          Hello, {{ nickName }}
+          </div>
+          <div v-if="nickName" class="flex items-center justify-center gap-4">
+            <p>Hello, {{ nickName }}</p>
+            <div class="dropdown dropdown-end">
+              <!-- Avatar button -->
+              <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+                <div class="w-10 rounded-full">
+                  <img
+                    src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+                    alt="User Avatar"
+                  />
+                </div>
+              </label>
+
+              <!-- Dropdown menu -->
+              <ul
+                tabindex="0"
+                class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 mt-2"
+              >
+                <li>
+                  <router-link :to="{ name: 'profile' }">Profile</router-link>
+                </li>
+                <li>
+                  <button @click="handleLogout" class="w-full text-left">
+                    Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
