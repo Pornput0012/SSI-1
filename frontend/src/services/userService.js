@@ -101,26 +101,25 @@ const getAccessTokenFromRefreshToken = async () => {
   }
 };
 
-const getProfile = async () => {
+const getProfile = async (retryCount = 0) => {
   try {
     const response = await fetch(USER_API_URL, {
       method: "GET",
       credentials: "include",
     });
 
-    if (response.status === 403) {
+    if (response.status === 403 && retryCount < 1) {
       const res = await getAccessTokenFromRefreshToken();
       if (res.ok) {
-        return await getProfile();
+        return await getProfile(retryCount + 1);
       }
-      return {
-        logined: false,
-      };
+      return { logined: false };
     } else if (response.status != 200) {
       throw new Error(
         `Failed to get Profile. Server responded with status ${response.status}`
       );
     }
+
     const data = await response.json();
     return {
       logined: true,
