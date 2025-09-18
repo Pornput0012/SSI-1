@@ -450,6 +450,7 @@ public class ProductService {
             Integer size,
             String sortField,
             String sortDirection) throws ParseException, JOSEException {
+
         // 1. Validate token
         jwtService.validateAccessToken(token);
         JwtClaimDTO claim = jwtService.extractUserClaims(token);
@@ -487,6 +488,21 @@ public class ProductService {
 
         // 4. ดึงสินค้าของ seller จาก DB
         Page<Product> products = productRepository.findAllBySellerId(sellerId, pageable);
+
+        // 5. แปลง Page<Product> → SaleItemPageDTO
+        SaleItemPageDTO dto = new SaleItemPageDTO();
+        dto.setContent(
+                products.getContent().stream()
+                        .map(p -> modelMapper.map(p, SaleItemResponseDTO.class))
+                        .toList());
+        dto.setFirst(products.isFirst());
+        dto.setLast(products.isLast());
+        dto.setTotalPages(products.getTotalPages());
+        dto.setTotalElements((int) products.getTotalElements());
+        dto.setSize(products.getSize());
+        dto.setNumber(products.getNumber());
+
+        return dto;
     }
 
 }
