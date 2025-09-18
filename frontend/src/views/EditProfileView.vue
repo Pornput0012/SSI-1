@@ -72,10 +72,6 @@ const handleSubmit = () => {
   if (userType.value === "SELLER") {
     emit("onSubmit", {
       userDetail: formDataSeller.value,
-      images: {
-        idCardImageFront: frontImage.value?.file.image,
-        idCardImageBack: backImage.value?.file.image,
-      },
       userType: "Seller",
     });
   } else {

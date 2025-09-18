@@ -172,5 +172,10 @@ public class UserController {
                 .build();
     }
 
+    @PutMapping("/v2/users/{id}")
+    public ResponseEntity<UserProfileResponseDTO> updateUserProfileById(@PathVariable Integer id,@CookieValue(name = "accessToken", required = false) String accessToken,@RequestBody UpdateUserRequestDto update) throws ParseException, JOSEException {
+        return ResponseEntity.ok(userService.updateUserProfile(id,accessToken,update));
+    }
+
 
 }
