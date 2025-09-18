@@ -492,15 +492,31 @@ public class ProductService {
         // 5. แปลง Page<Product> → SaleItemPageDTO
         SaleItemPageDTO dto = new SaleItemPageDTO();
         dto.setContent(
-                products.getContent().stream()
-                        .map(p -> modelMapper.map(p, SaleItemResponseDTO.class))
-                        .toList());
+                products.getContent().stream().map(p -> {
+                    SaleItemResponseDTO item = new SaleItemResponseDTO();
+                    item.setId(p.getId());
+                    item.setBrandName(p.getBrand().getName());
+                    item.setModel(p.getModel());
+                    item.setPrice(p.getPrice());
+                    item.setRamGb(p.getRamGb());
+                    item.setStorageGb(p.getStorageGb());
+                    item.setColor(p.getColor());
+
+                    SellerDTO sellerDto = new SellerDTO();
+                    sellerDto.setId(p.getSeller().getId());
+                    sellerDto.setUserName(p.getSeller().getNickname());
+                    item.setSeller(sellerDto);
+
+                    return item;
+                }).toList());
+
         dto.setFirst(products.isFirst());
         dto.setLast(products.isLast());
         dto.setTotalPages(products.getTotalPages());
         dto.setTotalElements((int) products.getTotalElements());
         dto.setSize(products.getSize());
         dto.setNumber(products.getNumber());
+        dto.setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
 
         return dto;
     }

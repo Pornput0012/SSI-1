@@ -23,6 +23,6 @@ public class SaleItemResponseDTO {
 
     private String color;
 
-    private List<SellerDTO> seller;
+    private SellerDTO seller;
     
 }
