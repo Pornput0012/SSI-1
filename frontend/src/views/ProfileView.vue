@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, watchEffect } from "vue";
 import { useUserStore } from "@/stores/UserStore";
 import { getImageByFileName, getUserById } from "@/services/userService";
+import { useNotiStore } from "@/stores/NotiStore";
 
 const USER_TYPE = {
   SELLER: "SELLER",
@@ -16,7 +17,7 @@ const backImageUrl = ref(null);
 const userId = computed(() => userStore.getUserInfo().id);
 const userType = computed(() => userStore.getUserInfo().userType);
 const userInfo = ref(null);
-watch(async () => {
+watchEffect(async () => {
   if (userId.value) {
     const user = await getUserById(userId.value);
     userInfo.value = user;
@@ -28,6 +29,30 @@ watch(async () => {
     }
   }
 });
+
+const formatNumber = (data) => {
+  if (!data) return "";
+
+  const visibleCount = 3;
+
+  const start = Math.max(0, data.length - (visibleCount + 1));
+  const maskedPart = "x".repeat(start);
+  const middlePart = data.slice(start, data.length - 1);
+
+  const lastDigit = "x";
+
+  return maskedPart + middlePart + lastDigit;
+};
+
+const notiStore = useNotiStore();
+const showUpdatedModal = computed(() => {
+  return notiStore.updateSuccess;
+});
+
+const closeModal = () => {
+  notiStore.updateSuccess = false;
+}
+
 </script>
 
 <template>
@@ -41,7 +66,7 @@ watch(async () => {
           <h1 class="text-3xl font-bold text-base-content">โปรไฟล์</h1>
           <p class="text-base-content/70 mt-1">จัดการข้อมูลส่วนตัวของคุณ</p>
         </div>
-        <router-link to="/" class="btn btn-primary gap-2 min-w-fit">
+        <router-link :to="{name:'EditProfile'}" class="btn btn-primary gap-2 min-w-fit">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-4 w-4"
@@ -151,7 +176,7 @@ watch(async () => {
                   >
                 </label>
                 <div class="p-3 bg-base-200 rounded-lg">
-                  {{ userInfo.phoneNumber }}
+                  {{ formatNumber(userInfo.phoneNumber) }}
                 </div>
               </div>
 
@@ -175,7 +200,7 @@ watch(async () => {
                   >
                 </label>
                 <div class="p-3 bg-base-200 rounded-lg font-mono">
-                  {{ userInfo.bankAccount }}
+                  {{ formatNumber(userInfo.bankAccount) }}
                 </div>
               </div>
 
@@ -187,7 +212,7 @@ watch(async () => {
                   >
                 </label>
                 <div class="p-3 bg-base-200 rounded-lg font-mono">
-                  {{ userInfo.nationalIdNumber }}
+                  {{formatNumber( userInfo.nationalIdNumber )}}
                 </div>
               </div>
             </div>
@@ -249,6 +274,17 @@ watch(async () => {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  <div v-if="showUpdatedModal" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3 class="font-bold text-success">Successfully!</h3>
+      <p class="py-4 itbms-message">
+        "The user account has been successfully updated." 
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button @click="closeModal" class="btn btn-primary">OK</button>
       </div>
     </div>
   </div>

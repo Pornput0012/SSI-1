@@ -11,10 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.configuration.HostProperties;
-import ssi.backend.dtos.JwtClaimDTO;
-import ssi.backend.dtos.RegisterRequestDTO;
-import ssi.backend.dtos.UserProfileResponseDTO;
-import ssi.backend.dtos.UserResponseDTO;
+import ssi.backend.dtos.*;
 import ssi.backend.entities.User;
 import ssi.backend.exceptions.*;
 import ssi.backend.repositories.UserRepository;
@@ -186,5 +183,21 @@ public class UserService {
         }
 
         return modelMapper.map(user, UserProfileResponseDTO.class);
+    }
+
+    public UserProfileResponseDTO updateUserProfile(Integer id,String token, UpdateUserRequestDto updateUser) throws ParseException, JOSEException {
+        jwtService.validateAccessToken(token);
+        JwtClaimDTO profileClaim = jwtService.extractUserClaims(token);
+
+        if (id == null || profileClaim.getUserId() == null || !id.equals(profileClaim.getUserId())) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
+
+        user.setFullname(updateUser.getFullName());
+        user.setNickname(updateUser.getNickName());
+
+        return modelMapper.map(userRepository.save(user), UserProfileResponseDTO.class);
     }
 }
