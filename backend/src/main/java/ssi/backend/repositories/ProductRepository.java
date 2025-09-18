@@ -48,4 +48,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
                     Integer priceUpper,
                     String searchKeyWord,
                     Pageable pageable);
+        
+                    Page<Product> findAllBySellerUserId(Integer sellerId, Pageable pageable);
 }
