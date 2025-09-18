@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, watchEffect } from "vue";
 import { useUserStore } from "@/stores/UserStore";
 import { getImageByFileName, getUserById } from "@/services/userService";
 
@@ -16,7 +16,7 @@ const backImageUrl = ref(null);
 const userId = computed(() => userStore.getUserInfo().id);
 const userType = computed(() => userStore.getUserInfo().userType);
 const userInfo = ref(null);
-watch(async () => {
+watchEffect(async () => {
   if (userId.value) {
     const user = await getUserById(userId.value);
     userInfo.value = user;
