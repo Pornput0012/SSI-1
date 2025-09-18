@@ -1,13 +1,22 @@
 <script setup>
 import { ref, computed, watch, onMounted, watchEffect } from "vue";
 import { useUserStore } from "@/stores/UserStore";
-import { getImageByFileName, getUserById } from "@/services/userService";
+import {
+  getImageByFileName,
+  getUserById,
+  updateUserById,
+} from "@/services/userService";
 import { useRouter } from "vue-router";
+import { useNotiStore } from "@/stores/NotiStore";
 
 const USER_TYPE = {
   SELLER: "SELLER",
   BUYER: "BUYER",
 };
+
+const errorTitle = ref("");
+const errorMessage = ref("");
+const showModal = ref(false);
 
 const userStore = useUserStore();
 const userId = computed(() => userStore.getUserInfo().id);
@@ -15,16 +24,20 @@ const userType = computed(() => userStore.getUserInfo().userType);
 
 const router = useRouter();
 
-const frontImageUrl = ref(null);
-const backImageUrl = ref(null);
 const userInfo = ref(userStore.getUserInfo());
 const originalFormData = ref(null);
 
-const formatPhoneNumber = (phone) => {
-  if (!phone) return "";
-  const maskedPart = "x".repeat(phone.length - 4);
-  const middlePart = phone.slice(phone.length - 4, phone.length - 1);
+const formatNumber = (data) => {
+  if (!data) return "";
+
+  const visibleCount = 3;
+
+  const start = Math.max(0, data.length - (visibleCount + 1));
+  const maskedPart = "x".repeat(start);
+  const middlePart = data.slice(start, data.length - 1);
+
   const lastDigit = "x";
+
   return maskedPart + middlePart + lastDigit;
 };
 
@@ -33,99 +46,57 @@ const formData = ref({
   fullName: userInfo.value?.fullName || "",
   email: userInfo.value?.email || "",
   password: userInfo.value?.password || "",
-  phoneNumber: formatPhoneNumber(userInfo.value?.phoneNumber),
-  bankAccount: userInfo.value?.bankAccount || "",
+  phoneNumber: formatNumber(userInfo.value?.phoneNumber),
+  bankAccount: formatNumber(userInfo.value?.bankAccount) || "",
   bankName: userInfo.value?.bankName || "",
-  nationalIdNumber: userInfo.value?.nationalIdNumber || "",
+  nationalIdNumber: formatNumber(userInfo.value?.nationalIdNumber) || "",
 });
 
 onMounted(() => {
   originalFormData.value = { ...formData.value };
 });
 
-const validate = ref({
-  nickName: { invalid: false, msg: "" },
-  fullName: { invalid: false, msg: "" },
-});
 
-const formConstraints = [
-  {
-    title: "Nickname",
-    label: "nickname",
-    model: "nickName",
-    constraint: { type: "string", required: true },
-  },
-  {
-    title: "Fullname",
-    label: "fullname",
-    model: "fullName",
-    constraint: {
-      type: "string",
-      required: true,
-      minLength: 4,
-      maxLength: 40,
-    },
-  },
-];
 
-const handleSubmit = () => {
-  if (userType.value === "SELLER") {
-    emit("onSubmit", {
-      userDetail: formDataSeller.value,
-      userType: "Seller",
-    });
-  } else {
-    emit("onSubmit", { userDetail: formDataBuyer.value, userType: "Buyer" });
-  }
+const notiStore = useNotiStore();
+const updateSuccess = () => {
+  console.log("call function");
 
-  // if (props.clearData) {
-  //   clearData();
-  // }
+  notiStore.updateSuccess = true;
+  console.log(notiStore.updateSuccess);
+  router.push({ name: "profile" });
 };
 
-// function clearData(role = null) {
-//   const onToggle = role !== null;
+const handleSubmit = async () => {
+  try {
+    isSaving.value = true;
+    if (!userId.value || !formData.value) {
+      throw new Error("Invalid ID or form data");
+    }
 
-//   if (onToggle && role === "Seller") {
-//     formDataBuyer.value = {
-//       nickName: "",
-//       email: "",
-//       password: "",
-//       fullName: "",
-//     };
-//     removeBackImage();
-//     removeFrontImage();
-//     return;
-//   }
+    const response = await updateUserById(userId.value, {
+      nickName: formData.value.nickName,
+      fullName: formData.value.fullName,
+    });
 
-//   if (onToggle && role === "Buyer") {
-//     formDataSeller.value = {
-//       ...formDataBuyer.value,
-//       phoneNumber: "",
-//       bankAccount: "",
-//       bankName: "",
-//       nationalIdNumber: "",
-//     };
-//     return;
-//   }
+    console.log(response);
+    
+    if (!response.error) {
+      isSaving.value = false;
+      userStore.setUserInfo(response);
+      updateSuccess();
+    } else {
+      isSaving.value = false;
+      throw new Error("The requested user id does not exist.");
+    }
+  } catch (error) {
+    errorTitle.value = "Failed to update user";
+    errorMessage.value = error.message;
+    showModal.value = true;
+  }
+};
 
-//   formDataBuyer.value = {
-//     nickName: "",
-//     email: "",
-//     password: "",
-//     fullName: "",
-//   };
 
-//   formDataSeller.value = {
-//     ...formDataBuyer.value,
-//     phoneNumber: "",
-//     bankAccount: "",
-//     bankName: "",
-//     nationalIdNumber: "",
-//   };
-//   removeBackImage();
-//   removeFrontImage();
-// }
 
 const isSaving = ref(false);
 const enableSaveBtn = ref(false);
@@ -161,13 +132,7 @@ watchEffect(() => {
   }
 
   enableSaveBtn.value = isValid && hasChanges;
-  console.log("enable");
-  console.log(enableSaveBtn.value);
-  console.log("valid");
-  console.log(isValid);
-  console.log("hasChange");
 
-  console.log(hasChanges);
 });
 </script>
 
@@ -350,15 +315,36 @@ watchEffect(() => {
 
           <!-- Form Actions (Bottom) -->
           <div class="mt-8 pt-6 border-t border-base-300">
-            <div class="flex  gap-3 justify-end">
+            <div class="flex gap-3 justify-end">
               <button @click="cancelEdit" :disabled="isSaving" class="btn w-30">
                 cancel
               </button>
               <button
-                @click="saveChanges"
+                @click="handleSubmit"
                 :disabled="!enableSaveBtn || isSaving"
-                :class="['btn btn-primary w-30 ', { loading: isSaving }]"
+                :class="['btn btn-primary w-30',{isSaving : 'cursor-not-allowed'}]"
               >
+                <svg
+                  v-if="isSaving"
+                  class="animate-spin h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  ></circle>
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
                 {{ isSaving ? "saving..." : "save" }}
               </button>
             </div>

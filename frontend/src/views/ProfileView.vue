@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted, watchEffect } from "vue";
 import { useUserStore } from "@/stores/UserStore";
 import { getImageByFileName, getUserById } from "@/services/userService";
+import { useNotiStore } from "@/stores/NotiStore";
 
 const USER_TYPE = {
   SELLER: "SELLER",
@@ -28,6 +29,29 @@ watchEffect(async () => {
     }
   }
 });
+
+const formatNumber = (data) => {
+  if (!data) return "";
+
+  const visibleCount = 3;
+
+  const start = Math.max(0, data.length - (visibleCount + 1));
+  const maskedPart = "x".repeat(start);
+  const middlePart = data.slice(start, data.length - 1);
+
+  const lastDigit = "x";
+
+  return maskedPart + middlePart + lastDigit;
+};
+
+const notiStore = useNotiStore();
+const showUpdatedModal = computed(() => {
+  return notiStore.updateSuccess;
+});
+
+const closeModal = () => {
+  notiStore.updateSuccess = false;
+}
 </script>
 
 <template>
@@ -151,7 +175,7 @@ watchEffect(async () => {
                   >
                 </label>
                 <div class="p-3 bg-base-200 rounded-lg">
-                  {{ userInfo.phoneNumber }}
+                  {{ formatNumber(userInfo.phoneNumber) }}
                 </div>
               </div>
 
@@ -175,7 +199,7 @@ watchEffect(async () => {
                   >
                 </label>
                 <div class="p-3 bg-base-200 rounded-lg font-mono">
-                  {{ userInfo.bankAccount }}
+                  {{ formatNumber(userInfo.bankAccount) }}
                 </div>
               </div>
 
@@ -187,7 +211,7 @@ watchEffect(async () => {
                   >
                 </label>
                 <div class="p-3 bg-base-200 rounded-lg font-mono">
-                  {{ userInfo.nationalIdNumber }}
+                  {{formatNumber( userInfo.nationalIdNumber )}}
                 </div>
               </div>
             </div>
@@ -249,6 +273,18 @@ watchEffect(async () => {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  
+  <div v-if="showUpdatedModal" class="modal modal-open">
+    <div class="modal-box text-center">
+      <h3 class="font-bold text-success">Successfully!</h3>
+      <p class="py-4 itbms-message">
+        "The user account has been successfully updated." 
+      </p>
+      <div class="itbms-button modal-action justify-center">
+        <button @click="closeModal" class="btn btn-primary">OK</button>
       </div>
     </div>
   </div>

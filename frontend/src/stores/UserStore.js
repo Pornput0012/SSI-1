@@ -19,6 +19,7 @@ export const useUserStore = defineStore("user", () => {
   const setUserInfo = (user) => {
     userInfo.value = user;
   };
+
   const getUserId = () => userInfo.value.id;
   return {
     getNickName,

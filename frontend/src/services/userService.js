@@ -161,15 +161,39 @@ const logout = async () => {
 
     if (response.ok) {
       console.log("Success");
-      
+
       return { success: true };
     }
-    throw new Error("logout fail")
+    throw new Error("logout fail");
   } catch (error) {
     return {
       success: false,
       error: error.message,
     };
+  }
+};
+
+const updateUserById = async (id, updateUser) => {
+  try {
+    if (!id) throw new Error("User ID is required.");
+    const response = await fetch(`${USER_API_URL}/${id}`, {
+      method: "PUT",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updateUser),
+    });
+
+    const data = await response.json();
+
+    if (!data.id || !response.ok) {
+      throw new Error(`(${data.status || response.status}) ${data.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    return { error };
   }
 };
 
@@ -180,4 +204,5 @@ export {
   getImageByFileName,
   getUserById,
   logout,
+  updateUserById
 };
