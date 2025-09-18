@@ -450,7 +450,7 @@ public class ProductService {
             Integer size,
             String sortField,
             String sortDirection) throws ParseException, JOSEException {
-        // 1. validate token
+        // 1. Validate token
         jwtService.validateAccessToken(token);
         JwtClaimDTO claim = jwtService.extractUserClaims(token);
 
@@ -458,7 +458,7 @@ public class ProductService {
             throw new UnauthorizedException("Request seller id not matched with id in access token.");
         }
 
-        // 2. check user exists and is active
+        // 2. Check user exists and is active
         User user = userRepository.findById(sellerId).orElseThrow(() -> new ItemNotFoundException("Seller not found"));
         if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
             throw new ConfilctResourceException("User is not active");
@@ -466,6 +466,27 @@ public class ProductService {
         if (!"SELLER".equalsIgnoreCase(user.getUserType())) {
             throw new ForbiddenException("User is not a seller");
         }
+
+        // 3. Sorting
+        boolean hasSortField = sortField != null && !sortField.isBlank();
+        boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
+
+        Sort sort;
+        if (hasSortField) {
+            sort = sortDesc
+                    ? Sort.by(Sort.Order.desc(sortField))
+                    : Sort.by(Sort.Order.asc(sortField));
+            sort = sort.and(Sort.by(Sort.Order.asc("id")));
+        } else {
+            sort = sortDesc
+                    ? Sort.by(Sort.Order.desc("brand.createdOn")).and(Sort.by(Sort.Order.desc("id")))
+                    : Sort.by(Sort.Order.asc("brand.createdOn")).and(Sort.by(Sort.Order.asc("id")));
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 4. ดึงสินค้าของ seller จาก DB
+        Page<Product> products = productRepository.findAllBySellerId(sellerId, pageable);
     }
 
 }
