@@ -16,7 +16,7 @@ import ssi.backend.entities.User;
 import ssi.backend.services.UserService;
 
 @RestController
-@RequestMapping("/itb-mshop/v2/users")
+@RequestMapping("/itb-mshop/v2/auth")
 @CrossOrigin(origins = "${app.cors.allowedOrigins}")
 public class RegisterController {
 

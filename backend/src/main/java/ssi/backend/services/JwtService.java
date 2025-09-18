@@ -135,7 +135,7 @@ public class JwtService {
 
     public void validateRefreshToken(String token) throws JOSEException, ParseException {
         if (token == null || token.isBlank()) {
-            throw new BadRequestException("Refresh token is required");
+            throw new BadRequestException("No refresh token");
         }
         SignedJWT signedJWT = SignedJWT.parse(token);
         JWSVerifier verifier = new MACVerifier(jwtProperties.getSecretRefresh().getBytes(StandardCharsets.UTF_8));
@@ -146,7 +146,7 @@ public class JwtService {
 
         Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
         if (expirationTime == null || new Date().after(expirationTime)) {
-            throw new BadRequestException("Refresh token expired");
+            throw new BadRequestException("token expired");
         }
     }
 
@@ -169,14 +169,15 @@ public class JwtService {
     }
 
     // ================== GET NEW ACCESS TOKEN FROM REFRESH TOKEN ==================
-    public String getAccessTokenFromRefreshToken(String refreshToken, String nickname)
+    public String getAccessTokenFromRefreshToken(String refreshToken)
             throws ParseException, JOSEException {
         validateRefreshToken(refreshToken);
 
         SignedJWT signedJWT = SignedJWT.parse(refreshToken);
         Integer userId = ((Long) signedJWT.getJWTClaimsSet().getClaim("id")).intValue();
-        String email = signedJWT.getJWTClaimsSet().getSubject();
+        String email = signedJWT.getJWTClaimsSet().getClaim("email").toString();
         String role = signedJWT.getJWTClaimsSet().getClaim("role").toString();
+        String nickname = signedJWT.getJWTClaimsSet().getClaim("nickname").toString();
 
         return generateAccessToken(userId, nickname, email, role);
     }

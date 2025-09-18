@@ -200,5 +200,4 @@ public class UserService {
 
         return modelMapper.map(userRepository.save(user), UserProfileResponseDTO.class);
     }
-
 }

@@ -46,7 +46,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping("/v2/users/verify-token")
+    @PostMapping("/v2/auth/verify-token")
     public ResponseEntity<String> verifyToken(@RequestParam String jwtToken) throws ParseException, JOSEException {
         if (jwtToken == null || jwtToken.isEmpty()) {
             return ResponseEntity.badRequest().body("Token is missing.");
@@ -56,7 +56,7 @@ public class UserController {
         return ResponseEntity.ok("Successfully verified");
     }
 
-    @PostMapping("/v2/users/verify-email")
+    @PostMapping("/v2/auth/verify-email")
     public ResponseEntity<UserResponseDTO> verifyEmail(@RequestParam String jwtToken)
             throws ParseException, JOSEException {
         if (jwtToken == null || jwtToken.isEmpty()) {
@@ -70,8 +70,8 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/v2/users/authentications")
-    public ResponseEntity<AccessAndRefreshTokenDTO> authenticateUser(@RequestBody LoginRequestDTO dto) throws JOSEException {
+    @PostMapping("/v2/auth/login")
+    public ResponseEntity<AccessTokenDTO> authenticateUser(@RequestBody LoginRequestDTO dto) throws JOSEException {
         String email = dto.getEmail();
         String rawPassword = dto.getPassword();
 
@@ -100,9 +100,8 @@ public class UserController {
                         .path("/")
                         .build();
 
-                AccessAndRefreshTokenDTO dtoResponse = new AccessAndRefreshTokenDTO();
+                AccessTokenDTO dtoResponse = new AccessTokenDTO();
                 dtoResponse.setAccessToken(accessToken);
-                dtoResponse.setRefreshToken(refreshToken);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString(), refreshTokenCookie.toString())
@@ -114,6 +113,48 @@ public class UserController {
 
         throw new UnauthorizedException("Email or Password is incorrect.");
     }
+
+
+    @PostMapping("/v2/auth/refresh")
+    public ResponseEntity<AccessTokenDTO> getAccessTokenFromRefreshToken(@CookieValue(name = "refreshToken", required = false) String refreshToken) throws JOSEException, ParseException {
+        jwtService.validateRefreshToken(refreshToken);
+
+        String accessToken = jwtService.getAccessTokenFromRefreshToken(refreshToken);
+        AccessTokenDTO dtoResponse = new AccessTokenDTO();
+        dtoResponse.setAccessToken(accessToken);
+
+        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
+                .httpOnly(true)
+                .maxAge(ACCESS_TOKEN_EXP)
+                .path("/")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .body(dtoResponse);
+    }
+
+
+    @PostMapping("/v2/auth/logout")
+    public ResponseEntity<Object> logoutUser() {
+        ResponseCookie deleteAccessToken = ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        ResponseCookie deleteRefreshToken = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        return ResponseEntity
+                .noContent()
+                .header(HttpHeaders.SET_COOKIE, deleteAccessToken.toString(), deleteRefreshToken.toString())
+                .build();
+    }
+
 
     @GetMapping("/v2/users")
     public ResponseEntity<UserProfileResponseDTO> getUserProfile(
@@ -176,6 +217,5 @@ public class UserController {
     public ResponseEntity<UserProfileResponseDTO> updateUserProfileById(@PathVariable Integer id,@CookieValue(name = "accessToken", required = false) String accessToken,@RequestBody UpdateUserRequestDto update) throws ParseException, JOSEException {
         return ResponseEntity.ok(userService.updateUserProfile(id,accessToken,update));
     }
-
 
 }

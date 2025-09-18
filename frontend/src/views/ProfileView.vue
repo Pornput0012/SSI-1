@@ -52,6 +52,7 @@ const showUpdatedModal = computed(() => {
 const closeModal = () => {
   notiStore.updateSuccess = false;
 }
+
 </script>
 
 <template>
@@ -276,7 +277,6 @@ const closeModal = () => {
       </div>
     </div>
   </div>
-  
   <div v-if="showUpdatedModal" class="modal modal-open">
     <div class="modal-box text-center">
       <h3 class="font-bold text-success">Successfully!</h3>

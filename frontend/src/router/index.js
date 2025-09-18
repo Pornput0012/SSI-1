@@ -86,11 +86,12 @@ const router = createRouter({
       path: "/profile",
       component: ProfileView,
       name: "profile",
-    },{
+    },
+    {
       path : "/profile/edit",
       component : EditProfileView,
       name : "EditProfile"
-    }
+    },
   ],
 });
 
