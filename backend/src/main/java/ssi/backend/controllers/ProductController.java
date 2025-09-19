@@ -141,7 +141,7 @@ public class ProductController {
             @RequestParam(required = false, defaultValue = "asc") String sortDirection)
             throws ParseException, JOSEException {
                 if (token == null) {
-                    throw new UnauthorizedException("Missing authentication token");
+                    throw new UnauthorizedException("Missing or Invalid authentication token");
                 }
         SaleItemPageDTO saleItemPageDto = productService.getSaleItemBySeller(sellerId, token, page, size, sortField,
                 sortDirection);
