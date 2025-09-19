@@ -455,14 +455,15 @@ public class ProductService {
         jwtService.validateAccessToken(token);
         JwtClaimDTO claim = jwtService.extractUserClaims(token);
 
+        User user = userRepository.findById(sellerId).orElseThrow(() -> new UnauthorizedException("Seller not found"));
+
         if (claim.getUserId() == null || !claim.getUserId().equals(sellerId)) {
             throw new UnauthorizedException("Request seller id not matched with id in access token.");
         }
 
         // 2. Check user exists and is active
-        User user = userRepository.findById(sellerId).orElseThrow(() -> new ItemNotFoundException("Seller not found"));
         if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
-            throw new ConfilctResourceException("User is not active");
+            throw new ForbiddenException("User is not active");
         }
         if (!"SELLER".equalsIgnoreCase(user.getUserType())) {
             throw new ForbiddenException("User is not a seller");
