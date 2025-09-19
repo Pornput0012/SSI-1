@@ -493,14 +493,9 @@ public class ProductService {
         SaleItemPageDTO dto = new SaleItemPageDTO();
         dto.setContent(
                 products.getContent().stream().map(p -> {
-                    SaleItemResponseDTO item = new SaleItemResponseDTO();
-                    item.setId(p.getId());
+                    SaleItemResponseDTO item = modelMapper.map(p, SaleItemResponseDTO.class);
+                    
                     item.setBrandName(p.getBrand().getName());
-                    item.setModel(p.getModel());
-                    item.setPrice(p.getPrice());
-                    item.setRamGb(p.getRamGb());
-                    item.setStorageGb(p.getStorageGb());
-                    item.setColor(p.getColor());
 
                     SellerDTO sellerDto = new SellerDTO();
                     sellerDto.setId(p.getSeller().getId());

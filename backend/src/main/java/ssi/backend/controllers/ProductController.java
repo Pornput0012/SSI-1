@@ -9,12 +9,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.nimbusds.jose.JOSEException;
+
 import ssi.backend.dtos.*;
 import ssi.backend.services.FileService;
 import ssi.backend.services.ProductService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.ParseException;
 import java.util.List;
 
 @RestController
@@ -60,7 +64,7 @@ public class ProductController {
 
     @PutMapping("/v1/sale-items/{id}")
     public ResponseEntity<ProductItemResponseDTO> updateProduct(@PathVariable Integer id,
-                                                                @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
+            @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
         return ResponseEntity.ok(productService.updateProduct(id, productItemRequestDTO));
     }
 
@@ -69,7 +73,8 @@ public class ProductController {
             @PathVariable Integer id,
             @Valid @ModelAttribute ProductItemRequestDtoV2 product,
             @RequestParam(required = false) List<MultipartFile> newImages) {
-        return ResponseEntity.ok(productService.updateProductV2(id, product, product.getRemoveFileNames(), product.getOrderImages(), newImages));
+        return ResponseEntity.ok(productService.updateProductV2(id, product, product.getRemoveFileNames(),
+                product.getOrderImages(), newImages));
     }
 
     @PutMapping("/v2/sale-items/{id}/images")
@@ -77,9 +82,9 @@ public class ProductController {
             @PathVariable Integer id,
             @Valid @ModelAttribute ProductRequestImageDTO productImageInfo,
             @RequestParam(required = false) List<MultipartFile> newImages) {
-        return ResponseEntity.ok(productService.updateProductV2(id, productImageInfo.getRemoveFileNames(), productImageInfo.getOrderImages(), newImages));
+        return ResponseEntity.ok(productService.updateProductV2(id, productImageInfo.getRemoveFileNames(),
+                productImageInfo.getOrderImages(), newImages));
     }
-
 
     @DeleteMapping("/v1/sale-items/{id}")
     public ResponseEntity<Void> deleteProductById(@PathVariable Integer id) {
@@ -123,6 +128,20 @@ public class ProductController {
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "inline; filename=\"" + resource.getFilename() + "\"") // inline = แสดงใน browser
                 .body(resource);
+    }
+
+    @GetMapping("/v2/sellers/{id}/sale-items")
+    public ResponseEntity<SaleItemPageDTO> getSaleItemsBySeller(
+            @PathVariable("id") Integer sellerId,
+            @RequestParam int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false, defaultValue = "asc") String sortDirection)
+            throws ParseException, JOSEException {
+        SaleItemPageDTO saleItemPageDto = productService.getSaleItemBySeller(sellerId, token, page, size, sortField,
+                sortDirection);
+        return ResponseEntity.ok(saleItemPageDto);
+
     }
 
 }
