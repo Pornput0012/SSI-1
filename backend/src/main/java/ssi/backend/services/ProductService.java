@@ -11,16 +11,25 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.nimbusds.jose.JOSEException;
+
 import ssi.backend.dtos.*;
 import ssi.backend.entities.Brand;
 import ssi.backend.entities.Product;
 import ssi.backend.entities.SaleItemImage;
+import ssi.backend.entities.User;
 import ssi.backend.exceptions.BadRequestException;
+import ssi.backend.exceptions.ConfilctResourceException;
+import ssi.backend.exceptions.ForbiddenException;
 import ssi.backend.exceptions.ItemNotFoundException;
+import ssi.backend.exceptions.UnauthorizedException;
 import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.ProductRepository;
+import ssi.backend.repositories.UserRepository;
 import ssi.backend.utils.ListMapper;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +52,10 @@ public class ProductService {
     private FileService fileService;
     @Autowired
     private SaleItemImageService saleItemImageService;
+    @Autowired
+    private JwtService jwtService;
+    @Autowired
+    private UserRepository userRepository;
 
     public List<ProductItemDTO> getAllProducts() {
         return listMapper.mapList(productRepository.findAll(Sort.by(Sort.Order.asc("createdOn"), Sort.Order.asc("id"))),
@@ -103,7 +116,8 @@ public class ProductService {
                         combinedList.size());
                 productPage = modelMapper.map(combinedPage, ProductPageDtoV2.class);
                 productPage
-                        .setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class, modelMapper));
+                        .setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class,
+                                modelMapper));
                 productPage.setSort(
                         (sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
                 return productPage;
@@ -118,7 +132,8 @@ public class ProductService {
                         pageable);
                 productPage = modelMapper.map(pageResult, ProductPageDtoV2.class);
                 productPage
-                        .setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class, modelMapper));
+                        .setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class,
+                                modelMapper));
                 productPage.setSort(
                         (sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
                 return productPage;
@@ -132,7 +147,8 @@ public class ProductService {
                         pageable);
                 productPage = modelMapper.map(pageResult, ProductPageDtoV2.class);
                 productPage
-                        .setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class, modelMapper));
+                        .setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class,
+                                modelMapper));
                 productPage.setSort(
                         (sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
                 return productPage;
@@ -145,7 +161,8 @@ public class ProductService {
                     searchKeyWord,
                     pageable);
             productPage = modelMapper.map(pageResult, ProductPageDtoV2.class);
-            productPage.setContent(listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class, modelMapper));
+            productPage.setContent(
+                    listMapper.mapList(productPage.getContent(), ProductItemResponseDtoV2.class, modelMapper));
             productPage.getContent().forEach(dto -> {
                 if (dto.getSaleItemImages() != null && !dto.getSaleItemImages().isEmpty()) {
                     dto.setSaleItemImages(List.of(dto.getSaleItemImages().get(0)));
@@ -424,6 +441,79 @@ public class ProductService {
         entityManager.refresh(updatedProduct);
 
         return modelMapper.map(updatedProduct, ProductItemRequestDtoV2.class);
+    }
+
+    public SaleItemPageDTO getSaleItemBySeller(
+            Integer sellerId,
+            String token,
+            Integer page,
+            Integer size,
+            String sortField,
+            String sortDirection) throws ParseException, JOSEException {
+
+        // 1. Validate token
+        jwtService.validateAccessToken(token);
+        JwtClaimDTO claim = jwtService.extractUserClaims(token);
+
+        if (claim.getUserId() == null || !claim.getUserId().equals(sellerId)) {
+            throw new UnauthorizedException("Request seller id not matched with id in access token.");
+        }
+
+        // 2. Check user exists and is active
+        User user = userRepository.findById(sellerId).orElseThrow(() -> new ItemNotFoundException("Seller not found"));
+        if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+            throw new ConfilctResourceException("User is not active");
+        }
+        if (!"SELLER".equalsIgnoreCase(user.getUserType())) {
+            throw new ForbiddenException("User is not a seller");
+        }
+
+        // 3. Sorting
+        boolean hasSortField = sortField != null && !sortField.isBlank();
+        boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
+
+        Sort sort;
+        if (hasSortField) {
+            sort = sortDesc
+                    ? Sort.by(Sort.Order.desc(sortField))
+                    : Sort.by(Sort.Order.asc(sortField));
+            sort = sort.and(Sort.by(Sort.Order.asc("id")));
+        } else {
+            sort = sortDesc
+                    ? Sort.by(Sort.Order.desc("brand.createdOn")).and(Sort.by(Sort.Order.desc("id")))
+                    : Sort.by(Sort.Order.asc("brand.createdOn")).and(Sort.by(Sort.Order.asc("id")));
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 4. ดึงสินค้าของ seller จาก DB
+        Page<Product> products = productRepository.findAllBySellerId(sellerId, pageable);
+
+        // 5. แปลง Page<Product> → SaleItemPageDTO
+        SaleItemPageDTO dto = new SaleItemPageDTO();
+        dto.setContent(
+                products.getContent().stream().map(p -> {
+                    SaleItemResponseDTO item = modelMapper.map(p, SaleItemResponseDTO.class);
+                    
+                    item.setBrandName(p.getBrand().getName());
+
+                    SellerDTO sellerDto = new SellerDTO();
+                    sellerDto.setId(p.getSeller().getId());
+                    sellerDto.setUserName(p.getSeller().getNickname());
+                    item.setSeller(sellerDto);
+
+                    return item;
+                }).toList());
+
+        dto.setFirst(products.isFirst());
+        dto.setLast(products.isLast());
+        dto.setTotalPages(products.getTotalPages());
+        dto.setTotalElements((int) products.getTotalElements());
+        dto.setSize(products.getSize());
+        dto.setNumber(products.getNumber());
+        dto.setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
+
+        return dto;
     }
 
 }

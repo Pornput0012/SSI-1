@@ -31,6 +31,10 @@ public class Product {
     @JoinColumn(name = "brand_id", nullable = false)
     private Brand brand;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id") // mapping seller_id กับ User
+    private User seller;
+
     @Size(max = 60)
     @NotNull
     @Column(name = "model", nullable = false, length = 60)
