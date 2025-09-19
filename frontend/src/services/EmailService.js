@@ -1,6 +1,6 @@
 const EMAIL_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
-}/itb-mshop/v2/users`;
+}/itb-mshop/v2/auth`;
 
 const verifyEmail = async (token) => {
   try {

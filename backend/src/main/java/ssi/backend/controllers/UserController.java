@@ -193,26 +193,6 @@ public class UserController {
                 .body(resource);
     }
 
-    @PostMapping("/v2/users/logout")
-    public ResponseEntity<Object> logoutUser() {
-        ResponseCookie deleteAccessToken = ResponseCookie.from("accessToken", "")
-                .httpOnly(true)
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        ResponseCookie deleteRefreshToken = ResponseCookie.from("refreshToken", "")
-                .httpOnly(true)
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        return ResponseEntity
-                .noContent()
-                .header(HttpHeaders.SET_COOKIE, deleteAccessToken.toString(), deleteRefreshToken.toString())
-                .build();
-    }
-
     @PutMapping("/v2/users/{id}")
     public ResponseEntity<UserProfileResponseDTO> updateUserProfileById(@PathVariable Integer id,@CookieValue(name = "accessToken", required = false) String accessToken,@RequestBody UpdateUserRequestDto update) throws ParseException, JOSEException {
         return ResponseEntity.ok(userService.updateUserProfile(id,accessToken,update));
