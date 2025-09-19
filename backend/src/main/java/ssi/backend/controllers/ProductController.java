@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.nimbusds.jose.JOSEException;
 
 import ssi.backend.dtos.*;
+import ssi.backend.exceptions.UnauthorizedException;
 import ssi.backend.services.FileService;
 import ssi.backend.services.ProductService;
 
@@ -133,11 +134,15 @@ public class ProductController {
     @GetMapping("/v2/sellers/{id}/sale-items")
     public ResponseEntity<SaleItemPageDTO> getSaleItemsBySeller(
             @PathVariable("id") Integer sellerId,
+            @CookieValue(name = "token", required = false) String token,
             @RequestParam int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String sortField,
             @RequestParam(required = false, defaultValue = "asc") String sortDirection)
             throws ParseException, JOSEException {
+                if (token == null) {
+                    throw new UnauthorizedException("Missing authentication token");
+                }
         SaleItemPageDTO saleItemPageDto = productService.getSaleItemBySeller(sellerId, token, page, size, sortField,
                 sortDirection);
         return ResponseEntity.ok(saleItemPageDto);
