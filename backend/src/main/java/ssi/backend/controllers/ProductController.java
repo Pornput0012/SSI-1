@@ -134,7 +134,7 @@ public class ProductController {
     @GetMapping("/v2/sellers/{id}/sale-items")
     public ResponseEntity<SaleItemPageDTO> getSaleItemsBySeller(
             @PathVariable("id") Integer sellerId,
-            @CookieValue(name = "token", required = false) String token,
+            @CookieValue(name = "accessToken", required = false) String token,
             @RequestParam int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String sortField,
