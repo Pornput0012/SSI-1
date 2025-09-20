@@ -395,10 +395,9 @@ const getSaleItemsBySeller = async (
       return requestParameter.join('&')
     }
     const response = await fetch(
-      `${SALE_ITEM_API_URL_V2}/sellers/${sellerId}/sale-items?${getRequestParameter()}`,
-      {
-        credentials: 'include',
-      }
+      `${
+        import.meta.env.VITE_URL_API || '/ssi1'
+      }/itb-mshop/v2/sellers/${sellerId}/sale-items?${getRequestParameter()}`,
     )
 
     if (!response.ok) {

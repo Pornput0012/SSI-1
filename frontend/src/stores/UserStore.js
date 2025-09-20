@@ -14,7 +14,7 @@ export const useUserStore = defineStore("user", () => {
     return userInfo.value?.userType;
   };
   const hasInfo = () => {
-    return Object.keys(userInfo.value).length != 0;
+    return userInfo.value && Object.keys(userInfo.value).length != 0;
   };
   const setUserInfo = (user) => {
     userInfo.value = user;

@@ -1,6 +1,5 @@
 <script setup>
 import MessageModal from '@/components/MessageModal.vue'
-import SaleItemList from '@/components/SaleItemList.vue'
 import {
   getAllSaleItems,
   getSaleItemsBySeller,
@@ -10,9 +9,11 @@ import { useNotiStore } from '@/stores/NotiStore'
 import { computed, onMounted, ref } from 'vue'
 import { useFilterStore } from '@/stores/FilterStore'
 import { useRoute } from 'vue-router'
+import SaleItemList from '@/components/SaleItemList.vue'
+import { useUserStore } from '@/stores/UserStore'
 
-const route = useRoute()
-const sellerId = route.params.id
+const userStore = useUserStore();
+const sellerId = userStore.getUserId();
 
 const hasError = ref('')
 const STORAGE_KEYS = {
@@ -131,7 +132,13 @@ onMounted(() => {
         </label>
       </div>
     </div>
-    <SaleItemList :sale-items="saleItems" :has-error="hasError" />
+    <SaleItemList
+    v-if="saleItems || hasError"
+    :sale-items="saleItems?.content || null" 
+    :has-error="hasError"
+    :page-info="{ ...saleItems, page: currentPage }"
+    @page-changed="handlePageChange" 
+    />
 
     <MessageModal
       v-if="showCreatedModal"

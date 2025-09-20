@@ -13,6 +13,7 @@ import VerifyTokenView from "@/views/VerifyTokenView.vue";
 import LoginView from "@/views/LoginView.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import EditProfileView from "@/views/EditProfileView.vue";
+import { useUserStore } from "@/stores/UserStore";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -46,6 +47,7 @@ const router = createRouter({
       path: "/sale-items/list",
       component: SaleItemListView,
       name: "sale-items-list",
+      meta: { requiresAuth: true, role: "SELLER" }
     },
     {
       path: "/ssi1",
@@ -93,6 +95,24 @@ const router = createRouter({
       name : "EditProfile"
     },
   ],
+});
+
+// ✅ Navigation Guard
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore();
+  const isLoggedIn = userStore.hasInfo();
+  const userType = userStore.getUserType()?.toLowerCase()
+
+  if (to.meta.requiresAuth && !isLoggedIn) {
+    // ❌ ยังไม่ได้ login → ไปหน้า login
+    next({ name: "signin" });
+  } else if (to.meta.role?.toLowerCase() === "SELLER" && userType !== "SELLER") {
+    // ❌ ไม่ใช่ seller → ไป gallery
+    next({ name: "sale-items" });
+  } else {
+    // ✅ เข้าได้
+    next();
+  }
 });
 
 export default router;
