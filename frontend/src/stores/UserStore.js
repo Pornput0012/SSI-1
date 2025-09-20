@@ -19,6 +19,11 @@ export const useUserStore = defineStore("user", () => {
   const setUserInfo = (user) => {
     userInfo.value = user;
   };
+  const clearUserInfo = () => {
+  userInfo.value = {};
+  sessionStorage.removeItem("userInfo"); 
+  sessionStorage.removeItem("pageInfo");
+};
   const getUserId = () => userInfo.value.id;
   
   const waitForUser = (timeout = 5000) => {
@@ -46,6 +51,7 @@ export const useUserStore = defineStore("user", () => {
     getUserType,
     getUserId,
     waitForUser,
+    clearUserInfo
   };
 });
 

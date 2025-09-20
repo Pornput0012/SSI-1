@@ -31,7 +31,7 @@ const menu = [
 const handleLogout = async () => {
   const res = await logout();
   if (res.success) {
-    userStore.setUserInfo(null);
+    userStore.clearUserInfo();
     router.push({ name: "home" });
   } else {
     alert("Logout Not Successful...");
