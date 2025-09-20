@@ -72,6 +72,8 @@ const getAllSaleItems_v2 = async (
     const saleItemStore = useSaleItemStore();
 
     saleItemStore.setSaleItemsPage(data);
+    console.log(data);
+    
     return data;
   } catch (error) {
     return { error };
@@ -394,6 +396,53 @@ const updateSaleItemImageById = async (id, images) => {
   }
 };
 
+const getSaleItemsBySeller = async (
+  sellerId,
+  pageInfo = { page: 0, size: 10 }
+) => {
+  try {
+    console.log(sellerId);
+
+    if (!sellerId) throw new Error("Seller ID is required");
+    const getRequestParameter = () => {
+      const requestParameter = [];
+      for (const key in pageInfo) {
+        if (Object.prototype.hasOwnProperty.call(pageInfo, key)) {
+          const element = pageInfo[key];
+          if (element || element === 0) {
+            requestParameter.push(
+              `${key}=${Array.isArray(element) ? element.join(",") : element}`
+            );
+          }
+        }
+      }
+      return requestParameter.join("&");
+    };
+    const response = await fetch(
+      `${
+        import.meta.env.VITE_URL_API || "/ssi1"
+      }/itb-mshop/v2/sellers/${sellerId}/sale-items?${getRequestParameter()}`,
+      {
+        credentials: "include",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `(${response.status}) Failed to fetch seller's sale items.`
+      );
+    }
+
+    const data = await response.json();
+    const saleItemStore = useSaleItemStore();
+
+    saleItemStore.setSaleItemsPage({ ...data, isSeller: true });
+    return data;
+  } catch (error) {
+    return { error };
+  }
+};
+
 export {
   getAllSaleItems,
   getSaleItemById,
@@ -406,4 +455,5 @@ export {
   getImageByFileName,
   updateSaleItemById_v2,
   updateSaleItemImageById,
+  getSaleItemsBySeller,
 };

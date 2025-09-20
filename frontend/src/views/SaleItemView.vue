@@ -282,6 +282,8 @@ const initializeBrands = async () => {
 
 const initializeSaleItems = async (pageInfo) => {
   try {
+    console.log("initSaleitem");
+    
     const response = await getAllSaleItems_v2({
       filterBrands: getFilterList().brands,
       filterStorages: getFilterList().storages,
@@ -705,7 +707,7 @@ const updateWidth = () => {
 
     <!-- Sale Item Gallery -->
     <SaleItemGallery
-      v-if="saleItems || hasError"
+      v-if="(saleItems && !saleItems.isSeller) || hasError"
       class="mt-10"
       :sale-items="saleItems?.content || null"
       :page-info="{ ...saleItems, page: currentPage }"

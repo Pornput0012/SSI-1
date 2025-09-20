@@ -14,12 +14,30 @@ export const useUserStore = defineStore("user", () => {
     return userInfo.value?.userType;
   };
   const hasInfo = () => {
-    return Object.keys(userInfo.value).length != 0;
+    return userInfo.value && Object.keys(userInfo.value).length != 0;
   };
   const setUserInfo = (user) => {
     userInfo.value = user;
   };
   const getUserId = () => userInfo.value.id;
+  
+  const waitForUser = (timeout = 5000) => {
+    console.log("wait user...");
+    
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const check = () => {
+        if (Object.keys(userInfo.value) != 0) {
+          resolve(userInfo);
+        } else if (Date.now() - start >= timeout) {
+          reject(new Error("Timeout waiting for user id"));
+        } else {
+          setTimeout(check, 100);
+        }
+      };
+      check();
+    });
+  };
   return {
     getNickName,
     getUserInfo,
@@ -27,6 +45,7 @@ export const useUserStore = defineStore("user", () => {
     setUserInfo,
     getUserType,
     getUserId,
+    waitForUser,
   };
 });
 
