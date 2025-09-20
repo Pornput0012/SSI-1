@@ -8,6 +8,10 @@ const SALE_ITEM_API_URL_V2 = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v2/sale-items`;
 
+const getAccessToken = () => {
+  return localStorage.getItem("accessToken");
+};
+
 // GET all sale-items
 const getAllSaleItems = async () => {
   try {
@@ -224,10 +228,19 @@ const createSaleItem_v2 = async (saleItem, images) => {
       });
     }
 
+    const token = localStorage.getItem("accessToken");
+
     const response = await fetch(`${SALE_ITEM_API_URL_V2}`, {
       method: "POST",
       body: formData,
+      headers: {
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
     });
+
+
+    console.log(response);
+    
 
     if (!response.ok) {
       throw new Error(

@@ -7,6 +7,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -151,45 +153,41 @@ public class UserService {
         return null;
     }
 
-    public UserProfileResponseDTO getUserProfile(String token) throws ParseException, JOSEException {
-        jwtService.validateAccessToken(token);
+    public UserProfileResponseDTO getUserProfile()  {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = (String) authentication.getPrincipal();
+        Integer userId = (Integer) authentication.getDetails();
 
-        JwtClaimDTO profileClaim = jwtService.extractUserClaims(token);
-        if (profileClaim.getRole() != null && !profileClaim.getRole().isEmpty()) {
-            User user = userRepository.findByIdAndEmail(profileClaim.getUserId(), profileClaim.getEmail());
-            if (user == null) {
-                throw new BadRequestException("Invalid email or User id");
-            }
-            if (user.getStatus().equalsIgnoreCase("inactive")) {
-                throw new ForbiddenException("You need activate your account before signing in.");
-            }
-            return modelMapper.map(user, UserProfileResponseDTO.class);
+        User user = userRepository.findByIdAndEmail(userId, email);
+        if (user == null) {
+            throw new BadRequestException("Invalid email or User id");
         }
-
-        throw new BadRequestException("Invalid token");
+        if (user.getStatus().equalsIgnoreCase("inactive")) {
+            throw new ForbiddenException("You need activate your account before signing in.");
+        }
+        return modelMapper.map(user, UserProfileResponseDTO.class);
     }
 
-    public UserProfileResponseDTO getUserProfileById(Integer id, String token) throws ParseException, JOSEException {
-        jwtService.validateAccessToken(token);
-        JwtClaimDTO profileClaim = jwtService.extractUserClaims(token);
+    public UserProfileResponseDTO getUserProfileById(Integer id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
 
-        if (id == null || profileClaim.getUserId() == null || !id.equals(profileClaim.getUserId())) {
+        if (id == null || !id.equals(userId)) {
             throw new UnauthorizedException("Invalid token");
         }
 
         User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        if(user.getStatus().equalsIgnoreCase("inactive")) {
+        if (user.getStatus().equalsIgnoreCase("inactive")) {
             throw new ConfilctResourceException("User is not active");
         }
 
         return modelMapper.map(user, UserProfileResponseDTO.class);
     }
 
-    public UserProfileResponseDTO updateUserProfile(Integer id,String token, UpdateUserRequestDto updateUser) throws ParseException, JOSEException {
-        jwtService.validateAccessToken(token);
-        JwtClaimDTO profileClaim = jwtService.extractUserClaims(token);
-
-        if (id == null || profileClaim.getUserId() == null || !id.equals(profileClaim.getUserId())) {
+    public UserProfileResponseDTO updateUserProfile(Integer id, UpdateUserRequestDto updateUser) throws ParseException, JOSEException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
+        if (id == null ||  !id.equals(userId)) {
             throw new UnauthorizedException("Invalid token");
         }
 

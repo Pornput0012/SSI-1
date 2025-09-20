@@ -8,6 +8,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -263,6 +265,34 @@ public class ProductService {
     }
 
     @Transactional
+    public ProductItemResponseDtoV2 createProductSeller(ProductItemRequestDtoV2 product, List<MultipartFile> images) throws ParseException, JOSEException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
+        if (images != null && images.size() > 4) {
+            throw new BadRequestException("Images Size Exceeded");
+        }
+        Brand existingBrand = brandRepository.findById(product.getBrandId())
+                .orElseThrow(
+                        () -> new ItemNotFoundException("Brand id " + product.getBrandId() + " does not exist"));
+
+        Product creatingProduct = modelMapper.map(product, Product.class);
+        creatingProduct.setBrand(existingBrand);
+        creatingProduct.setId(null);
+        User seller = userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("User id " + userId + " does not exist"));
+        creatingProduct.setSeller(seller);
+
+        Product prodRes = productRepository.save(creatingProduct);
+        if (images != null && !images.isEmpty()) {
+            fileService.saveFile(images, prodRes);
+        }
+
+        productRepository.flush();
+
+        entityManager.refresh(prodRes);
+        return modelMapper.map(prodRes, ProductItemResponseDtoV2.class);
+    }
+
+    @Transactional
     public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product, String removeImage,
             String orderImages, List<MultipartFile> newImages) {
         Product existingProduct = productRepository.findById(id)
@@ -445,19 +475,16 @@ public class ProductService {
 
     public SaleItemPageDTO getSaleItemBySeller(
             Integer sellerId,
-            String token,
             Integer page,
             Integer size,
             String sortField,
             String sortDirection) throws ParseException, JOSEException {
 
-        // 1. Validate token
-        jwtService.validateAccessToken(token);
-        JwtClaimDTO claim = jwtService.extractUserClaims(token);
-
         User user = userRepository.findById(sellerId).orElseThrow(() -> new UnauthorizedException("Seller not found"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
 
-        if (claim.getUserId() == null || !claim.getUserId().equals(sellerId)) {
+        if ( !userId.equals(sellerId)) {
             throw new UnauthorizedException("Request seller id not matched with id in access token.");
         }
 

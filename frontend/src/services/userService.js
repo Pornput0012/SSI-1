@@ -6,6 +6,10 @@ const AUTH_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v2/auth`;
 
+const getAccessToken = () => {
+  return localStorage.getItem("accessToken");
+};
+
 const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
   try {
     const formData = new FormData();
@@ -63,8 +67,11 @@ const login = async (email, password) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
-      credentials: "include",
     });
+    const data = await response.json();
+    if (data.accessToken) {
+      localStorage.setItem("accessToken", data.accessToken);
+    }
 
     if (response.status === 200) {
       return { success: true };
@@ -87,10 +94,13 @@ const login = async (email, password) => {
 const getAccessTokenFromRefreshToken = async () => {
   try {
     const response = await fetch(`${AUTH_API_URL}/refresh`, {
-      method: "POST",
-      credentials: "include",
+      method: "GET",
     });
     const data = await response.json();
+    if (data.accessToken) {
+      localStorage.setItem("accessToken", data.accessToken);
+    }
+    Ï;
 
     if (response.status != 200) {
       throw new Error("get AccessToken not successful...");
@@ -103,11 +113,14 @@ const getAccessTokenFromRefreshToken = async () => {
 
 const getProfile = async (retryCount = 0) => {
   try {
+    console.log(getAccessToken() ? `Bearer ${getAccessToken()}` : "");
     const response = await fetch(USER_API_URL, {
       method: "GET",
-      credentials: "include",
+      headers: {
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
     });
-
+    
     if (response.status === 403 && retryCount < 1) {
       const res = await getAccessTokenFromRefreshToken();
       if (res.ok) {
@@ -163,7 +176,9 @@ const getUserById = async (id) => {
     if (!id) throw new Error("User ID is required.");
     const response = await fetch(`${USER_API_URL}/${id}`, {
       method: "GET",
-      credentials: "include",
+      headers: {
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
     });
 
     const data = await response.json();
@@ -181,12 +196,14 @@ const logout = async () => {
   try {
     const response = await fetch(`${AUTH_API_URL}/logout`, {
       method: "POST",
-      credentials: "include",
+      headers: {
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
     });
 
     if (response.ok) {
       console.log("Success");
-
+      localStorage.removeItem("accessToken")
       return { success: true };
     }
     throw new Error("logout fail");
@@ -203,9 +220,9 @@ const updateUserById = async (id, updateUser) => {
     if (!id) throw new Error("User ID is required.");
     const response = await fetch(`${USER_API_URL}/${id}`, {
       method: "PUT",
-      credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",  
       },
       body: JSON.stringify(updateUser),
     });
@@ -229,5 +246,5 @@ export {
   getImageByFileName,
   getUserById,
   logout,
-  updateUserById
+  updateUserById,
 };
