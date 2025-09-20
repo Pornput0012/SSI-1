@@ -94,24 +94,18 @@ public class UserController {
                         .path("/")
                         .build();
 
-                ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
-                        .httpOnly(true)
-                        .maxAge(ACCESS_TOKEN_EXP)
-                        .path("/")
-                        .build();
-
                 AccessTokenDTO dtoResponse = new AccessTokenDTO();
                 dtoResponse.setAccessToken(accessToken);
 
                 return ResponseEntity.ok()
-                        .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString(), refreshTokenCookie.toString())
+                        .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                         .body(dtoResponse);
             } else {
                 throw new UnauthorizedException("Email or Password is incorrect.");
             }
         }
 
-        throw new UnauthorizedException("Email or Password is incorrect.");
+            throw new UnauthorizedException("Email or Password is incorrect.");
     }
 
 
@@ -137,12 +131,6 @@ public class UserController {
 
     @PostMapping("/v2/auth/logout")
     public ResponseEntity<Object> logoutUser() {
-        ResponseCookie deleteAccessToken = ResponseCookie.from("accessToken", "")
-                .httpOnly(true)
-                .path("/")
-                .maxAge(0)
-                .build();
-
         ResponseCookie deleteRefreshToken = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .path("/")
@@ -151,27 +139,20 @@ public class UserController {
 
         return ResponseEntity
                 .noContent()
-                .header(HttpHeaders.SET_COOKIE, deleteAccessToken.toString(), deleteRefreshToken.toString())
+                .header(HttpHeaders.SET_COOKIE, deleteRefreshToken.toString())
                 .build();
     }
 
 
     @GetMapping("/v2/users")
-    public ResponseEntity<UserProfileResponseDTO> getUserProfile(
-            @CookieValue(name = "accessToken", required = false) String accessToken) throws ParseException, JOSEException {
-
-        if (accessToken == null) {
-            throw new ForbiddenException("You are not signing in.");
-        }
-
-        return ResponseEntity.ok(userService.getUserProfile(accessToken));
+    public ResponseEntity<UserProfileResponseDTO> getUserProfile() throws ParseException, JOSEException {
+        return ResponseEntity.ok(userService.getUserProfile());
     }
 
     @GetMapping("/v2/users/{id}")
-    public ResponseEntity<UserProfileResponseDTO> getUserProfileById(@PathVariable Integer id,
-                                                                     @CookieValue(name = "accessToken", required = false) String accessToken) throws ParseException, JOSEException {
+    public ResponseEntity<UserProfileResponseDTO> getUserProfileById(@PathVariable Integer id) throws ParseException, JOSEException {
 
-        return ResponseEntity.ok(userService.getUserProfileById(id, accessToken));
+        return ResponseEntity.ok(userService.getUserProfileById(id));
     }
 
     @GetMapping("/users/{fileName:.+}")
@@ -194,8 +175,8 @@ public class UserController {
     }
 
     @PutMapping("/v2/users/{id}")
-    public ResponseEntity<UserProfileResponseDTO> updateUserProfileById(@PathVariable Integer id,@CookieValue(name = "accessToken", required = false) String accessToken,@RequestBody UpdateUserRequestDto update) throws ParseException, JOSEException {
-        return ResponseEntity.ok(userService.updateUserProfile(id,accessToken,update));
+    public ResponseEntity<UserProfileResponseDTO> updateUserProfileById(@PathVariable Integer id, @RequestBody UpdateUserRequestDto update) throws ParseException, JOSEException {
+        return ResponseEntity.ok(userService.updateUserProfile(id, update));
     }
 
 }
