@@ -47,7 +47,7 @@ const router = createRouter({
       path: "/sale-items/list",
       component: SaleItemListView,
       name: "sale-items-list",
-      meta: { requiresAuth: true, role: "SELLER" }
+      meta: { requiresAuth: true, role: "SELLER" },
     },
     {
       path: "/ssi1",
@@ -90,27 +90,29 @@ const router = createRouter({
       name: "profile",
     },
     {
-      path : "/profile/edit",
-      component : EditProfileView,
-      name : "EditProfile"
+      path: "/profile/edit",
+      component: EditProfileView,
+      name: "EditProfile",
     },
   ],
 });
 
-// ✅ Navigation Guard
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
+  await userStore.waitForUser();
   const isLoggedIn = userStore.hasInfo();
-  const userType = userStore.getUserType()?.toLowerCase()
+  const userType = userStore.getUserType()?.toLowerCase();
+  console.log(userStore.getUserId());
+  
 
   if (to.meta.requiresAuth && !isLoggedIn) {
-    // ❌ ยังไม่ได้ login → ไปหน้า login
     next({ name: "signin" });
-  } else if (to.meta.role?.toLowerCase() === "SELLER" && userType !== "SELLER") {
-    // ❌ ไม่ใช่ seller → ไป gallery
+  } else if (
+    to.meta.role?.toLowerCase() === "SELLER" &&
+    userType !== "SELLER"
+  ) {
     next({ name: "sale-items" });
   } else {
-    // ✅ เข้าได้
     next();
   }
 });

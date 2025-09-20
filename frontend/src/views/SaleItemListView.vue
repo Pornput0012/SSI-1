@@ -1,37 +1,34 @@
 <script setup>
-import MessageModal from '@/components/MessageModal.vue'
+import MessageModal from "@/components/MessageModal.vue";
 import {
   getAllSaleItems,
   getSaleItemsBySeller,
-} from '@/services/SaleItemService'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { useNotiStore } from '@/stores/NotiStore'
-import { computed, onMounted, ref } from 'vue'
-import { useFilterStore } from '@/stores/FilterStore'
-import { useRoute } from 'vue-router'
-import SaleItemList from '@/components/SaleItemList.vue'
-import { useUserStore } from '@/stores/UserStore'
+} from "@/services/SaleItemService";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useNotiStore } from "@/stores/NotiStore";
+import { computed, onMounted, ref } from "vue";
+import { useFilterStore } from "@/stores/FilterStore";
+import { useRoute } from "vue-router";
+import SaleItemList from "@/components/SaleItemList.vue";
+import { useUserStore } from "@/stores/UserStore";
 
 const route = useRoute();
 const userStore = useUserStore();
-
-const sellerId = route.params.id || userStore.getUserId();
-
-const hasError = ref('')
+const hasError = ref("");
 const STORAGE_KEYS = {
-  PAGE_INFO: 'pageInfo',
-}
+  PAGE_INFO: "pageInfo",
+};
 
-const filterStore = useFilterStore()
+const filterStore = useFilterStore();
 
-const { setCurrentPage } = filterStore
+const { setCurrentPage } = filterStore;
 
-const saleItemStore = useSaleItemStore()
+const saleItemStore = useSaleItemStore();
 
-const { getSaleItemsPage } = saleItemStore
-const currentPage = computed(() => filterStore.currentPage)
+const { getSaleItemsPage } = saleItemStore;
+const currentPage = computed(() => filterStore.currentPage);
 
-const saleItems = computed(() => getSaleItemsPage())
+const saleItems = computed(() => getSaleItemsPage());
 
 const saveToLocalStorage = () => {
   sessionStorage.setItem(
@@ -39,60 +36,60 @@ const saveToLocalStorage = () => {
     JSON.stringify({
       page: currentPage.value,
     })
-  )
-}
+  );
+};
 
 const getFromLocalStorage = () => {
-  const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO))
+  const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO));
   return {
     pageInfo,
-  }
-}
+  };
+};
 
 const setDefaultStoreValues = (pageInfo) => {
-  getFromLocalStorage()
-  setCurrentPage(pageInfo?.page ?? 0)
-}
+  getFromLocalStorage();
+  setCurrentPage(pageInfo?.page ?? 0);
+};
 
 const handlePageChange = async (pageIndex) => {
-  setCurrentPage(pageIndex)
-  await saleItemsBySeller()
-}
+  setCurrentPage(pageIndex);
+  await saleItemsBySeller();
+};
 
 const saleItemsBySeller = async (pageInfo) => {
   try {
-    const response = await getSaleItemsBySeller(sellerId, {
+    const userId = userStore.getUserInfo();
+    const response = await getSaleItemsBySeller(userId.id, {
       page: pageInfo?.page ?? currentPage.value,
       size: 10,
-    })
-    saveToLocalStorage()
+    });
+    saveToLocalStorage();
     if (response.error) {
-      throw new Error(response?.error)
+      throw new Error(response?.error);
     }
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-}
+};
 
 onMounted(async () => {
   try {
-    const { pageInfo } = getFromLocalStorage()
-
-    setDefaultStoreValues(pageInfo)
-    await saleItemsBySeller(pageInfo)
+    const { pageInfo } = getFromLocalStorage();
+    setDefaultStoreValues(pageInfo);
+    await saleItemsBySeller(pageInfo);
   } catch (error) {
-    hasError.value = error.message
+    hasError.value = error.message;
   }
-})
+});
 
-const notiStore = useNotiStore()
-const showCreatedModal = ref(false)
+const notiStore = useNotiStore();
+const showCreatedModal = ref(false);
 onMounted(() => {
   if (notiStore.createSuccess) {
-    showCreatedModal.value = true
-    notiStore.createSuccess = false
+    showCreatedModal.value = true;
+    notiStore.createSuccess = false;
   }
-})
+});
 </script>
 
 <template>
@@ -135,11 +132,11 @@ onMounted(() => {
       </div>
     </div>
     <SaleItemList
-    v-if="saleItems || hasError"
-    :sale-items="saleItems?.content || null" 
-    :has-error="hasError"
-    :page-info="{ ...saleItems, page: currentPage }"
-    @page-changed="handlePageChange" 
+      v-if="saleItems || hasError"
+      :sale-items="saleItems?.content || null"
+      :has-error="hasError"
+      :page-info="{ ...saleItems, page: currentPage }"
+      @page-changed="handlePageChange"
     />
 
     <MessageModal

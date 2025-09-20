@@ -24,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/itb-mshop")
-@CrossOrigin(origins = "${app.cors.allowedOrigins}")
+@CrossOrigin(origins = "${app.cors.allowedOrigins}", allowCredentials = "true")
 public class ProductController {
     @Autowired
     private ProductService productService;
@@ -65,7 +65,7 @@ public class ProductController {
 
     @PutMapping("/v1/sale-items/{id}")
     public ResponseEntity<ProductItemResponseDTO> updateProduct(@PathVariable Integer id,
-            @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
+                                                                @Valid @RequestBody ProductItemRequestDTO productItemRequestDTO) {
         return ResponseEntity.ok(productService.updateProduct(id, productItemRequestDTO));
     }
 
@@ -140,9 +140,9 @@ public class ProductController {
             @RequestParam(required = false) String sortField,
             @RequestParam(required = false, defaultValue = "asc") String sortDirection)
             throws ParseException, JOSEException {
-                if (token == null) {
-                    throw new UnauthorizedException("Missing or Invalid authentication token");
-                }
+        if (token == null) {
+            throw new UnauthorizedException("Missing or Invalid authentication token");
+        }
         SaleItemPageDTO saleItemPageDto = productService.getSaleItemBySeller(sellerId, token, page, size, sortField,
                 sortDirection);
         return ResponseEntity.ok(saleItemPageDto);

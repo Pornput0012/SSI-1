@@ -488,7 +488,7 @@ public class ProductService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // 4. ดึงสินค้าของ seller จาก DB
-        Page<Product> products = productRepository.findAllBySellerId(sellerId, pageable);
+        Page<Product> products = productRepository.findAllBySeller(user, pageable);
 
         // 5. แปลง Page<Product> → SaleItemPageDTO
         SaleItemPageDTO dto = new SaleItemPageDTO();

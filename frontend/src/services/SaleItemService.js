@@ -380,6 +380,8 @@ const getSaleItemsBySeller = async (
   pageInfo = { page: 0, size: 10 }
 ) => {
   try {
+    console.log(sellerId);
+    
     if (!sellerId) throw new Error('Seller ID is required')
     const getRequestParameter = () => {
       const requestParameter = []
@@ -400,7 +402,7 @@ const getSaleItemsBySeller = async (
         import.meta.env.VITE_URL_API || '/ssi1'
       }/itb-mshop/v2/sellers/${sellerId}/sale-items?${getRequestParameter()}`,
       {
-        credentials: 'include', // ✅ ส่ง cookie / token
+        credentials: 'include',
       }
     )
 
