@@ -134,17 +134,17 @@ public class ProductController {
     }
 
     @GetMapping("/v2/sellers/{id}/sale-items")
-    public ResponseEntity<SaleItemPageDTO> getSaleItemsBySeller(
+    public ResponseEntity<SaleItemPageDTO> getSaleItemsBySeller (
             @PathVariable("id") Integer sellerId,
-            @RequestParam int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String sortField,
-            @RequestParam(required = false, defaultValue = "asc") String sortDirection)
-            throws ParseException, JOSEException {
+            @RequestParam(required = false, defaultValue = "asc") String sortDirection) throws ParseException, JOSEException {
+
         SaleItemPageDTO saleItemPageDto = productService.getSaleItemBySeller(sellerId, page, size, sortField,
                 sortDirection);
         return ResponseEntity.ok(saleItemPageDto);
 
-    }
+    }}
 
-}
+

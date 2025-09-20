@@ -73,7 +73,7 @@ const getAllSaleItems_v2 = async (
 
     saleItemStore.setSaleItemsPage(data);
     console.log(data);
-    
+
     return data;
   } catch (error) {
     return { error };
@@ -238,9 +238,7 @@ const createSaleItem_v2 = async (saleItem, images) => {
       },
     });
 
-
     console.log(response);
-    
 
     if (!response.ok) {
       throw new Error(
@@ -423,7 +421,9 @@ const getSaleItemsBySeller = async (
         import.meta.env.VITE_URL_API || "/ssi1"
       }/itb-mshop/v2/sellers/${sellerId}/sale-items?${getRequestParameter()}`,
       {
-        credentials: "include",
+        headers: {
+          Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+        },
       }
     );
 
