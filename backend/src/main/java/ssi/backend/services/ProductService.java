@@ -500,6 +500,10 @@ public class ProductService {
         boolean hasSortField = sortField != null && !sortField.isBlank();
         boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
 
+
+        if (page != null || size != null) {
+            System.out.println("ji");
+        }
         Sort sort;
         if (hasSortField) {
             sort = sortDesc
