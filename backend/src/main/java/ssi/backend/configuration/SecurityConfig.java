@@ -31,10 +31,9 @@ public class SecurityConfig {
                 .cors(cors -> {
                 })
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers( "/v2/sellers/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/itb-mshop/v2/sale-items/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/itb-mshop/v2/sale-items/**").permitAll()
-//                        .requestMatchers(HttpMethod.PUT, "/v2/sale-items/**").authenticated()
-//                        .requestMatchers(HttpMethod.DELETE, "/v2/sale-items/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JwtAuthFilter(jwtService), UsernamePasswordAuthenticationFilter.class)

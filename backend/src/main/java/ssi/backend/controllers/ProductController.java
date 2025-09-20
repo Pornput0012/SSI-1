@@ -133,6 +133,7 @@ public class ProductController {
                 .body(resource);
     }
 
+    @PreAuthorize("SELLER")
     @GetMapping("/v2/sellers/{id}/sale-items")
     public ResponseEntity<SaleItemPageDTO> getSaleItemsBySeller(
             @PathVariable("id") Integer sellerId,
