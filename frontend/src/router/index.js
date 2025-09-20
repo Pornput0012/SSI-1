@@ -99,22 +99,23 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-  await userStore.waitForUser();
-  const isLoggedIn = userStore.hasInfo();
-  const userType = userStore.getUserType()?.toLowerCase();
-  console.log(userStore.getUserId());
-  
 
-  if (to.meta.requiresAuth && !isLoggedIn) {
-    next({ name: "signin" });
-  } else if (
-    to.meta.role?.toLowerCase() === "SELLER" &&
-    userType !== "SELLER"
-  ) {
-    next({ name: "sale-items" });
-  } else {
-    next();
+  if (to.meta.requiresAuth) {
+    await userStore.waitForUser();
+    const isLoggedIn = userStore.hasInfo();
+    const userType = userStore.getUserType()?.toUpperCase();
+
+    if (!isLoggedIn) {
+      next({ name: "signin" });
+    } else if (
+      to.meta.role?.toUpperCase() === "SELLER" &&
+      userType !== "SELLER"
+    ) {
+      next({ name: "sale-items" });
+    }
   }
+
+  next();
 });
 
 export default router;

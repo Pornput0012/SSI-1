@@ -87,7 +87,7 @@ const login = async (email, password) => {
 const getAccessTokenFromRefreshToken = async () => {
   try {
     const response = await fetch(`${AUTH_API_URL}/refresh`, {
-      method: "GET",
+      method: "POST",
       credentials: "include",
     });
     const data = await response.json();
