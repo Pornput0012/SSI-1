@@ -120,8 +120,9 @@ const getProfile = async (retryCount = 0) => {
         Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
       },
     });
-    
+
     if (response.status === 403 && retryCount < 1) {
+      localStorage.removeItem("accessToken");
       const res = await getAccessTokenFromRefreshToken();
       if (res.ok) {
         return await getProfile(retryCount + 1);
@@ -203,7 +204,7 @@ const logout = async () => {
 
     if (response.ok) {
       console.log("Success");
-      localStorage.removeItem("accessToken")
+      localStorage.removeItem("accessToken");
       return { success: true };
     }
     throw new Error("logout fail");
@@ -222,7 +223,7 @@ const updateUserById = async (id, updateUser) => {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",  
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
       },
       body: JSON.stringify(updateUser),
     });
