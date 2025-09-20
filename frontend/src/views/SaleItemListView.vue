@@ -12,8 +12,10 @@ import { useRoute } from 'vue-router'
 import SaleItemList from '@/components/SaleItemList.vue'
 import { useUserStore } from '@/stores/UserStore'
 
+const route = useRoute();
 const userStore = useUserStore();
-const sellerId = userStore.getUserId();
+
+const sellerId = route.params.id || userStore.getUserId();
 
 const hasError = ref('')
 const STORAGE_KEYS = {
