@@ -1,36 +1,32 @@
 <script setup>
 import MessageModal from '@/components/MessageModal.vue'
 import SaleItemList from '@/components/SaleItemList.vue'
-import { getAllSaleItems, getSaleItemsBySeller } from '@/services/SaleItemService'
+import {
+  getAllSaleItems,
+  getSaleItemsBySeller,
+} from '@/services/SaleItemService'
 import { useSaleItemStore } from '@/stores/SaleItemStore'
 import { useNotiStore } from '@/stores/NotiStore'
 import { computed, onMounted, ref } from 'vue'
 import { useFilterStore } from '@/stores/FilterStore'
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const sellerId = route.params.id
 
 const hasError = ref('')
-
-const PAGE_SIZE_OPTIONS = [5, 10, 20]
 const STORAGE_KEYS = {
   PAGE_INFO: 'pageInfo',
 }
 
 const filterStore = useFilterStore()
 
-const {
-  setCurrentPage,
-  setPageSize,
-  resetCurrentPage,
-  setSortField,
-  setSortDirection,
-} = filterStore
+const { setCurrentPage } = filterStore
 
 const saleItemStore = useSaleItemStore()
 
 const { getSaleItemsPage } = saleItemStore
-const sortField = computed(() => filterStore.sortField)
-const sortDirection = computed(() => filterStore.sortDirection)
 const currentPage = computed(() => filterStore.currentPage)
-const pageSize = computed(() => filterStore.pageSize)
 
 const saleItems = computed(() => getSaleItemsPage())
 
@@ -39,9 +35,6 @@ const saveToLocalStorage = () => {
     STORAGE_KEYS.PAGE_INFO,
     JSON.stringify({
       page: currentPage.value,
-      size: pageSize.value,
-      sortField: sortField.value,
-      sortDirection: sortDirection.value,
     })
   )
 }
@@ -56,79 +49,36 @@ const getFromLocalStorage = () => {
 const setDefaultStoreValues = (pageInfo) => {
   getFromLocalStorage()
   setCurrentPage(pageInfo?.page ?? 0)
-  setPageSize(pageInfo?.size ?? 10)
-  setSortField(pageInfo?.sortField ?? null)
-  setSortDirection(pageInfo?.sortDirection ?? null)
 }
 
-const applyFilter = async () => {
-  try {
-    const response = await getSaleItemsBySeller({
-      page: currentPage.value,
-      size: pageSize.value,
-      sortField: sortField.value,
-      sortDirection: sortDirection.value,
-    });
-
-    saveToLocalStorage();
-
-    if (response.error) {
-      throw new Error(response?.error);
-    }
-  } catch (error) {
-    hasError.value = error.message;
-  }
-};
-
 const handlePageChange = async (pageIndex) => {
-  setCurrentPage(pageIndex);
-  await applyFilter();
-};
-
-const handlePageSizeChange = async (event) => {
-  setPageSize(event.target.value);
-  resetCurrentPage();
-  await applyFilter();
-};
-
-const handleSortChange = async (sortType) => {
-  if (sortType) {
-    setSortBrand(sortType);
-  } else {
-    setSortBrand("");
-  }
-
-  resetCurrentPage();
-  await applyFilter();
-};
+  setCurrentPage(pageIndex)
+  await saleItemsBySeller()
+}
 
 const saleItemsBySeller = async (pageInfo) => {
   try {
-    const response = await getSaleItemsBySeller({
-      page: pageInfo?.page ?? 0,
-      size: pageInfo?.size ?? 10,
-      sortField: pageInfo?.sortField ?? null,
-      sortDirection: pageInfo?.sortDirection ?? null,
-    });
-
+    const response = await getSaleItemsBySeller(sellerId, {
+      page: pageInfo?.page ?? currentPage.value,
+      size: 10,
+    })
+    saveToLocalStorage()
     if (response.error) {
-      throw new Error(response?.error);
+      throw new Error(response?.error)
     }
   } catch (error) {
-    hasError.value = error.message;
+    hasError.value = error.message
   }
-};
+}
 
 onMounted(async () => {
   try {
-    const { pageInfo } = getFromLocalStorage();
+    const { pageInfo } = getFromLocalStorage()
 
-    setDefaultStoreValues(pageInfo);
-    await saleItemsBySeller(pageInfo);
-
-    
+    setDefaultStoreValues(pageInfo)
+    await saleItemsBySeller(pageInfo)
   } catch (error) {
-    hasError.value = error.message;
+    hasError.value = error.message
   }
 })
 

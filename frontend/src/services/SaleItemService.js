@@ -377,9 +377,7 @@ const updateSaleItemImageById = async (id, images) => {
 
 const getSaleItemsBySeller = async (
   sellerId,
-  pageInfo = {
-    page: 0,
-  }
+  pageInfo = { page: 0, size: 10 }
 ) => {
   try {
     const getRequestParameter = () => {
@@ -399,12 +397,14 @@ const getSaleItemsBySeller = async (
     const response = await fetch(
       `${SALE_ITEM_API_URL_V2}/sellers/${sellerId}/sale-items?${getRequestParameter()}`,
       {
-        credentials: "include",
+        credentials: 'include',
       }
     )
 
     if (!response.ok) {
-      throw new Error(`(${response.status}) Failed to fetch seller's sale items.`)
+      throw new Error(
+        `(${response.status}) Failed to fetch seller's sale items.`
+      )
     }
 
     const data = await response.json()
@@ -429,5 +429,5 @@ export {
   getImageByFileName,
   updateSaleItemById_v2,
   updateSaleItemImageById,
-  getSaleItemsBySeller
+  getSaleItemsBySeller,
 }
