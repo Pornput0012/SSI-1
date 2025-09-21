@@ -66,6 +66,7 @@ const login = async (email, password) => {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
     const data = await response.json();
@@ -94,13 +95,13 @@ const login = async (email, password) => {
 const getAccessTokenFromRefreshToken = async () => {
   try {
     const response = await fetch(`${AUTH_API_URL}/refresh`, {
-      method: "GET",
+      method: "POST",
+      credentials: "include",
     });
     const data = await response.json();
     if (data.accessToken) {
       localStorage.setItem("accessToken", data.accessToken);
     }
-    Ï;
 
     if (response.status != 200) {
       throw new Error("get AccessToken not successful...");
@@ -113,7 +114,6 @@ const getAccessTokenFromRefreshToken = async () => {
 
 const getProfile = async (retryCount = 0) => {
   try {
-    console.log(getAccessToken() ? `Bearer ${getAccessToken()}` : "");
     const response = await fetch(USER_API_URL, {
       method: "GET",
       headers: {
@@ -121,12 +121,7 @@ const getProfile = async (retryCount = 0) => {
       },
     });
 
-    if (response.status === 403 && retryCount < 1) {
-      localStorage.removeItem("accessToken");
-      const res = await getAccessTokenFromRefreshToken();
-      if (res.ok) {
-        return await getProfile(retryCount + 1);
-      }
+    if (response.status === 403) {
       return { logined: false };
     } else if (response.status != 200) {
       throw new Error(
@@ -140,6 +135,16 @@ const getProfile = async (retryCount = 0) => {
       data,
     };
   } catch (error) {
+    if (retryCount < 1) {
+      console.log("use refresh!");
+      
+      localStorage.removeItem("accessToken");
+      const res = await getAccessTokenFromRefreshToken();
+      if (res.ok) {
+        return await getProfile(retryCount + 1);
+      }
+    }
+
     return {
       success: false,
       error: error.message,

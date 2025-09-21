@@ -85,7 +85,7 @@ public class UserController {
             }
             if (passwordEncoder.matches(rawPassword, user.getPassword())) {
                 String accessToken = jwtService.generateAccessToken(user.getId(), user.getNickname(), user.getEmail(), user.getUserType());
-                String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail(), user.getUserType());
+                String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail(), user.getUserType(), user.getNickname());
 
                 ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
                         .httpOnly(true)
@@ -116,15 +116,7 @@ public class UserController {
         AccessTokenDTO dtoResponse = new AccessTokenDTO();
         dtoResponse.setAccessToken(accessToken);
 
-        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
-                .httpOnly(true)
-                .maxAge(ACCESS_TOKEN_EXP)
-                .path("/")
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
-                .body(dtoResponse);
+        return ResponseEntity.ok(dtoResponse);
     }
 
 
@@ -150,7 +142,6 @@ public class UserController {
 
     @GetMapping("/v2/users/{id}")
     public ResponseEntity<UserProfileResponseDTO> getUserProfileById(@PathVariable Integer id) throws ParseException, JOSEException {
-
         return ResponseEntity.ok(userService.getUserProfileById(id));
     }
 
