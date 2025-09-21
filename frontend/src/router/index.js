@@ -11,6 +11,9 @@ import { createRouter, createWebHistory } from "vue-router";
 import RegisterView from "@/views/RegisterView.vue";
 import VerifyTokenView from "@/views/VerifyTokenView.vue";
 import LoginView from "@/views/LoginView.vue";
+import ProfileView from "@/views/ProfileView.vue";
+import EditProfileView from "@/views/EditProfileView.vue";
+import { useUserStore } from "@/stores/UserStore";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +47,7 @@ const router = createRouter({
       path: "/sale-items/list",
       component: SaleItemListView,
       name: "sale-items-list",
+      meta: { requiresAuth: true, role: "SELLER" },
     },
     {
       path: "/ssi1",
@@ -80,7 +84,38 @@ const router = createRouter({
       component: VerifyTokenView,
       name: "verify-email",
     },
+    {
+      path: "/profile",
+      component: ProfileView,
+      name: "profile",
+    },
+    {
+      path: "/profile/edit",
+      component: EditProfileView,
+      name: "EditProfile",
+    },
   ],
+});
+
+router.beforeEach(async (to, from, next) => {
+  const userStore = useUserStore();
+
+  if (to.meta.requiresAuth) {
+    await userStore.waitForUser();
+    const isLoggedIn = userStore.hasInfo();
+    const userType = userStore.getUserType()?.toUpperCase();
+
+    if (!isLoggedIn) {
+      next({ name: "signin" });
+    } else if (
+      to.meta.role?.toUpperCase() === "SELLER" &&
+      userType !== "SELLER"
+    ) {
+      next({ name: "sale-items" });
+    }
+  }
+
+  next();
 });
 
 export default router;

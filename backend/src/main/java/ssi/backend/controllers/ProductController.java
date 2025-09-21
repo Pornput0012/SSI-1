@@ -7,19 +7,25 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.nimbusds.jose.JOSEException;
+
 import ssi.backend.dtos.*;
+import ssi.backend.exceptions.UnauthorizedException;
 import ssi.backend.services.FileService;
 import ssi.backend.services.ProductService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.ParseException;
 import java.util.List;
 
 @RestController
 @RequestMapping("/itb-mshop")
-@CrossOrigin(origins = "${app.cors.allowedOrigins}")
+@CrossOrigin(origins = "${app.cors.allowedOrigins}", allowCredentials = "true")
 public class ProductController {
     @Autowired
     private ProductService productService;
@@ -69,7 +75,8 @@ public class ProductController {
             @PathVariable Integer id,
             @Valid @ModelAttribute ProductItemRequestDtoV2 product,
             @RequestParam(required = false) List<MultipartFile> newImages) {
-        return ResponseEntity.ok(productService.updateProductV2(id, product, product.getRemoveFileNames(), product.getOrderImages(), newImages));
+        return ResponseEntity.ok(productService.updateProductV2(id, product, product.getRemoveFileNames(),
+                product.getOrderImages(), newImages));
     }
 
     @PutMapping("/v2/sale-items/{id}/images")
@@ -77,9 +84,9 @@ public class ProductController {
             @PathVariable Integer id,
             @Valid @ModelAttribute ProductRequestImageDTO productImageInfo,
             @RequestParam(required = false) List<MultipartFile> newImages) {
-        return ResponseEntity.ok(productService.updateProductV2(id, productImageInfo.getRemoveFileNames(), productImageInfo.getOrderImages(), newImages));
+        return ResponseEntity.ok(productService.updateProductV2(id, productImageInfo.getRemoveFileNames(),
+                productImageInfo.getOrderImages(), newImages));
     }
-
 
     @DeleteMapping("/v1/sale-items/{id}")
     public ResponseEntity<Void> deleteProductById(@PathVariable Integer id) {
@@ -98,12 +105,13 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product));
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @PostMapping("/v2/sale-items")
     public ResponseEntity<ProductItemResponseDtoV2> createProduct(
             @Valid @ModelAttribute ProductItemRequestDtoV2 product,
-            @RequestParam(required = false) List<MultipartFile> images) {
+            @RequestParam(required = false) List<MultipartFile> images) throws ParseException, JOSEException {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(product, images));
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProductSeller(product, images));
     }
 
     @GetMapping("/sale-items/{fileName:.+}")
@@ -125,4 +133,18 @@ public class ProductController {
                 .body(resource);
     }
 
-}
+    @GetMapping("/v2/sellers/{id}/sale-items")
+    public ResponseEntity<SaleItemPageDTO> getSaleItemsBySeller (
+            @PathVariable("id") Integer sellerId,
+            @RequestParam Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String sortField,
+            @RequestParam(required = false, defaultValue = "asc") String sortDirection) throws ParseException, JOSEException {
+
+        SaleItemPageDTO saleItemPageDto = productService.getSaleItemBySeller(sellerId, page, size, sortField,
+                sortDirection);
+        return ResponseEntity.ok(saleItemPageDto);
+
+    }}
+
+

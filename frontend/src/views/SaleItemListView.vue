@@ -1,24 +1,84 @@
 <script setup>
 import MessageModal from "@/components/MessageModal.vue";
-import SaleItemList from "@/components/SaleItemList.vue";
-import { getAllSaleItems } from "@/services/SaleItemService";
+import {
+  getAllSaleItems,
+  getSaleItemsBySeller,
+} from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
+import { useFilterStore } from "@/stores/FilterStore";
+import { useRoute } from "vue-router";
+import SaleItemList from "@/components/SaleItemList.vue";
+import { useUserStore } from "@/stores/UserStore";
 
-const { getSaleItems } = useSaleItemStore();
-
-const saleItems = computed(() => getSaleItems());
+const route = useRoute();
+const userStore = useUserStore();
 const hasError = ref("");
+const STORAGE_KEYS = {
+  PAGE_INFO: "pageInfo",
+};
+
+const filterStore = useFilterStore();
+
+const { setCurrentPage } = filterStore;
+
+const saleItemStore = useSaleItemStore();
+
+const { getSaleItemsPage } = saleItemStore;
+const currentPage = computed(() => filterStore.currentPage);
+
+const saleItems = computed(() => getSaleItemsPage());
+
+const saveToLocalStorage = () => {
+  sessionStorage.setItem(
+    STORAGE_KEYS.PAGE_INFO,
+    JSON.stringify({
+      page: currentPage.value,
+    })
+  );
+};
+
+const getFromLocalStorage = () => {
+  const pageInfo = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.PAGE_INFO));
+  return {
+    pageInfo,
+  };
+};
+
+const setDefaultStoreValues = (pageInfo) => {
+  getFromLocalStorage();
+  setCurrentPage(pageInfo?.page ?? 0);
+};
+
+const handlePageChange = async (pageIndex) => {
+  setCurrentPage(pageIndex);
+  await saleItemsBySeller();
+};
+
+const saleItemsBySeller = async (pageInfo) => {
+  try {
+    const userId = userStore.getUserInfo();
+    const response = await getSaleItemsBySeller(userId.id, {
+      page: pageInfo?.page ?? currentPage.value,
+      size: 10,
+    });
+    saveToLocalStorage();
+    if (response.error) {
+      throw new Error(response?.error);
+    }
+  } catch (error) {
+    hasError.value = error.message;
+  }
+};
 
 onMounted(async () => {
   try {
-    const response = await getAllSaleItems();
-    if (response.error) {
-      throw new Error(response.error);
-    }
-  } catch (e) {
-    hasError.value = e.message;
+    const { pageInfo } = getFromLocalStorage();
+    setDefaultStoreValues(pageInfo);
+    await saleItemsBySeller(pageInfo);
+  } catch (error) {
+    hasError.value = error.message;
   }
 });
 
@@ -29,7 +89,6 @@ onMounted(() => {
     showCreatedModal.value = true;
     notiStore.createSuccess = false;
   }
-
 });
 </script>
 
@@ -72,7 +131,13 @@ onMounted(() => {
         </label>
       </div>
     </div>
-    <SaleItemList :sale-items="saleItems" :has-error="hasError" />
+    <SaleItemList
+      v-if="saleItems || hasError"
+      :sale-items="saleItems?.content || null"
+      :has-error="hasError"
+      :page-info="{ ...saleItems, page: currentPage }"
+      @page-changed="handlePageChange"
+    />
 
     <MessageModal
       v-if="showCreatedModal"
@@ -81,27 +146,6 @@ onMounted(() => {
       :message="'The sale item has been successfully added.'"
       :type-modal="'text-success'"
     />
-
-    <!-- <div v-if="showCreatedModal" class="modal modal-open">
-      <div class="modal-box text-center">
-        <h3
-          class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
-        >
-          Successfully!
-        </h3>
-        <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-          The sale item has been successfully added.
-        </p>
-        <div class="itbms-button modal-action justify-center">
-          <button
-            @click="showCreatedModal = false"
-            class="btn btn-primary bg-purple-700"
-          >
-            OK
-          </button>
-        </div>
-      </div>
-    </div> -->
   </div>
 </template>
 

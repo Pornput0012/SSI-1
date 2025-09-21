@@ -2,6 +2,14 @@ const USER_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v2/users`;
 
+const AUTH_API_URL = `${
+  import.meta.env.VITE_URL_API || "/ssi1"
+}/itb-mshop/v2/auth`;
+
+const getAccessToken = () => {
+  return localStorage.getItem("accessToken");
+};
+
 const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
   try {
     const formData = new FormData();
@@ -28,7 +36,7 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
 
     formData.append("userType", userType);
 
-    const response = await fetch(`${USER_API_URL}/register`, {
+    const response = await fetch(`${AUTH_API_URL}/register`, {
       method: "POST",
       body: formData,
     });
@@ -53,14 +61,17 @@ const login = async (email, password) => {
       throw new Error("Please enter your email and password!");
     }
 
-    const response = await fetch(`${USER_API_URL}/authentications`, {
+    const response = await fetch(`${AUTH_API_URL}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
-      credentials: "include",
     });
+    const data = await response.json();
+    if (data.accessToken) {
+      localStorage.setItem("accessToken", data.accessToken);
+    }
 
     if (response.status === 200) {
       return { success: true };
@@ -80,21 +91,49 @@ const login = async (email, password) => {
   }
 };
 
-const getProfile = async () => {
+const getAccessTokenFromRefreshToken = async () => {
   try {
+    const response = await fetch(`${AUTH_API_URL}/refresh`, {
+      method: "GET",
+    });
+    const data = await response.json();
+    if (data.accessToken) {
+      localStorage.setItem("accessToken", data.accessToken);
+    }
+    Ï;
+
+    if (response.status != 200) {
+      throw new Error("get AccessToken not successful...");
+    }
+    return { ok: response.ok, accessToken: data.accessToken };
+  } catch (err) {
+    return { error: err };
+  }
+};
+
+const getProfile = async (retryCount = 0) => {
+  try {
+    console.log(getAccessToken() ? `Bearer ${getAccessToken()}` : "");
     const response = await fetch(USER_API_URL, {
       method: "GET",
-      credentials: "include",
+      headers: {
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
     });
-    if (response.status === 403) {
-      return {
-        logined: false,
-      };
+
+    if (response.status === 403 && retryCount < 1) {
+      localStorage.removeItem("accessToken");
+      const res = await getAccessTokenFromRefreshToken();
+      if (res.ok) {
+        return await getProfile(retryCount + 1);
+      }
+      return { logined: false };
     } else if (response.status != 200) {
       throw new Error(
         `Failed to get Profile. Server responded with status ${response.status}`
       );
     }
+
     const data = await response.json();
     return {
       logined: true,
@@ -108,4 +147,105 @@ const getProfile = async () => {
   }
 };
 
-export { createUser, login, getProfile };
+const getImageByFileName = async (fileName) => {
+  try {
+    if (!fileName) throw new Error("fileName is required.");
+    const response = await fetch(
+      `${import.meta.env.VITE_URL_API || "/ssi1"}/itb-mshop/users/${fileName}`,
+      {
+        mode: "cors",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP Error: ${response.status} - Failed to fetch image ${fileName}`
+      );
+    }
+
+    const data = await response.blob();
+    const url = URL.createObjectURL(data);
+
+    return url;
+  } catch (error) {
+    console.error(`Error fetching image ${fileName}:`, error);
+    return { error: error.message };
+  }
+};
+const getUserById = async (id) => {
+  try {
+    if (!id) throw new Error("User ID is required.");
+    const response = await fetch(`${USER_API_URL}/${id}`, {
+      method: "GET",
+      headers: {
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
+    });
+
+    const data = await response.json();
+
+    if (!data.id || !response.ok) {
+      throw new Error(`(${data.status || response.status}) ${data.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    return { error };
+  }
+};
+const logout = async () => {
+  try {
+    const response = await fetch(`${AUTH_API_URL}/logout`, {
+      method: "POST",
+      headers: {
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
+    });
+
+    if (response.ok) {
+      console.log("Success");
+      localStorage.removeItem("accessToken");
+      return { success: true };
+    }
+    throw new Error("logout fail");
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+const updateUserById = async (id, updateUser) => {
+  try {
+    if (!id) throw new Error("User ID is required.");
+    const response = await fetch(`${USER_API_URL}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
+      body: JSON.stringify(updateUser),
+    });
+
+    const data = await response.json();
+
+    if (!data.id || !response.ok) {
+      throw new Error(`(${data.status || response.status}) ${data.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    return { error };
+  }
+};
+
+export {
+  createUser,
+  login,
+  getProfile,
+  getImageByFileName,
+  getUserById,
+  logout,
+  updateUserById,
+};

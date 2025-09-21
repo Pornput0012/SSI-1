@@ -1,30 +1,49 @@
 <script setup>
+import { getProfile, logout } from "@/services/userService";
 import { useUserStore } from "@/stores/UserStore";
-import { computed, ref } from "vue";
-
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 const openHamburger = ref(false);
 
 function setOpenHamburger() {
-  openHamburger.value = !openHamburger.value;
+  openHamburger.value = !openHamburger.value
 }
-
+const router = useRouter();
 const userStore = useUserStore();
 const nickName = computed(() => userStore.getNickName());
+console.log(userStore.getUserInfo());
 
 const menu = [
   {
-    to: "home",
-    text: "Home",
+    to: 'home',
+    text: 'Home',
   },
   {
-    to: "sale-items",
-    text: "Sale Items",
+    to: 'sale-items',
+    text: 'Sale Items',
   },
   {
-    to: "brands",
-    text: "Manage Brand",
+    to: 'brands',
+    text: 'Manage Brand',
   },
 ];
+
+const handleLogout = async () => {
+  const res = await logout();
+  if (res.success) {
+    userStore.clearUserInfo();
+    router.push({ name: "home" });
+  } else {
+    alert("Logout Not Successful...");
+  }
+};
+
+onMounted(async () => {
+  const userInfo = await getProfile();
+  if (userInfo.logined) {
+    userStore.setUserInfo(userInfo?.data);
+  }
+});
 </script>
 
 <template>
@@ -39,20 +58,49 @@ const menu = [
           ITB MShop
         </RouterLink>
         <div class="flex items-center gap-2">
-          <RouterLink :to="{ name: 'register' }">
-            <button
-              class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
+          <div class="flex items-center gap-2" v-if="!nickName">
+            <router-link :to="{ name: 'register' }">
+              <button
+                class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
+              >
+                Register
+              </button>
+            </router-link>
+            <router-link
+              :to="{ name: 'signin' }"
+              class="btn btn-primary px-4 py-1"
+              >Login</router-link
             >
-              Register
-            </button>
-          </RouterLink>
-          <div class="border border-l-1 border-base-300"></div>
-          <router-link
-            :to="{ name: 'signin' }"
-            class="btn btn-primary px-4 py-1"
-            >Login</router-link
-          >
-          Hello, {{ nickName }}
+          </div>
+          <div v-if="nickName" class="flex items-center justify-center gap-4">
+            <p>Hello, {{ nickName }}</p>
+            <div class="dropdown dropdown-end">
+              <!-- Avatar button -->
+              <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+                <div class="w-10 rounded-full">
+                  <img
+                    src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+                    alt="User Avatar"
+                  />
+                </div>
+              </label>
+
+              <!-- Dropdown menu -->
+              <ul
+                tabindex="0"
+                class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 mt-2"
+              >
+                <li>
+                  <router-link :to="{ name: 'profile' }">Profile</router-link>
+                </li>
+                <li>
+                  <button @click="handleLogout" class="w-full text-left">
+                    Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -101,24 +149,12 @@ const menu = [
         ITB MShop</RouterLink
       >
     </div> -->
-    <div class="">
-      <button class="btn btn-ghost btn-circle">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
-      </button>
-      <button class="btn btn-ghost btn-circle">
+    <div class="dropdown dropdown-bottom dropdown-end">
+      <div
+        tabindex="0"
+        role="button"
+        class="btn btn-ghost btn-circle"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="h-5 w-5"
@@ -131,7 +167,14 @@ const menu = [
             clip-rule="evenodd"
           />
         </svg>
-      </button>
+      </div>
+      <ul
+        tabindex="0"
+        class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+      >
+        <RouterLink :to="{name: 'register'}"><li><a>Register</a></li></RouterLink>
+        <RouterLink :to="{name: 'signin'}"><li><a>Login</a></li></RouterLink>
+      </ul>
     </div>
   </div>
 
@@ -156,13 +199,13 @@ const menu = [
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Products</RouterLink
         >
-        <RouterLink
+        <!-- <RouterLink
           active-class="border-b-1"
           :to="{ name: 'signin' }"
           to="l"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Log in</RouterLink
-        >
+        > -->
       </div>
     </div>
   </div>
