@@ -178,7 +178,7 @@ watchEffect(() => {
               <p class="text-base-content/70 text-lg">
                 @{{ userInfo.nickName }}
               </p>
-              <div class="badge badge-primary badge-lg mt-2">
+              <div class="badge badge-primary badge-lg mt-2 itbms-type">
                 {{ userType === USER_TYPE.SELLER ? "Seller" : "Buyer" }}
               </div>
             </div>
@@ -201,7 +201,7 @@ watchEffect(() => {
                 v-model="formData.nickName"
                 type="text"
                 placeholder="กรอกชื่อผู้ใช้"
-                class="input input-bordered w-full"
+                class="input input-bordered w-full itbms-nickname"
                 required
               />
             </div>
@@ -215,7 +215,7 @@ watchEffect(() => {
                 v-model="formData.email"
                 type="email"
                 placeholder="กรอกอีเมล"
-                class="input input-bordered w-full text-black/40"
+                class="input input-bordered w-full text-black/40 itbms-email"
                 readonly
               />
             </div>
@@ -232,7 +232,7 @@ watchEffect(() => {
                 v-model="formData.fullName"
                 type="text"
                 placeholder="กรอกชื่อ-นามสกุล"
-                class="input input-bordered w-full"
+                class="input input-bordered w-full itbms-fullname"
                 required
               />
             </div>
@@ -256,7 +256,7 @@ watchEffect(() => {
                   v-model="formData.phoneNumber"
                   type="tel"
                   placeholder="กรอกหมายเลขโทรศัพท์"
-                  class="input input-bordered w-full text-black/40"
+                  class="input input-bordered w-full text-black/40 itbms-mobile"
                   readonly
                 />
               </div>
@@ -272,7 +272,7 @@ watchEffect(() => {
                   v-model="formData.bankName"
                   type="text"
                   placeholder="กรอกหมายเลขโทรศัพท์"
-                  class="input input-bordered w-full text-black/40"
+                  class="input input-bordered w-full text-black/40 itbms-bankName"
                   readonly
                 />
               </div>
@@ -288,7 +288,7 @@ watchEffect(() => {
                   v-model="formData.bankAccount"
                   type="text"
                   placeholder="กรอกหมายเลขบัญชีธนาคาร"
-                  class="input input-bordered w-full font-mono text-black/40"
+                  class="input input-bordered w-full font-mono text-black/40 itbms-bankAccount"
                   readonly
                 />
               </div>
@@ -316,13 +316,13 @@ watchEffect(() => {
           <!-- Form Actions (Bottom) -->
           <div class="mt-8 pt-6 border-t border-base-300">
             <div class="flex gap-3 justify-end">
-              <button @click="cancelEdit" :disabled="isSaving" class="btn w-30">
+              <button @click="cancelEdit" :disabled="isSaving" class="btn w-30 itbms-cancel-button">
                 cancel
               </button>
               <button
                 @click="handleSubmit"
                 :disabled="!enableSaveBtn || isSaving"
-                :class="['btn btn-primary w-30',{isSaving : 'cursor-not-allowed'}]"
+                :class="['btn btn-primary w-30',{isSaving : 'cursor-not-allowed'},'itbms-save-button']"
               >
                 <svg
                   v-if="isSaving"

@@ -73,7 +73,7 @@ onMounted(async () => {
             >
           </div>
           <div v-if="nickName" class="flex items-center justify-center gap-4">
-            <p>Hello, {{ nickName }}</p>
+            <p>Hello, <span class="itbms-nickname">{{ nickName }}</span></p>
             <div class="dropdown dropdown-end">
               <!-- Avatar button -->
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">
@@ -90,11 +90,11 @@ onMounted(async () => {
                 tabindex="0"
                 class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 mt-2"
               >
-                <li>
-                  <router-link :to="{ name: 'profile' }">Profile</router-link>
+                <li >
+                  <router-link class="itbms-profile" :to="{ name: 'profile' }">Profile</router-link>
                 </li>
                 <li>
-                  <button @click="handleLogout" class="w-full text-left">
+                  <button @click="handleLogout" class="w-full text-left itbms-logout">
                     Logout
                   </button>
                 </li>
