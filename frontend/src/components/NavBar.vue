@@ -11,7 +11,6 @@ function setOpenHamburger() {
 const router = useRouter();
 const userStore = useUserStore();
 const nickName = computed(() => userStore.getNickName());
-console.log(userStore.getUserInfo());
 
 const menu = [
   {

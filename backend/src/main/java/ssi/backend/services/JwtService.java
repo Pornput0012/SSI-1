@@ -114,7 +114,7 @@ public class JwtService {
     }
 
     // ================== REFRESH TOKEN ==================
-    public String generateRefreshToken(Integer userId, String email,String role) throws JOSEException {
+    public String generateRefreshToken(Integer userId, String email,String role,String nickName) throws JOSEException {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + REFRESH_TOKEN_EXP);
 
@@ -125,6 +125,7 @@ public class JwtService {
                 .expirationTime(expiryDate)
                 .claim("id", userId)
                 .claim("role", role)
+                .claim("nickName", nickName)
                 .build();
 
         SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
@@ -175,9 +176,9 @@ public class JwtService {
 
         SignedJWT signedJWT = SignedJWT.parse(refreshToken);
         Integer userId = ((Long) signedJWT.getJWTClaimsSet().getClaim("id")).intValue();
-        String email = signedJWT.getJWTClaimsSet().getClaim("email").toString();
+        String email = signedJWT.getJWTClaimsSet().getSubject();
         String role = signedJWT.getJWTClaimsSet().getClaim("role").toString();
-        String nickname = signedJWT.getJWTClaimsSet().getClaim("nickname").toString();
+        String nickname = signedJWT.getJWTClaimsSet().getClaim("nickName").toString();
 
         return generateAccessToken(userId, nickname, email, role);
     }

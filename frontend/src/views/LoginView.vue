@@ -135,7 +135,7 @@ const loginSuccess = async () => {
   if (userInfo.logined) {
     userStore.setUserInfo(userInfo?.data);
   }
-  router.push({ name: "sale-items" });
+  router.push({ name: "sale-items-list" });
 };
 </script>
 
