@@ -31,6 +31,7 @@ const handleLogin = async () => {
       loginSuccess();
       console.log("Login success!");
     } else {
+      disableSaveBtn.value = false;
       throw new Error(response.error);
     }
   } catch (error) {

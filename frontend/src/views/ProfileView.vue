@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, watchEffect } from "vue";
 import { useUserStore } from "@/stores/UserStore";
 import { getImageByFileName, getUserById } from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
 
 const USER_TYPE = {
   SELLER: "SELLER",
@@ -51,13 +52,22 @@ const showUpdatedModal = computed(() => {
 
 const closeModal = () => {
   notiStore.updateSuccess = false;
-}
-
+};
 </script>
 
 <template>
   <div class="min-h-screen bg-base-200 py-8">
     <div class="container mx-auto px-4 max-w-4xl">
+      <Breadcrumbs
+        :crumbs="[
+          { label: 'Profile', class: 'itbms-profile', name: 'profile' },
+        ]"
+        :home="{
+          label: 'Home',
+          name: 'sale-items',
+          class: 'itbms-home',
+        }"
+      />
       <!-- Header -->
       <div
         class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"
@@ -66,7 +76,10 @@ const closeModal = () => {
           <h1 class="text-3xl font-bold text-base-content">โปรไฟล์</h1>
           <p class="text-base-content/70 mt-1">จัดการข้อมูลส่วนตัวของคุณ</p>
         </div>
-        <router-link :to="{name:'EditProfile'}" class="btn btn-primary gap-2 min-w-fit">
+        <router-link
+          :to="{ name: 'EditProfile' }"
+          class="btn btn-primary gap-2 min-w-fit itbms-profile-button"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="h-4 w-4"
@@ -111,10 +124,10 @@ const closeModal = () => {
               <h2 class="text-2xl font-bold text-base-content">
                 {{ userInfo.fullName }}
               </h2>
-              <p class="text-base-content/70 text-lg">
+              <p class=" text-base-content/70 text-lg">
                 @{{ userInfo.nickName }}
               </p>
-              <div class="badge badge-primary badge-lg mt-2">
+              <div class="badge badge-primary badge-lg mt-2 itbms-type">
                 {{ userType === USER_TYPE.SELLER ? "Seller" : "Buyer" }}
               </div>
             </div>
@@ -133,7 +146,7 @@ const closeModal = () => {
                   >ชื่อผู้ใช้ (nickname)</span
                 >
               </label>
-              <div class="p-3 bg-base-200 rounded-lg">
+              <div class="itbms-nickname p-3 bg-base-200 rounded-lg">
                 {{ userInfo.nickName }}
               </div>
             </div>
@@ -143,7 +156,7 @@ const closeModal = () => {
               <label class="label">
                 <span class="label-text font-semibold">อีเมล (email)</span>
               </label>
-              <div class="p-3 bg-base-200 rounded-lg">
+              <div class="itbms-email p-3 bg-base-200 rounded-lg">
                 {{ userInfo.email }}
               </div>
             </div>
@@ -155,7 +168,7 @@ const closeModal = () => {
                   >ชื่อ-นามสกุล (fullname)</span
                 >
               </label>
-              <div class="p-3 bg-base-200 rounded-lg">
+              <div class="itbms-fullname p-3 bg-base-200 rounded-lg">
                 {{ userInfo.fullName }}
               </div>
             </div>
@@ -175,7 +188,7 @@ const closeModal = () => {
                     >หมายเลขโทรศัพท์มือถือ (phone)</span
                   >
                 </label>
-                <div class="p-3 bg-base-200 rounded-lg">
+                <div class="p-3 bg-base-200 rounded-lg itbms-mobile">
                   {{ formatNumber(userInfo.phoneNumber) }}
                 </div>
               </div>
@@ -187,7 +200,7 @@ const closeModal = () => {
                     >ชื่อธนาคาร (bankName)</span
                   >
                 </label>
-                <div class="p-3 bg-base-200 rounded-lg">
+                <div class="p-3 bg-base-200 rounded-lg itbms-bankName">
                   {{ userInfo.bankName }}
                 </div>
               </div>
@@ -199,7 +212,7 @@ const closeModal = () => {
                     >หมายเลขบัญชีธนาคาร (bankAccount)</span
                   >
                 </label>
-                <div class="p-3 bg-base-200 rounded-lg font-mono">
+                <div class="p-3 bg-base-200 rounded-lg font-mono itbms-bankAccount">
                   {{ formatNumber(userInfo.bankAccount) }}
                 </div>
               </div>
@@ -212,7 +225,7 @@ const closeModal = () => {
                   >
                 </label>
                 <div class="p-3 bg-base-200 rounded-lg font-mono">
-                  {{formatNumber( userInfo.nationalIdNumber )}}
+                  {{ formatNumber(userInfo.nationalIdNumber) }}
                 </div>
               </div>
             </div>
@@ -281,7 +294,7 @@ const closeModal = () => {
     <div class="modal-box text-center">
       <h3 class="font-bold text-success">Successfully!</h3>
       <p class="py-4 itbms-message">
-        "The user account has been successfully updated." 
+        "The user account has been successfully updated."
       </p>
       <div class="itbms-button modal-action justify-center">
         <button @click="closeModal" class="btn btn-primary">OK</button>
