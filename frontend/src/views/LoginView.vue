@@ -298,6 +298,7 @@ const loginSuccess = async () => {
         <button
           type="submit"
           :disabled="disableSaveBtn || onSubmit"
+          class="itbms-signin-button"
           :class="[
             disableSaveBtn || onSubmit
               ? 'flex items-center justify-center gap-2 w-full text-white py-3 px-4 rounded-lg font-medium  cursor-not-allowed bg-gray-300 '

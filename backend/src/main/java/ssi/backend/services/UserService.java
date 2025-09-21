@@ -110,6 +110,7 @@ public class UserService {
                                 + "/verify-email?jwtToken=" + token
                                 + "\n\nขอบคุณที่เข้าร่วมกับเรา!"
                 );
+
             } catch (Exception e) {
                 System.err.println("❌ ส่งอีเมลไปยัง " + savedUser.getUserType() + " ไม่สำเร็จ: " + e.getMessage());
             }
