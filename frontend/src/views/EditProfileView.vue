@@ -198,7 +198,7 @@ watchEffect(() => {
                 >
               </label>
               <input
-                v-model="formData.nickName"
+                v-model.trim="formData.nickName"
                 type="text"
                 placeholder="กรอกชื่อผู้ใช้"
                 class="input input-bordered w-full itbms-nickname"
@@ -229,7 +229,7 @@ watchEffect(() => {
                 >
               </label>
               <input
-                v-model="formData.fullName"
+                v-model.trim="formData.fullName"
                 type="text"
                 placeholder="กรอกชื่อ-นามสกุล"
                 class="input input-bordered w-full itbms-fullname"
