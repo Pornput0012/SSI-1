@@ -60,7 +60,7 @@ const closeModal = () => {
     <div class="container mx-auto px-4 max-w-4xl">
       <Breadcrumbs
         :crumbs="[
-          { label: 'Profile', class: 'itbms-profile', name: 'profile' },
+          { label: 'Profile', class: '', name: 'profile' },
         ]"
         :home="{
           label: 'Home',
