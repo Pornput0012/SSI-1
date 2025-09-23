@@ -30,16 +30,16 @@ const originalFormData = ref(null);
 const formatNumber = (data) => {
   if (!data) return "";
 
-  const visibleCount = 3;
-
-  const start = Math.max(0, data.length - (visibleCount + 1));
-  const maskedPart = "x".repeat(start);
-  const middlePart = data.slice(start, data.length - 1);
-
-  const lastDigit = "x";
-
-  return maskedPart + middlePart + lastDigit;
+  const visibleCount = 3; 
+  const hiddenCount = data.length - visibleCount - 1; 
+  
+  const maskedPart = "x".repeat(hiddenCount); 
+  const visiblePart = data.slice(-visibleCount - 1, -1); 
+  
+  const lastDigit = "x"; 
+  return maskedPart + visiblePart + lastDigit;
 };
+
 
 const formData = ref({
   nickName: userInfo.value?.nickName || "",

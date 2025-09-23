@@ -59,9 +59,7 @@ const closeModal = () => {
   <div class="min-h-screen bg-base-200 py-8">
     <div class="container mx-auto px-4 max-w-4xl">
       <Breadcrumbs
-        :crumbs="[
-          { label: 'Profile', class: '', name: 'profile' },
-        ]"
+        :crumbs="[{ label: 'Profile', class: '', name: 'profile' }]"
         :home="{
           label: 'Home',
           name: 'sale-items',
@@ -124,7 +122,7 @@ const closeModal = () => {
               <h2 class="text-2xl font-bold text-base-content">
                 {{ userInfo.fullName }}
               </h2>
-              <p class=" text-base-content/70 text-lg">
+              <p class="text-base-content/70 text-lg">
                 @{{ userInfo.nickName }}
               </p>
               <div class="badge badge-primary badge-lg mt-2 itbms-type">
@@ -146,9 +144,7 @@ const closeModal = () => {
                   >ชื่อผู้ใช้ (nickname)</span
                 >
               </label>
-              <div class="itbms-nickname p-3 bg-base-200 rounded-lg">
-                {{ userInfo.nickName }}
-              </div>
+              <input class="itbms-nickname p-3 bg-base-200 rounded-lg" :value="userInfo.nickName" />
             </div>
 
             <!-- Email -->
@@ -212,7 +208,9 @@ const closeModal = () => {
                     >หมายเลขบัญชีธนาคาร (bankAccount)</span
                   >
                 </label>
-                <div class="p-3 bg-base-200 rounded-lg font-mono itbms-bankAccount">
+                <div
+                  class="p-3 bg-base-200 rounded-lg font-mono itbms-bankAccount"
+                >
                   {{ formatNumber(userInfo.bankAccount) }}
                 </div>
               </div>
