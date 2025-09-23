@@ -48,6 +48,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 JWSVerifier verifier = new MACVerifier(jwtProperties.getSecretAccess().getBytes(StandardCharsets.UTF_8));
 
                 Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+
+
                 if (!signedJWT.verify(verifier) || expirationTime == null || new Date().after(expirationTime)) {
                     sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token");
                     return;

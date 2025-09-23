@@ -269,6 +269,12 @@ public class ProductService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Integer userId = id != null ? id : (Integer) authentication.getDetails();
 
+        if (id != null && userId != null) {
+            System.out.println("Hi"+ id);
+        }
+        if (product.getBrandId() == null) {
+            System.out.println("most" + product.getBrandId());
+        }
         System.out.println("userId = " + userId);
         if (images != null && images.size() > 4) {
             throw new BadRequestException("Images Size Exceeded");
@@ -277,15 +283,21 @@ public class ProductService {
                 .orElseThrow(
                         () -> new ItemNotFoundException("Brand id " + product.getBrandId() + " does not exist"));
 
+        System.out.println("existingBrand = " + existingBrand.getId());
         Product creatingProduct = modelMapper.map(product, Product.class);
         creatingProduct.setBrand(existingBrand);
         creatingProduct.setId(null);
         User seller = userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("User id " + userId + " does not exist"));
         creatingProduct.setSeller(seller);
-
+        System.out.println(seller.getId());
+        System.out.println(creatingProduct.getId());
         Product prodRes = productRepository.save(creatingProduct);
         if (images != null && !images.isEmpty()) {
             fileService.saveFile(images, prodRes);
+        }
+
+        if (prodRes !=null) {
+            System.out.println("huay");
         }
 
         productRepository.flush();

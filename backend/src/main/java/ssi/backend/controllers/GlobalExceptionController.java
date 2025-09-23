@@ -34,11 +34,16 @@ public class GlobalExceptionController {
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponseDTO handleException(RuntimeException exception, WebRequest request) {
+        // อย่าจับ AccessDeniedException
+        if (exception instanceof org.springframework.security.access.AccessDeniedException) {
+            throw exception; // ให้ Spring Security handle → 403
+        }
         return new ErrorResponseDTO(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Validation failed",
                 request.getDescription(false));
     }
+
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
