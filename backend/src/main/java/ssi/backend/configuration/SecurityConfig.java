@@ -20,9 +20,11 @@ import ssi.backend.services.JwtService;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
     private final JwtService jwtService;
+    private final JwtProperties jwtProperties;
 
-    public SecurityConfig(JwtService jwtService) {
+    public SecurityConfig(JwtService jwtService,JwtProperties jwtProperties) {
         this.jwtService = jwtService;
+        this.jwtProperties = jwtProperties;
     }
 
     @Bean
@@ -37,7 +39,7 @@ public class SecurityConfig {
 //                        .requestMatchers(HttpMethod.DELETE, "/v2/sale-items/**").authenticated()
                         .anyRequest().permitAll()
                 )
-                .addFilterBefore(new JwtAuthFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthFilter(jwtService,jwtProperties), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

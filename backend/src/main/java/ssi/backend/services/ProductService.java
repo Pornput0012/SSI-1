@@ -265,9 +265,11 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductItemResponseDtoV2 createProductSeller(ProductItemRequestDtoV2 product, List<MultipartFile> images) throws ParseException, JOSEException {
+    public ProductItemResponseDtoV2 createProductSeller(ProductItemRequestDtoV2 product, List<MultipartFile> images, Integer id) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Integer userId = (Integer) authentication.getDetails();
+        Integer userId = id != null ? id : (Integer) authentication.getDetails();
+
+        System.out.println("userId = " + userId);
         if (images != null && images.size() > 4) {
             throw new BadRequestException("Images Size Exceeded");
         }
@@ -485,7 +487,7 @@ public class ProductService {
         Integer userId = (Integer) authentication.getDetails();
 
         if ( !userId.equals(sellerId)) {
-            throw new UnauthorizedException("Request seller id not matched with id in access token.");
+            throw new ForbiddenException("Request seller id not matched with id in access token.");
         }
 
         // 2. Check user exists and is active

@@ -87,14 +87,15 @@ public class UserController {
                 String accessToken = jwtService.generateAccessToken(user.getId(), user.getNickname(), user.getEmail(), user.getUserType());
                 String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail(), user.getUserType(), user.getNickname());
 
-                ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+                ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
                         .httpOnly(true)
                         .maxAge(REFRESH_TOKEN_EXP)
                         .path("/")
+                        .sameSite("Strict")
                         .build();
 
                 AccessTokenDTO dtoResponse = new AccessTokenDTO();
-                dtoResponse.setAccessToken(accessToken);
+                dtoResponse.setAccess_token(accessToken);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
@@ -109,12 +110,12 @@ public class UserController {
 
 
     @PostMapping("/v2/auth/refresh")
-    public ResponseEntity<AccessTokenDTO> getAccessTokenFromRefreshToken(@CookieValue(name = "refreshToken", required = false) String refreshToken) throws JOSEException, ParseException {
+    public ResponseEntity<AccessTokenDTO> getAccessTokenFromRefreshToken(@CookieValue(name = "refresh_token", required = false) String refreshToken) throws JOSEException, ParseException {
         jwtService.validateRefreshToken(refreshToken);
 
         String accessToken = jwtService.getAccessTokenFromRefreshToken(refreshToken);
         AccessTokenDTO dtoResponse = new AccessTokenDTO();
-        dtoResponse.setAccessToken(accessToken);
+        dtoResponse.setAccess_token(accessToken);
 
         return ResponseEntity.ok(dtoResponse);
     }
@@ -122,10 +123,11 @@ public class UserController {
 
     @PostMapping("/v2/auth/logout")
     public ResponseEntity<Object> logoutUser() {
-        ResponseCookie deleteRefreshToken = ResponseCookie.from("refreshToken", "")
+        ResponseCookie deleteRefreshToken = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .path("/")
                 .maxAge(0)
+                .sameSite("Strict")
                 .build();
 
         return ResponseEntity

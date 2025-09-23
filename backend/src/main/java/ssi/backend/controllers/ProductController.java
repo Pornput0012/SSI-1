@@ -111,7 +111,7 @@ public class ProductController {
             @Valid @ModelAttribute ProductItemRequestDtoV2 product,
             @RequestParam(required = false) List<MultipartFile> images) throws ParseException, JOSEException {
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProductSeller(product, images));
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProductSeller(product, images,null));
     }
 
     @GetMapping("/sale-items/{fileName:.+}")
@@ -145,6 +145,16 @@ public class ProductController {
                 sortDirection);
         return ResponseEntity.ok(saleItemPageDto);
 
-    }}
+    }
+
+    @PreAuthorize("hasRole('SELLER')")
+    @PostMapping("/v2/sellers/{id}/sale-items")
+    public ResponseEntity<ProductItemResponseDtoV2> createProductSeller(
+            @PathVariable(value = "id", required = false) Integer sellerId ,@Valid @ModelAttribute ProductItemRequestDtoV2 product,
+            @RequestParam(required = false) List<MultipartFile> images) throws ParseException, JOSEException {
+        System.out.println(sellerId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProductSeller(product, images, sellerId));
+    }
+}
 
 
