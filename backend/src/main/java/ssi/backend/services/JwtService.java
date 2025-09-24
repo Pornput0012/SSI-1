@@ -88,6 +88,7 @@ public class JwtService {
                 .claim("id", userId)
                 .claim("email", email)
                 .claim("role", role)
+                .issuer("https://int24proj.sit.kmutt.ac.th/ssi1/")
                 .build();
 
         SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
@@ -126,6 +127,7 @@ public class JwtService {
                 .claim("id", userId)
                 .claim("role", role)
                 .claim("nickName", nickName)
+                .issuer("https://int24proj.sit.kmutt.ac.th/ssi1/")
                 .build();
 
         SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
