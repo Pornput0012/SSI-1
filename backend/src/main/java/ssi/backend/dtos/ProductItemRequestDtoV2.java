@@ -19,7 +19,6 @@ public class ProductItemRequestDtoV2 {
     @Size(max = 60)
     private String model;
 
-
     private Integer brandId;
 
     @NotNull(message = "Description is required")
