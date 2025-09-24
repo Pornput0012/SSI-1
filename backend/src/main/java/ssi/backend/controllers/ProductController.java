@@ -152,7 +152,6 @@ public class ProductController {
     public ResponseEntity<ProductItemResponseDtoV2> createProductSeller(
             @PathVariable(value = "id", required = false) Integer sellerId ,@Valid @ModelAttribute ProductItemRequestDtoV2 product,
             @RequestParam(required = false) List<MultipartFile> images) throws ParseException, JOSEException {
-        System.out.println(sellerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProductSeller(product, images, sellerId));
     }
 }

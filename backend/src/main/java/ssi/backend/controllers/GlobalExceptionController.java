@@ -1,6 +1,7 @@
 package ssi.backend.controllers;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -35,7 +36,7 @@ public class GlobalExceptionController {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponseDTO handleException(RuntimeException exception, WebRequest request) {
         // อย่าจับ AccessDeniedException
-        if (exception instanceof org.springframework.security.access.AccessDeniedException) {
+        if (exception instanceof AccessDeniedException) {
             throw exception; // ให้ Spring Security handle → 403
         }
         return new ErrorResponseDTO(
