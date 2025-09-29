@@ -56,7 +56,7 @@ const decreaseQty = (index) => {
           >
             <input
               type="checkbox"
-              class="checkbox checkbox-primary"
+              class="checkbox checkbox-primary itbms-select-all"
               v-model="selectAll"
               @change="toggleSelectAll"
             />
@@ -64,16 +64,16 @@ const decreaseQty = (index) => {
           </div>
 
           <div>
-            <div class="flex flex-col mt-4 bg-white w-full p-4 rounded-xl">
+            <div class="flex flex-col mt-4 bg-white w-full p-4 rounded-xl itbms-row">
               <!-- ร้านค้า -->
               <div class="flex gap-3 items-center text-md">
                 <input
                   type="checkbox"
                   v-model="selectAll"
-                  class="checkbox checkbox-primary"
+                  class="checkbox checkbox-primary itbms-select-nickname"
                   @change="toggleSelectAll"
                 />
-                <p class="font-bold">{{ "Apple Official Store" }}</p>
+                <p class="font-bold itbms-nickname">{{ "Apple Official Store" }}</p>
               </div>
               <hr class="my-3 text-base-300" />
 
@@ -81,7 +81,7 @@ const decreaseQty = (index) => {
               <div
                 v-for="(item, index) in carts"
                 :key="item.id"
-                class="flex items-center justify-between mb-6"
+                class="flex items-center justify-between mb-6 itbms-item-row"
               >
                 <div class="flex items-center gap-6">
                   <input
@@ -96,19 +96,19 @@ const decreaseQty = (index) => {
                   />
                 </div>
 
-                <span class="product-name w-40">{{ item.name }}</span>
+                <span class="itbms-item-description w-40">{{ item.name }}</span>
 
                 <div class="quantity flex items-center gap-2">
-                  <button class="btn btn-sm" @click="decreaseQty(index)">
+                  <button class="btn btn-sm itbms-dec-qty-button" @click="decreaseQty(index)">
                     -
                   </button>
-                  <span>{{ item.quantity }}</span>
-                  <button class="btn btn-sm" @click="increaseQty(index)">
+                  <span class="itbms-item-quantity">{{ item.quantity }}</span>
+                  <button class="btn btn-sm itbms-inc-qty-button" @click="increaseQty(index)">
                     +
                   </button>
                 </div>
 
-                <span class="price font-bold text-blue-600">
+                <span class="price font-bold text-blue-600 itbms-item-total-price">
                   {{ item.price * item.quantity }} ฿
                 </span>
               </div>
