@@ -237,7 +237,7 @@ onMounted(() => {
                 }"
               >
                 <span class="itbms-ramGb"
-                  >{{ selectSaleItem.ramGb || "-" }}
+                  >{{ selectSaleItem.ramGb}}
                 </span>
                 <span class="itbms-ramGb-unit">GB</span>
               </span>
