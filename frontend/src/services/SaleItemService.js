@@ -119,9 +119,7 @@ const getImageByFileName = async (fileName) => {
   try {
     if (!fileName) throw new Error("fileName is required.");
     const response = await fetch(
-      `${
-        import.meta.env.VITE_URL_API || "/ssi1"
-      }/itb-mshop/sale-items/${fileName}`,
+      `${import.meta.env.VITE_URL_API || "/ssi1"}/itb-mshop/sale-items/${fileName}`,
       {
         mode: "cors",
       }

@@ -48,34 +48,18 @@ const selectSellerState = computed(() => {
   });
 });
 
-// const selectProductState = computed(() => {
-//   return carts.value.forEach((ele, i) => {
-//      ele?.cart.every((ele2) => {
-//       return ele2.checked === true;
-//     });
-//   });
-// });
-
-// console.log(selectProductState.value);
-
-
 watchEffect(() => {
-  carts.value.forEach((ele, i) => {
-    console.log(ele);
+   carts.value.filter((cart,i) => {
 
-    carts.value[i].checkAll = ele?.cart.every((ele2) => {
+    carts.value[i].checkAll = cart?.cart.every((ele2) => {
+      
       return ele2.checked === true;
     });
+    console.log(i + "index : "+ carts.value[i].checkAll);
+  })
 
-    console.log(carts.value[i].checkAll);
-
-    console.log(
-      ele?.cart.every((ele2) => {
-        return ele2.checked === true;
-      })
-    );
-  });
-});
+ 
+}) ;
 
 const totalPrice = computed(() => {
   return itemSelected.value.reduce(
@@ -130,18 +114,18 @@ const decreaseQty = (item) => {
 
           <div>
             <div
-              v-for="cart in carts"
+              v-for="(cart,i) in carts"
               class="flex flex-col mt-4 bg-white w-full p-4 rounded-xl itbms-row"
             >
-            
               <!-- ร้านค้า -->
               <div class="flex gap-3 items-center text-md">
                 <input
                   type="checkbox"
-                  :checked=" selectAll"
+                  :checked="cart.checkAll || selectAll"
                   @change="cart.checkAll = !cart.checkAll"
                   class="checkbox checkbox-primary itbms-select-nickname"
                 />
+                
                 <p class="font-bold itbms-nickname">
                   {{ cart.productSellerName }}
                 </p>

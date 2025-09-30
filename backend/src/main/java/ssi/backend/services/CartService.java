@@ -42,6 +42,8 @@ public class CartService {
     private ListMapper listMapper;
     @Autowired
     private Validator validator;
+    @Autowired
+    private SaleItemImageService saleItemImageService;
 
     public List<CartResponseDto> getAllCartById(int userId) {
 //        if () {
@@ -75,6 +77,7 @@ public class CartService {
 
 
     public CartResponseSubDto addToCart(CartRequestDto cartRequestDto) {
+        SaleItemImage saleItemImage = saleItemImageService.findSaleItemImageByNameV2( cartRequestDto.getImageFileName());
         User existingUser = userRepository.findById(cartRequestDto.getUserId())
                 .orElseThrow(() -> new ItemNotFoundException("User id " + cartRequestDto.getUserId() + " does not exist"));
         ;
@@ -87,16 +90,21 @@ public class CartService {
                         () -> new ItemNotFoundException("Brand id " + existingProduct.getBrand().getId() + " does not exist"));
 
 
-        SaleItemImage image = fileService.findSaleItemImage(cartRequestDto.getImageId());
-        Boolean imageExist = fileService.fileExists(existingProduct, fileService.findSaleItemImage(cartRequestDto.getImageId()).getFileName());
-
-
         Cart saveCart = new Cart();
         saveCart.setId(null);
         saveCart.setUser(existingUser);
         saveCart.setProduct(existingProduct);
-        saveCart.setImage(image);
-        saveCart.setQuantity(existingProduct.getQuantity());
+        saveCart.setQuantity(cartRequestDto.getQuantity());
+
+        if (saleItemImage == null) {
+            saveCart.setImage(null);
+        }
+        else {
+        SaleItemImage image = saleItemImageService.findSaleItemImage(saleItemImage.getId());
+        Boolean imageExist = fileService.fileExists(existingProduct, saleItemImageService.findSaleItemImage(saleItemImage.getId()).getFileName());
+        saveCart.setImage(image);}
+
+
 
         return modelMapper.map(cartRepository.save(saveCart), CartResponseSubDto.class);
     }
