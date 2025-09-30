@@ -85,10 +85,10 @@ onMounted(async () => {
 const notiStore = useNotiStore();
 const showCreatedModal = ref(false);
 onMounted(() => {
-  if (notiStore.createSuccess) {
-    showCreatedModal.value = true;
-    notiStore.createSuccess = false;
-  }
+  // if (notiStore.loginUserSuccess) { 
+  //   showCreatedModal.value = true;
+  //   notiStore.loginUserSuccess = false;
+  // }
 });
 </script>
 

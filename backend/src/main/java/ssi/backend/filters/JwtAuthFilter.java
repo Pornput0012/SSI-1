@@ -36,6 +36,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/itb-mshop/v2/auth/**");
+    }
+
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
@@ -51,7 +58,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 
                 if (!signedJWT.verify(verifier) || expirationTime == null || new Date().after(expirationTime)) {
-                    sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token");
+                    System.out.println("Login Failure");
+                    sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token 1");
                     return;
                 }
 
@@ -70,11 +78,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 auth.setDetails(accessTokenClaim.getUserId());
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (JOSEException | ParseException e) {
-                sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token");
+                sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token 2");
                 return;
             }
         } else if(header != null){
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token");
+            System.out.println(header);
+            System.out.println(header.length());
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token 3");
             return;
         }
 

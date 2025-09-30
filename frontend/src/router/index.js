@@ -14,6 +14,7 @@ import LoginView from "@/views/LoginView.vue";
 import ProfileView from "@/views/ProfileView.vue";
 import EditProfileView from "@/views/EditProfileView.vue";
 import { useUserStore } from "@/stores/UserStore";
+import CartView from "@/views/CartView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -94,28 +95,41 @@ const router = createRouter({
       component: EditProfileView,
       name: "EditProfile",
     },
+    {
+      path: "/cart",
+      component: CartView,
+      name: "cart",
+      meta: { requiresAuth: true },
+    },
   ],
 });
 
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-
-  if (to.meta.requiresAuth) {
+  try {
     await userStore.waitForUser();
-    const isLoggedIn = userStore.hasInfo();
-    const userType = userStore.getUserType()?.toUpperCase();
+  } catch (error) {
+    console.log(error);
+    
+  } finally {
+    if (to.meta.requiresAuth) {
+      const isLoggedIn = userStore.hasInfo();
+      console.log(isLoggedIn);
 
-    if (!isLoggedIn) {
-      next({ name: "signin" });
-    } else if (
-      to.meta.role?.toUpperCase() === "SELLER" &&
-      userType !== "SELLER"
-    ) {
-      next({ name: "sale-items" });
+      const userType = userStore.getUserType()?.toUpperCase();
+
+      if (!isLoggedIn) {
+        next({ name: "signin" });
+      } else if (
+        to.meta.role?.toUpperCase() === "SELLER" &&
+        userType !== "SELLER"
+      ) {
+        next({ name: "sale-items" });
+      }
     }
-  }
 
-  next();
+    next();
+  }
 });
 
 export default router;

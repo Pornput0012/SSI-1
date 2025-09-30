@@ -1,0 +1,237 @@
+<script setup>
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { getAllCart } from "@/services/CartService";
+import { useCartStore } from "@/stores/CartStore";
+import { useUserStore } from "@/stores/UserStore";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+
+const userStore = useUserStore();
+const cartStore = useCartStore();
+const userId = computed(() => userStore.getUserId());
+// Mockup ข้อมูลสินค้า
+const carts = ref([]);
+
+const hasError = ref("");
+
+onMounted(async () => {
+  try {
+    console.log(userId.value);
+
+    const response = await getAllCart(userId.value);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    carts.value = response?.map((ele) => {
+      return {
+        ...ele,
+        checkAll: false,
+      };
+    });
+  } catch (error) {
+    hasError.value = error.message;
+  }
+});
+
+const selectAll = ref(false);
+
+const itemSelected = computed(() => {
+  return carts.value.flatMap((cart) =>
+    cart.cart.filter((item) => item.checked)
+  );
+});
+
+const selectSellerState = computed(() => {
+  return carts.value.every((item) => {
+    return item.checkAll === true;
+  });
+});
+
+// const selectProductState = computed(() => {
+//   return carts.value.forEach((ele, i) => {
+//      ele?.cart.every((ele2) => {
+//       return ele2.checked === true;
+//     });
+//   });
+// });
+
+// console.log(selectProductState.value);
+
+
+watchEffect(() => {
+  carts.value.forEach((ele, i) => {
+    console.log(ele);
+
+    carts.value[i].checkAll = ele?.cart.every((ele2) => {
+      return ele2.checked === true;
+    });
+
+    console.log(carts.value[i].checkAll);
+
+    console.log(
+      ele?.cart.every((ele2) => {
+        return ele2.checked === true;
+      })
+    );
+  });
+});
+
+const totalPrice = computed(() => {
+  return itemSelected.value.reduce(
+    (sum, item) => sum + item.productPrice * item.quantity,
+    0
+  );
+});
+
+// เพิ่ม/ลดจำนวน
+const updateQuantity = (item, newQuantity) => {
+  // ป้องกันไม่ให้ quantity น้อยกว่า 1
+  item.quantity = Math.max(1, newQuantity);
+};
+
+const increaseQty = (item) => {
+  updateQuantity(item, item.quantity + 1);
+};
+
+const decreaseQty = (item) => {
+  updateQuantity(item, item.quantity - 1);
+};
+</script>
+
+<template>
+  <Breadcrumbs :crumbs="[{ label: 'Cart' }]" />
+  <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
+    <div
+      v-if="!cartStore.carts && hasError !== '' && hasError"
+      class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-red-100 border-1 border-red-300"
+    >
+      <p class="text-red-500 font-extralight">{{ hasError }}</p>
+    </div>
+    <!-- Header Section -->
+    <div class="w-full flex flex-col lg:flex-row justify-between items-center">
+      <div class="w-full flex justify-between">
+        <div class="w-full mx-8">
+          <h1 class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
+            Shopping Cart ({{ carts.length }})
+          </h1>
+
+          <div
+            class="flex gap-3 items-center text-md mt-4 bg-white w-full p-4 rounded-xl"
+          >
+            <input
+              type="checkbox"
+              class="checkbox checkbox-primary itbms-select-all"
+              v-model="selectAll"
+              :checked="selectSellerState"
+            />
+            Select All
+          </div>
+
+          <div>
+            <div
+              v-for="cart in carts"
+              class="flex flex-col mt-4 bg-white w-full p-4 rounded-xl itbms-row"
+            >
+            
+              <!-- ร้านค้า -->
+              <div class="flex gap-3 items-center text-md">
+                <input
+                  type="checkbox"
+                  :checked=" selectAll"
+                  @change="cart.checkAll = !cart.checkAll"
+                  class="checkbox checkbox-primary itbms-select-nickname"
+                />
+                <p class="font-bold itbms-nickname">
+                  {{ cart.productSellerName }}
+                </p>
+              </div>
+              <hr class="my-3 text-base-300" />
+
+              <!-- รายการสินค้าในร้าน -->
+              <div
+                v-for="item in cart.cart"
+                :key="item.id"
+                class="flex items-center justify-between mb-6 itbms-item-row"
+              >
+                <div class="flex items-center gap-6">
+                  <input
+                    type="checkbox"
+                    v-model="item.checked"
+                    :checked="selectAll || cart.checkAll"
+                    class="checkbox checkbox-primary"
+                  />
+                  <img
+                    src="../assets/bg.jpg"
+                    class="w-16 aspect-square"
+                    alt=""
+                  />
+                </div>
+
+                <span class="itbms-item-description w-40">{{
+                  item.productModel
+                }}</span>
+
+                <div class="quantity flex items-center gap-2">
+                  <button
+                    class="btn btn-sm itbms-dec-qty-button"
+                    @click="decreaseQty(item)"
+                  >
+                    -
+                  </button>
+
+                  <span class="itbms-item-quantity">{{ item.quantity }}</span>
+                  <button
+                    class="btn btn-sm itbms-inc-qty-button"
+                    @click="increaseQty(item)"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <span
+                  class="price font-bold text-blue-600 itbms-item-total-price"
+                >
+                  {{ item.productPrice * item.quantity }} ฿
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="flex flex-col h-fit bg-white w-80 p-4 rounded-xl">
+          <div>
+            <p class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
+              Cart Summary
+            </p>
+            <hr class="my-1 text-base-300" />
+            <div class="mt-3">
+              <div class="flex justify-between">
+                <p class="text-black/30">Total items</p>
+                <p>{{ itemSelected.length }}</p>
+              </div>
+              <div class="flex justify-between">
+                <p class="text-black/30">Total price</p>
+                <p>{{ totalPrice.toLocaleString() }} ฿</p>
+              </div>
+            </div>
+          </div>
+          <button
+            class="mt-6 btn btn-primary w-full"
+            :disabled="itemSelected.length === 0"
+          >
+            Place order
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.cart-item {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+</style>
