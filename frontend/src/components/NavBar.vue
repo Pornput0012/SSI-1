@@ -5,8 +5,6 @@ import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import CartIcon from "./CartIcon.vue";
 
-
-
 const props = defineProps({
   qty: {
     type: Number,
@@ -67,6 +65,7 @@ onMounted(async () => {
           ITB MShop
         </RouterLink>
         <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2" v-if="!nickName">
           <router-link :to="{ name: 'register' }">
             <button
               class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
@@ -79,8 +78,8 @@ onMounted(async () => {
             class="btn btn-primary px-4 py-1"
             >Login</router-link
           >
-          <RouterLink :to="{name : 'cart'}">
-
+          </div>
+          <RouterLink :to="{ name: 'cart' }">
             <CartIcon />
           </RouterLink>
           <div class="flex items-center gap-2 mr-3" v-if="!nickName"></div>
@@ -163,15 +162,15 @@ onMounted(async () => {
         </button>
       </div>
     </div>
-    
+
     <!-- <div>
       <RouterLink :to="{ name: 'home' }" class="btn btn-ghost text-xl">
         ITB MShop</RouterLink
       >
     </div> -->
     <div class="flex gap-2 items-center">
-      <RouterLink :to="{name:'cart'}">
-        <CartIcon class="cursor-pointer" :qty="qty"/>
+      <RouterLink :to="{ name: 'cart' }">
+        <CartIcon class="cursor-pointer" :qty="qty" />
       </RouterLink>
       <div class="dropdown dropdown-bottom dropdown-end">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
@@ -189,16 +188,21 @@ onMounted(async () => {
           </svg>
         </div>
         <ul
-        tabindex="0"
-        class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
+          tabindex="0"
+          class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
         >
-          <RouterLink :to="{ name: 'register' }"
-            ><li><a>Register</a></li></RouterLink
+          <RouterLink
+            :to="{ name: userStore.getUserId ? 'profile' : 'register' }"
+            ><li>
+              <a>{{ userStore.getUserId() ? "Profile" : "Register" }} </a>
+            </li></RouterLink
           >
-          <RouterLink :to="{ name: 'signin' }"
-          ><li><a>Login</a></li></RouterLink
+          <RouterLink v-if="!userStore.getUserId()" :to="{ name: 'signin' }"
+            ><li><a>Login</a></li></RouterLink
           >
-          
+          <button v-else @click="handleLogout">
+            <li><a>Logout</a></li>
+          </button>
         </ul>
       </div>
     </div>

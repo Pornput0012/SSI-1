@@ -99,29 +99,37 @@ const router = createRouter({
       path: "/cart",
       component: CartView,
       name: "cart",
+      meta: { requiresAuth: true },
     },
   ],
 });
 
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-
-  if (to.meta.requiresAuth) {
+  try {
     await userStore.waitForUser();
-    const isLoggedIn = userStore.hasInfo();
-    const userType = userStore.getUserType()?.toUpperCase();
+  } catch (error) {
+    console.log(error);
+    
+  } finally {
+    if (to.meta.requiresAuth) {
+      const isLoggedIn = userStore.hasInfo();
+      console.log(isLoggedIn);
 
-    if (!isLoggedIn) {
-      next({ name: "signin" });
-    } else if (
-      to.meta.role?.toUpperCase() === "SELLER" &&
-      userType !== "SELLER"
-    ) {
-      next({ name: "sale-items" });
+      const userType = userStore.getUserType()?.toUpperCase();
+
+      if (!isLoggedIn) {
+        next({ name: "signin" });
+      } else if (
+        to.meta.role?.toUpperCase() === "SELLER" &&
+        userType !== "SELLER"
+      ) {
+        next({ name: "sale-items" });
+      }
     }
-  }
 
-  next();
+    next();
+  }
 });
 
 export default router;

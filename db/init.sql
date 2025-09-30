@@ -1,8 +1,8 @@
 drop database if exists  INT221;
 
 -- require for production
-SET GLOBAL time_zone = 'Asia/Bangkok';
-SET time_zone = 'Asia/Bangkok';
+-- SET GLOBAL time_zone = 'Asia/Bangkok';
+-- SET time_zone = 'Asia/Bangkok';
 
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 create database if not exists INT221 CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -65,6 +65,18 @@ CREATE TABLE IF NOT EXISTS sale_item_images (
     fileName VARCHAR(255) NOT NULL,
     imageViewOrder INTEGER,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE if not exists carts (
+    cart_Id INT AUTO_INCREMENT PRIMARY KEY,
+    user_Id int not null,
+    image_Id INT,
+    product_Id INT NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    foreign key (user_id) references users(user_id) ,
+	foreign key (product_Id) references products(product_Id) ON UPDATE CASCADE on delete cascade,
+    foreign key (image_Id) references sale_item_images(image_Id) ON UPDATE CASCADE on delete cascade 
 );
 
 INSERT INTO brands (name, countryOfOrigin, websiteUrl, isActive) VALUES
