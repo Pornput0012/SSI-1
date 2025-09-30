@@ -12,6 +12,7 @@ import ssi.backend.configuration.FileStorageProperties;
 import ssi.backend.dtos.SaleItemImageDto;
 import ssi.backend.entities.Product;
 import ssi.backend.entities.SaleItemImage;
+import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.repositories.SaleItemImageRepository;
 
 import java.io.File;
@@ -236,5 +237,9 @@ public class FileService {
         // สมมติว่าไฟล์อยู่ในโฟลเดอร์ picture/{product.id}/
         File file = new java.io.File("picture/" + product.getId() + "/" + fileName);
         return file.exists();
+    }
+
+    public SaleItemImage findSaleItemImage(int imageId) {
+        return saleItemImageRepository.findById(imageId).orElseThrow(() -> new ItemNotFoundException("Image id " + imageId + " does not exist"));
     }
 }

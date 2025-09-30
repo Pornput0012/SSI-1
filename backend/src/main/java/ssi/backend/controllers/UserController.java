@@ -79,12 +79,13 @@ public class UserController {
         }
 
         User user = userRepository.findByEmail(email);
+        System.out.println("Active Login");
         if (user != null) {
             if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
                 throw new ForbiddenException("You need activate your account before signing in.");
             }
             if (passwordEncoder.matches(rawPassword, user.getPassword())) {
-                String accessToken = jwtService.generateAccessToken(user.getId(), user.getNickname(), user.getEmail(), user.getUserType());
+                String access_token = jwtService.generateAccessToken(user.getId(), user.getNickname(), user.getEmail(), user.getUserType());
                 String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail(), user.getUserType(), user.getNickname());
 
                 ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
@@ -95,12 +96,13 @@ public class UserController {
                         .build();
 
                 AccessTokenDTO dtoResponse = new AccessTokenDTO();
-                dtoResponse.setAccess_token(accessToken);
+                dtoResponse.setAccess_token(access_token);
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                         .body(dtoResponse);
             } else {
+                System.out.println(" Login Failure");
                 throw new UnauthorizedException("Email or Password is incorrect.");
             }
         }
@@ -113,9 +115,9 @@ public class UserController {
     public ResponseEntity<AccessTokenDTO> getAccessTokenFromRefreshToken(@CookieValue(name = "refresh_token", required = false) String refreshToken) throws JOSEException, ParseException {
         jwtService.validateRefreshToken(refreshToken);
 
-        String accessToken = jwtService.getAccessTokenFromRefreshToken(refreshToken);
+        String access_token = jwtService.getAccessTokenFromRefreshToken(refreshToken);
         AccessTokenDTO dtoResponse = new AccessTokenDTO();
-        dtoResponse.setAccess_token(accessToken);
+        dtoResponse.setAccess_token(access_token);
 
         return ResponseEntity.ok(dtoResponse);
     }

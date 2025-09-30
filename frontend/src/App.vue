@@ -5,6 +5,8 @@ import { computed } from "vue";
 
 const route = useRoute();
 
+
+
 const authenFormPath = ['/register','/signin','/verify-email']
 
 const hasNav = computed(()=>!authenFormPath.includes(route.path))
