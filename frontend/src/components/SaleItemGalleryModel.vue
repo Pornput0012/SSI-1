@@ -69,18 +69,22 @@ const addToCart = async () => {
     const data = {
       userId: userId.value,
       productId: props.id,
-      imageFileName: props.fileName,
+      imageFileName: props.fileName?.fileName || '',
       quantity: 1,
     };
 
+    console.log("Adding to cart:", data);
     const response = await addItemToCart(data);
+    console.log("Add to cart response:", response);
 
     if (response.error) {
       throw new Error(response.error);
     }
 
-    cartStore.addToCart(response); // เพิ่ม response เข้า store
+    // cartStore.addToCart(response);
+    console.log("Successfully added to cart store");
   } catch (error) {
+    console.error("Error adding to cart:", error);
     hasError.value = error.message;
   }
 };

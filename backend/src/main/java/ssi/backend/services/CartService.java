@@ -60,13 +60,12 @@ public class CartService {
         });
 
 
-
         sellerNameSet.stream().forEach(sellerName -> {
-            List<Cart> cartBySeller= currentCart.stream().filter((cart) -> sellerName.equals(cart.getProduct().getSeller().getNickname())).toList();
+            List<Cart> cartBySeller = currentCart.stream().filter((cart) -> sellerName.equals(cart.getProduct().getSeller().getNickname())).toList();
 
             CartResponseDto cartResponseDto = new CartResponseDto();
             cartResponseDto.setProductSellerName(sellerName);
-            List<CartResponseSubDto> cartResponseSubDtos = listMapper.mapList(cartBySeller, CartResponseSubDto.class,modelMapper);
+            List<CartResponseSubDto> cartResponseSubDtos = listMapper.mapList(cartBySeller, CartResponseSubDto.class, modelMapper);
 
             cartResponseDto.setCart(cartResponseSubDtos);
 
@@ -77,33 +76,36 @@ public class CartService {
 
 
     public CartResponseSubDto addToCart(CartRequestDto cartRequestDto) {
-        SaleItemImage saleItemImage = saleItemImageService.findSaleItemImageByNameV2( cartRequestDto.getImageFileName());
-        User existingUser = userRepository.findById(cartRequestDto.getUserId())
-                .orElseThrow(() -> new ItemNotFoundException("User id " + cartRequestDto.getUserId() + " does not exist"));
+
+        System.out.println(cartRequestDto.getQuantity());
+        SaleItemImage saleItemImage = saleItemImageService.findSaleItemImageByNameV2(cartRequestDto.getImageFileName());
+        User existingUser = userRepository.findById(cartRequestDto.getUserId()).orElseThrow(() -> new ItemNotFoundException("User id " + cartRequestDto.getUserId() + " does not exist"));
         ;
 
-        Product existingProduct = productRepository.findById(cartRequestDto.getProductId())
-                .orElseThrow(() -> new ItemNotFoundException("Product id " + cartRequestDto.getProductId() + " does not exist"));
+        Product existingProduct = productRepository.findById(cartRequestDto.getProductId()).orElseThrow(() -> new ItemNotFoundException("Product id " + cartRequestDto.getProductId() + " does not exist"));
 
-        Brand existingBrand = brandRepository.findById(existingProduct.getBrand().getId())
-                .orElseThrow(
-                        () -> new ItemNotFoundException("Brand id " + existingProduct.getBrand().getId() + " does not exist"));
+        Brand existingBrand = brandRepository.findById(existingProduct.getBrand().getId()).orElseThrow(() -> new ItemNotFoundException("Brand id " + existingProduct.getBrand().getId() + " does not exist"));
 
-
-        Cart saveCart = new Cart();
-        saveCart.setId(null);
+        Cart existCart = cartRepository.findAllByProductIdAndUserId(existingProduct.getId(), existingUser.getId());
+        Cart saveCart = existCart == null ? new Cart() : existCart;
         saveCart.setUser(existingUser);
         saveCart.setProduct(existingProduct);
-        saveCart.setQuantity(cartRequestDto.getQuantity());
 
         if (saleItemImage == null) {
             saveCart.setImage(null);
+        } else {
+            SaleItemImage image = saleItemImageService.findSaleItemImage(saleItemImage.getId());
+            Boolean imageExist = fileService.fileExists(existingProduct, saleItemImageService.findSaleItemImage(saleItemImage.getId()).getFileName());
+            saveCart.setImage(image);
         }
-        else {
-        SaleItemImage image = saleItemImageService.findSaleItemImage(saleItemImage.getId());
-        Boolean imageExist = fileService.fileExists(existingProduct, saleItemImageService.findSaleItemImage(saleItemImage.getId()).getFileName());
-        saveCart.setImage(image);}
 
+        if (existCart == null) {
+            saveCart.setId(null);
+            saveCart.setQuantity(cartRequestDto.getQuantity());
+        } else {
+            saveCart.setQuantity(saveCart.getQuantity() + cartRequestDto.getQuantity());
+
+        }
 
 
         return modelMapper.map(cartRepository.save(saveCart), CartResponseSubDto.class);
