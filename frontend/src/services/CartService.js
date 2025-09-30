@@ -43,9 +43,9 @@ const getCartById = async (id) => {
 };
 
 // create cart
-const createCart = async (cart) => {
+const addItemToCart = async (cart) => {
   try {
-    if (!cart.name) throw new Error("Cart name is required.");
+    
     const response = await fetch(`${CART_API_URL_V1}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -105,4 +105,4 @@ const deleteCartById = async (id) => {
     return { error };
   }
 };
-export { getAllCart, getCartById, createCart, updateCart, deleteCartById };
+export { getAllCart, getCartById, addItemToCart, updateCart, deleteCartById };

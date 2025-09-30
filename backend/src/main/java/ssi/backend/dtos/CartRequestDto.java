@@ -11,7 +11,7 @@ public class CartRequestDto {
 
     private int userId;
     private int productId;
-    private int imageId;
+    private String imageFileName;
     private int quantity;
 
 }

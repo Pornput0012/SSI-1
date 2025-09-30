@@ -12,6 +12,7 @@ public class CartResponseSubDto {
 
     private int id;
     private int userId;
+    private String imageName;
     private int productId;
     private String productModel;
     private String productBrandName;

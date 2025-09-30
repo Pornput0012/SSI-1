@@ -1,12 +1,14 @@
 <script setup>
 import noImage from "@/assets/No_image_available.png";
 import router from "@/router";
+import { getImageByFileName } from "@/services/SaleItemService";
 import { useCartStore } from "@/stores/CartStore";
 import { useUserStore } from "@/stores/UserStore";
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { addItemToCart } from "@/services/CartService";
 
-const cartStore = useCartStore()
-const userStore = useUserStore()
+const cartStore = useCartStore();
+const userStore = useUserStore();
 const props = defineProps({
   id: {
     type: Number,
@@ -28,30 +30,64 @@ const props = defineProps({
   },
   color: String,
   fileName: {
-    type: String,
+    type: Object,
     required: false,
   },
 });
-const userNickname = computed(() => userStore.getNickName());
 
-const loadImages = async (imageFileNames) => {
+const hasError = ref("");
+const userNickname = computed(() => userStore.getNickName());
+const userId = computed(() => userStore.getUserId());
+
+const imageUrl = ref(null);
+
+const loadImages = async () => {
   try {
-    if (imageFileNames != null || imageFileNames != "") {
-      const imageBlob = await getImageByFileName(imageFileNames);
-      const imageUrl = URL.createObjectURL(imageBlob);
-      return imageUrl;
+    if (props.fileName?.fileName) {
+      const image_url = await getImageByFileName(props.fileName.fileName);
+      imageUrl.value = image_url;
+    } else {
+      imageUrl.value = noImage;
     }
   } catch (error) {
-    console.error(`Failed to load image ${fileName}:`, error);
+    console.error(`Failed to load image:`, error);
+    imageUrl.value = noImage;
   }
 };
 
-const addToCart = (product)=>{
-  if(!userNickname) {
-    router.push({name: 'signin'})
+onMounted(async () => {
+  await loadImages();
+});
+
+const addToCart = async () => {
+  if (!userNickname.value) {
+    router.push({ name: "signin" });
+    return;
   }
-  cartStore.addToCart(product);
-}
+
+  try {
+    const data = {
+      userId: userId.value,
+      productId: props.id,
+      imageFileName: props.fileName?.fileName || '',
+      quantity: 1,
+    };
+
+    console.log("Adding to cart:", data);
+    const response = await addItemToCart(data);
+    console.log("Add to cart response:", response);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    // cartStore.addToCart(response);
+    console.log("Successfully added to cart store");
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    hasError.value = error.message;
+  }
+};
 </script>
 
 <template>
@@ -66,10 +102,18 @@ const addToCart = (product)=>{
         class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
       >
         <img
-          :src="fileName ? loadImages(fileName) : noImage"
+          v-if="imageUrl"
+          :src="imageUrl"
           alt="Product image"
           class="w-full h-full object-center"
-          :class="fileName ? 'object-cover' : 'object-contain'"
+          :class="'object-cover'"
+        />
+        <img
+          v-else
+          :src="noImage"
+          alt="Product image"
+          class="w-full h-full object-center"
+          :class="'object-contain'"
         />
       </div>
 
@@ -105,10 +149,9 @@ const addToCart = (product)=>{
             >{{ price.toLocaleString() }}
           </p>
           <button
-          @click="addToCart"
+            @click.prevent="addToCart"
             class="itbms-add-to-cart-button ml-1 btn btn-sm btn-primary text-xs hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
           >
-          
             <svg
               class=""
               xmlns="http://www.w3.org/2000/svg"

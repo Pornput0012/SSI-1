@@ -239,7 +239,5 @@ public class FileService {
         return file.exists();
     }
 
-    public SaleItemImage findSaleItemImage(int imageId) {
-        return saleItemImageRepository.findById(imageId).orElseThrow(() -> new ItemNotFoundException("Image id " + imageId + " does not exist"));
-    }
+
 }

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ssi.backend.entities.Product;
 import ssi.backend.entities.SaleItemImage;
+import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.repositories.ProductRepository;
 import ssi.backend.repositories.SaleItemImageRepository;
 
@@ -41,6 +42,10 @@ public class SaleItemImageService {
         return saleItemImageRepository.findSaleItemImageByFileName(saleItemImageName);
     }
 
+    public SaleItemImage findSaleItemImageByNameV2(String saleItemImageName) {
+        return saleItemImageRepository.findSaleItemImageByFileNameV2(saleItemImageName);
+    }
+
 
     public Boolean imageExists(String fileName) {
         return findSaleItemImageByName(fileName).size() > 0;
@@ -61,4 +66,10 @@ public class SaleItemImageService {
     public SaleItemImage saveImage(SaleItemImage image) {
         return saleItemImageRepository.save(image);
     }
+
+    public SaleItemImage findSaleItemImage(int imageId) {
+        return saleItemImageRepository.findById(imageId).orElseThrow(() -> new ItemNotFoundException("Image id " + imageId + " does not exist"));
+    }
+
 }
+

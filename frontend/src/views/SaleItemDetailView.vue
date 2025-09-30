@@ -40,11 +40,10 @@ const loadImages = async (imageFileNames) => {
   const urls = [];
   for (const fileName of imageFileNames) {
     try {
-      const imageBlob = await getImageByFileName(fileName);
-      const imageUrl = URL.createObjectURL(imageBlob);
+      const imageUrl = await getImageByFileName(fileName.fileName);
       urls.push(imageUrl);
     } catch (error) {
-      console.error(`Failed to load image ${fileName}:`, error);
+      console.error(`Failed to load image ${fileName.fileName}:`, error);
       urls.push(noImage);
     }
   }
