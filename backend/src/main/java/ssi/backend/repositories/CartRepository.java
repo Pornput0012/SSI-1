@@ -1,4 +1,14 @@
 package ssi.backend.repositories;
 
-public interface CartRepository {
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import ssi.backend.entities.Cart;
+
+import java.util.List;
+
+@Repository
+public interface CartRepository extends JpaRepository<Cart, Integer> {
+
+    List<Cart> findAllByUserId(int userId);
 }

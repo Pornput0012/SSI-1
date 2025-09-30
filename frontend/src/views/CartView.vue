@@ -1,48 +1,113 @@
 <script setup>
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import { computed, ref } from "vue";
+import { getAllCart } from "@/services/CartService";
+import { useCartStore } from "@/stores/CartStore";
+import { useUserStore } from "@/stores/UserStore";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
 
+const userStore = useUserStore();
+const cartStore = useCartStore();
+const userId = computed(() => userStore.getUserId());
 // Mockup ข้อมูลสินค้า
-const carts = ref([
-  { id: 1, name: "iPhone 15", price: 32900, quantity: 1, checked: false },
-  { id: 2, name: "AirPods Pro 2", price: 8990, quantity: 2, checked: true },
-  { id: 3, name: "iPad Air", price: 19900, quantity: 1, checked: false },
-]);
+const carts = ref([]);
+
+const hasError = ref("");
+
+onMounted(async () => {
+  try {
+    console.log(userId.value);
+
+    const response = await getAllCart(userId.value);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    carts.value = response?.map((ele) => {
+      return {
+        ...ele,
+        checkAll: false,
+      };
+    });
+  } catch (error) {
+    hasError.value = error.message;
+  }
+});
 
 const selectAll = ref(false);
 
-// กด selectAll ให้เลือกทุกอัน
-const toggleSelectAll = () => {
-  carts.value.forEach((item) => (item.checked = selectAll.value));
-};
-
-// จำนวนที่เลือก
 const itemSelected = computed(() => {
-  return carts.value.filter((item) => item.checked);
+  return carts.value.flatMap((cart) =>
+    cart.cart.filter((item) => item.checked)
+  );
 });
 
-// ราคารวมของที่เลือก
+const selectSellerState = computed(() => {
+  return carts.value.every((item) => {
+    return item.checkAll === true;
+  });
+});
+
+// const selectProductState = computed(() => {
+//   return carts.value.forEach((ele, i) => {
+//      ele?.cart.every((ele2) => {
+//       return ele2.checked === true;
+//     });
+//   });
+// });
+
+// console.log(selectProductState.value);
+
+
+watchEffect(() => {
+  carts.value.forEach((ele, i) => {
+    console.log(ele);
+
+    carts.value[i].checkAll = ele?.cart.every((ele2) => {
+      return ele2.checked === true;
+    });
+
+    console.log(carts.value[i].checkAll);
+
+    console.log(
+      ele?.cart.every((ele2) => {
+        return ele2.checked === true;
+      })
+    );
+  });
+});
+
 const totalPrice = computed(() => {
   return itemSelected.value.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + item.productPrice * item.quantity,
     0
   );
 });
 
 // เพิ่ม/ลดจำนวน
-const increaseQty = (index) => {
-  carts.value[index].quantity++;
+const updateQuantity = (item, newQuantity) => {
+  // ป้องกันไม่ให้ quantity น้อยกว่า 1
+  item.quantity = Math.max(1, newQuantity);
 };
-const decreaseQty = (index) => {
-  if (carts.value[index].quantity > 1) {
-    carts.value[index].quantity--;
-  }
+
+const increaseQty = (item) => {
+  updateQuantity(item, item.quantity + 1);
+};
+
+const decreaseQty = (item) => {
+  updateQuantity(item, item.quantity - 1);
 };
 </script>
 
 <template>
   <Breadcrumbs :crumbs="[{ label: 'Cart' }]" />
   <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
+    <div
+      v-if="!cartStore.carts && hasError !== '' && hasError"
+      class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-red-100 border-1 border-red-300"
+    >
+      <p class="text-red-500 font-extralight">{{ hasError }}</p>
+    </div>
     <!-- Header Section -->
     <div class="w-full flex flex-col lg:flex-row justify-between items-center">
       <div class="w-full flex justify-between">
@@ -58,28 +123,34 @@ const decreaseQty = (index) => {
               type="checkbox"
               class="checkbox checkbox-primary itbms-select-all"
               v-model="selectAll"
-              @change="toggleSelectAll"
+              :checked="selectSellerState"
             />
             Select All
           </div>
 
           <div>
-            <div class="flex flex-col mt-4 bg-white w-full p-4 rounded-xl itbms-row">
+            <div
+              v-for="cart in carts"
+              class="flex flex-col mt-4 bg-white w-full p-4 rounded-xl itbms-row"
+            >
+            
               <!-- ร้านค้า -->
               <div class="flex gap-3 items-center text-md">
                 <input
                   type="checkbox"
-                  v-model="selectAll"
+                  :checked=" selectAll"
+                  @change="cart.checkAll = !cart.checkAll"
                   class="checkbox checkbox-primary itbms-select-nickname"
-                  @change="toggleSelectAll"
                 />
-                <p class="font-bold itbms-nickname">{{ "Apple Official Store" }}</p>
+                <p class="font-bold itbms-nickname">
+                  {{ cart.productSellerName }}
+                </p>
               </div>
               <hr class="my-3 text-base-300" />
 
               <!-- รายการสินค้าในร้าน -->
               <div
-                v-for="(item, index) in carts"
+                v-for="item in cart.cart"
                 :key="item.id"
                 class="flex items-center justify-between mb-6 itbms-item-row"
               >
@@ -87,6 +158,7 @@ const decreaseQty = (index) => {
                   <input
                     type="checkbox"
                     v-model="item.checked"
+                    :checked="selectAll || cart.checkAll"
                     class="checkbox checkbox-primary"
                   />
                   <img
@@ -96,20 +168,31 @@ const decreaseQty = (index) => {
                   />
                 </div>
 
-                <span class="itbms-item-description w-40">{{ item.name }}</span>
+                <span class="itbms-item-description w-40">{{
+                  item.productModel
+                }}</span>
 
                 <div class="quantity flex items-center gap-2">
-                  <button class="btn btn-sm itbms-dec-qty-button" @click="decreaseQty(index)">
+                  <button
+                    class="btn btn-sm itbms-dec-qty-button"
+                    @click="decreaseQty(item)"
+                  >
                     -
                   </button>
+
                   <span class="itbms-item-quantity">{{ item.quantity }}</span>
-                  <button class="btn btn-sm itbms-inc-qty-button" @click="increaseQty(index)">
+                  <button
+                    class="btn btn-sm itbms-inc-qty-button"
+                    @click="increaseQty(item)"
+                  >
                     +
                   </button>
                 </div>
 
-                <span class="price font-bold text-blue-600 itbms-item-total-price">
-                  {{ item.price * item.quantity }} ฿
+                <span
+                  class="price font-bold text-blue-600 itbms-item-total-price"
+                >
+                  {{ item.productPrice * item.quantity }} ฿
                 </span>
               </div>
             </div>
@@ -135,7 +218,7 @@ const decreaseQty = (index) => {
             </div>
           </div>
           <button
-            class=" mt-6 btn btn-primary w-full"
+            class="mt-6 btn btn-primary w-full"
             :disabled="itemSelected.length === 0"
           >
             Place order

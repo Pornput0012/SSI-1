@@ -26,15 +26,20 @@ export const useUserStore = defineStore("user", () => {
 };
   const getUserId = () => userInfo.value.id;
   
-  const waitForUser = (timeout = 5000) => {
+  const waitForUser = (timeout = 500) => {
     console.log("wait user...");
     
     return new Promise((resolve, reject) => {
       const start = Date.now();
+      console.log(userInfo.value);
+      
       const check = () => {
         if (Object.keys(userInfo.value) != 0) {
+          console.log("if");
+          
           resolve(userInfo);
         } else if (Date.now() - start >= timeout) {
+          console.log("else if");
           reject(new Error("Timeout waiting for user id"));
         } else {
           setTimeout(check, 100);

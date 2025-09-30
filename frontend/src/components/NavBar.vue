@@ -65,7 +65,8 @@ onMounted(async () => {
           ITB MShop
         </RouterLink>
         <div class="flex items-center gap-3">
-          <router-link :to="{ name: 'register' }" v-if="!userStore.getUserId()">
+          <div class="flex items-center gap-2" v-if="!nickName">
+          <router-link :to="{ name: 'register' }">
             <button
               class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
             >
@@ -73,11 +74,11 @@ onMounted(async () => {
             </button>
           </router-link>
           <router-link
-            v-if="!userStore.getUserId()"
             :to="{ name: 'signin' }"
             class="btn btn-primary px-4 py-1"
             >Login</router-link
           >
+          </div>
           <RouterLink :to="{ name: 'cart' }">
             <CartIcon />
           </RouterLink>
