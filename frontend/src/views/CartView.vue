@@ -1,6 +1,6 @@
 <script setup>
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import { getAllCart } from "@/services/CartService";
+import { getAllCart, updateCart } from "@/services/CartService";
 import { useCartStore } from "@/stores/CartStore";
 import { useUserStore } from "@/stores/UserStore";
 import noImage from "@/assets/No_image_available.png";
@@ -36,6 +36,9 @@ onMounted(async () => {
       carts.value = response?.map((ele) => {
         return {
           ...ele,
+          cart: ele?.cart.map((ele) => {
+            return { ...ele, checked: false };
+          }),
           checkAll: false,
         };
       });
@@ -95,12 +98,15 @@ onMounted(async () => {
 });
 
 watchEffect(() => {
-  carts.value.filter((cart, i) => {
-    carts.value[i].checkAll = cart?.cart.every((ele2) => {
-      return ele2.checked === true;
-    });
-    console.log(i + "index : " + carts.value[i].checkAll);
+  carts.value.forEach((cart) => {
+    // ถ้าสินค้าทุกตัวในร้านถูกเลือก
+    cart.checkAll =
+      cart.cart.length > 0 && cart.cart.every((item) => item.checked);
   });
+
+  // sync selectAll ด้วย (ยังใช้ได้เหมือนเดิม)
+  selectAll.value =
+    carts.value.length > 0 && carts.value.every((cart) => cart.checkAll);
 });
 
 const totalPrice = computed(() => {
@@ -110,19 +116,90 @@ const totalPrice = computed(() => {
   );
 });
 
+const queque = ref([]);
 // เพิ่ม/ลดจำนวน
 const updateQuantity = (item, newQuantity) => {
   // ป้องกันไม่ให้ quantity น้อยกว่า 1
   item.quantity = Math.max(1, newQuantity);
 };
 
+const callUpdateCart = async (item) => {
+  try {
+    const data = {
+      userId: userId.value,
+      productId: item.id,
+      imageFileName: item.fileName,
+      quantity: item.quantity,
+    };
+
+    const response = await updateCart(item.id, data);
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    cartStore.updateProductCartById(item);
+  } catch (error) {
+    hasError.value = error.message;
+    console.error("Error update cart:", error);
+  }
+};
+
+const itemExist = (item, arr) => {
+  let changeQuantity;
+  return {
+    index: arr.findIndex((ele) => {
+      if (ele.id === item.id) {
+        changeQuantity = ele;
+      }
+      return ele.id === item.id;
+    }),
+    changeQuantity,
+  };
+};
+
 const increaseQty = (item) => {
-  updateQuantity(item, item.quantity + 1);
+  const itemWait = itemExist(item, queque.value);
+  if (itemWait.index == -1) {
+    updateQuantity(item, item.quantity + 1);
+    queque.value.push(item);
+  } else {
+    console.log("else");
+    itemWait.changeQuantity.quantity++;
+  }
 };
 
 const decreaseQty = (item) => {
-  updateQuantity(item, item.quantity - 1);
+  const itemWait = itemExist(item, queque.value);
+  if (itemWait.index == -1) {
+    updateQuantity(item, item.quantity - 1);
+    queque.value.push(item);
+  } else {
+    console.log("else");
+    itemWait.changeQuantity.quantity--;
+  }
+  
+
 };
+
+const checkAllItem = (i) => {
+  carts.value[i].cart.forEach((item) => {
+    item.checked = !item.checked;
+  });
+};
+
+const hasUpdateQueue = ref(false);
+watchEffect(() => {
+  if (!hasUpdateQueue.value) {
+    hasUpdateQueue.value = true;  
+    setTimeout(() => {
+      console.log("callApi");
+      
+      queque.value.forEach((ele) => {
+        callUpdateCart(ele)
+      });
+    }, 5000);
+  }
+});
 </script>
 
 <template>
@@ -147,9 +224,14 @@ const decreaseQty = (item) => {
           >
             <input
               type="checkbox"
-              class="checkbox checkbox-primary itbms-select-all"
               v-model="selectAll"
-              :checked="selectSellerState"
+              @change="
+                carts.forEach((cart) => {
+                  cart.checkAll = selectAll;
+                  cart.cart.forEach((item) => (item.checked = selectAll));
+                })
+              "
+              class="checkbox checkbox-primary itbms-select-all"
             />
             Select All
           </div>
@@ -163,8 +245,8 @@ const decreaseQty = (item) => {
               <div class="flex gap-3 items-center text-md">
                 <input
                   type="checkbox"
-                  :checked="cart.checkAll || selectAll"
-                  @change="cart.checkAll = !cart.checkAll"
+                  v-model="cart.checkAll"
+                  @change="checkAllItem(i)"
                   class="checkbox checkbox-primary itbms-select-nickname"
                 />
 
@@ -184,7 +266,6 @@ const decreaseQty = (item) => {
                   <input
                     type="checkbox"
                     v-model="item.checked"
-                    :checked="selectAll || cart.checkAll"
                     class="checkbox checkbox-primary"
                   />
                   <img

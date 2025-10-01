@@ -46,7 +46,26 @@ export const useCartStore = defineStore("Cart", () => {
     }
   }
 
-  function addToCart(product) {
+  function updateProductCartById(product) {
+    
+    if (!carts.value) {
+      carts.value = [];
+    }
+
+    console.log(product.productSellerNickname);
+    
+
+    const { found, sellerIndex,productIndex } = findProductById(product.productId);
+    
+    if (found) {
+      carts.value[sellerIndex].cart.splice(productIndex, 1, product)
+      
+      return;
+    }
+    
+  }
+
+   function addToCart(product) {
     if (!carts.value) {
       carts.value = [];
     }
@@ -77,12 +96,11 @@ export const useCartStore = defineStore("Cart", () => {
       });
     }
   }
-
-  function updateProductById(productId, product) {
-    if (findProductById(productId) !== -1 && product) {
-      carts.value.splice(productId, 1, product);
-    }
-  }
+  // function updateProductById(productId, product) {
+  //   if (findProductById(productId) !== -1 && product) {
+  //     carts.value.splice(productId, 1, product);
+  //   }
+  // }
 
   return {
     carts,
@@ -91,7 +109,7 @@ export const useCartStore = defineStore("Cart", () => {
     addToCart,
     findProductById,
     deleteProductById,
-    updateProductById,
+    updateProductCartById,
   };
 });
 
