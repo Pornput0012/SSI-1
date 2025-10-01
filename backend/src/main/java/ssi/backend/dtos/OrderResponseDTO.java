@@ -11,8 +11,9 @@ import lombok.Setter;
 public class OrderResponseDTO {
     private Integer id;
     private Integer buyerId;
-    private SellerOrderDTO seller;
+    private SellerDTO seller;
     private Instant orderDate;
+    private Instant paymentDate;
     private String shippingAddress;
     private String orderNote;
     private List<OrderItemDTO> orderItems;

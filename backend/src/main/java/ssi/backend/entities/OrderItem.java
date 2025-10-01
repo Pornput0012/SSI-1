@@ -1,5 +1,6 @@
 package ssi.backend.entities;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 import org.hibernate.annotations.Generated;
@@ -16,6 +17,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -27,35 +30,43 @@ public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_item_id")
-    private Integer order_item_id;
+    private Integer id;
 
     @JoinColumn(name = "order_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private Order order_id;
-
-    @Column(name = "line_no", nullable = false)
-    private Integer line_no;
+    private Order order;
 
     @JoinColumn(name = "product_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private Product product_id;
-
-    @Column(name = "price", nullable = false)
-    private Integer price;
+    private Product product;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @Column(name = "description", length = 100)
+    @Column(name = "unit_price", nullable = false)
+    private Integer unitPrice;
+
+    @Column(name = "total_price", nullable = false)
+    private Integer totalPrice;
+
+    @Column(name = "description")
     private String description;
 
-    @JsonIgnore
-    @Column(name = "createdOn", insertable = false, updatable = false)
-    @Generated(GenerationTime.INSERT)
-    private Instant createdOn;
+    @Size(max = 60)
+    @NotNull
+    @Column(name = "model", nullable = false, length = 60)
+    private String model;
 
-    @JsonIgnore
-    @Column(name = "updatedOn", insertable = false, updatable = false)
-    @Generated(GenerationTime.ALWAYS)
-    private Instant updatedOn;
+    @Column(name = "ramGb")
+    private Integer ramGb;
+
+    @Column(name = "screenSizeInch", precision = 3, scale = 1)
+    private BigDecimal screenSizeInch;
+
+    @Column(name = "storageGb")
+    private Integer storageGb;
+
+    @Size(max = 40)
+    @Column(name = "color", length = 40)
+    private String color;
 }

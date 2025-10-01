@@ -28,42 +28,37 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "order_id")
-    private Integer order_id;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User buyerId;
+    @JoinColumn(name = "buyer_id", nullable = false)
+    private User buyer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User sellerId;
+    @JoinColumn(name = "seller_id", nullable = false)
+    private User seller;
 
     @JsonIgnore
     @Column(name = "order_date", insertable = false, updatable = false)
     @Generated(GenerationTime.INSERT)
     private Instant orderDate;
 
-    @Column(name = "shippingAddress", length = 100, nullable = false)
+    @JsonIgnore
+    @Column(name = "payment_date", insertable = false, updatable = false)
+    @Generated(GenerationTime.INSERT)
+    private Instant paymentDate;
+
+    @Column(name = "shipping_address", nullable = false)
     private String shippingAddress;
 
-    @Column(name = "orderNote", length = 100)
+    @Column(name = "order_note")
     private String orderNote;
 
     @Column(name = "status", nullable = false)
     @ColumnDefault("'COMPLETED'")
     private String status;
 
-    @Column(name = "totalAmount", nullable = false)
+    @Column(name = "total_amount", nullable = false)
     @ColumnDefault("0")
     private Integer totalAmount;
-
-    @JsonIgnore
-    @Column(name = "createdOn", insertable = false, updatable = false)
-    @Generated(GenerationTime.INSERT)
-    private Instant createdOn;
-
-    @JsonIgnore
-    @Column(name = "updatedOn", insertable = false, updatable = false)
-    @Generated(GenerationTime.ALWAYS)
-    private Instant updatedOn;
 }
