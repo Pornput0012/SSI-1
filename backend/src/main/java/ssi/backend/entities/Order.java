@@ -43,7 +43,7 @@ public class Order {
     @Generated(GenerationTime.INSERT)
     private Instant orderDate;
 
-    @Column(name = "shipping_address", length = 100, nullable = false)
+    @Column(name = "shippingAddress", length = 100, nullable = false)
     private String shippingAddress;
 
     @Column(name = "orderNote", length = 100)
