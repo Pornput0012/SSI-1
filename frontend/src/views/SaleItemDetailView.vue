@@ -1,130 +1,147 @@
 <script setup>
-import { useRouter, useRoute } from "vue-router";
-import arrowleft from "../assets/icons/arrowleft.svg";
-import dot from "../assets/icons/dot.svg";
-import heart from "../assets/icons/heart.svg";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { onMounted, ref, onBeforeUnmount } from "vue";
+import { useRouter, useRoute } from 'vue-router'
+import arrowleft from '../assets/icons/arrowleft.svg'
+import dot from '../assets/icons/dot.svg'
+import heart from '../assets/icons/heart.svg'
+import { useSaleItemStore } from '@/stores/SaleItemStore'
+import { onMounted, ref, onBeforeUnmount } from 'vue'
 import {
   getSaleItemById,
   deleteSaleItemById,
   getSaleItemById_v2,
   getImageByFileName,
-} from "@/services/SaleItemService";
-import Breadcrumbs from "../components/Breadcrumbs.vue";
-import { useNotiStore } from "@/stores/NotiStore";
-import MessageModal from "@/components/MessageModal.vue";
-import noImage from "@/assets/No_image_available.png";
+} from '@/services/SaleItemService'
+import Breadcrumbs from '../components/Breadcrumbs.vue'
+import { useNotiStore } from '@/stores/NotiStore'
+import MessageModal from '@/components/MessageModal.vue'
+import noImage from '@/assets/No_image_available.png'
 
-const route = useRoute();
-const router = useRouter();
-const saleItemStore = useSaleItemStore();
-const saleItemId = route.params.id;
-const selectSaleItem = ref(null);
-const isNotFound = ref(false);
-const errorMessage = ref("");
+const route = useRoute()
+const router = useRouter()
+const saleItemStore = useSaleItemStore()
+const saleItemId = route.params.id
+const selectSaleItem = ref(null)
+const isNotFound = ref(false)
+const errorMessage = ref('')
 
-const notiStore = useNotiStore();
+const notiStore = useNotiStore()
 
 // เพิ่ม state สำหรับจัดการรูปภาพ
-const currentImageIndex = ref(0);
-const imageUrls = ref([]);
+const currentImageIndex = ref(0)
+const imageUrls = ref([])
 
 // ฟังก์ชันสำหรับโหลดรูปภาพ
 const loadImages = async (imageFileNames) => {
   if (!imageFileNames || imageFileNames.length === 0) {
-    imageUrls.value = [noImage, noImage, noImage, noImage];
-    return;
+    imageUrls.value = [noImage, noImage, noImage, noImage]
+    return
   }
 
-  const urls = [];
+  const urls = []
   for (const fileName of imageFileNames) {
     try {
-      const imageUrl = await getImageByFileName(fileName.fileName);
-      urls.push(imageUrl);
+      const imageUrl = await getImageByFileName(fileName.fileName)
+      urls.push(imageUrl)
     } catch (error) {
-      console.error(`Failed to load image ${fileName.fileName}:`, error);
-      urls.push(noImage);
+      console.error(`Failed to load image ${fileName.fileName}:`, error)
+      urls.push(noImage)
     }
   }
 
   // เติม noImage ให้ครบ 4 รูปถ้าไม่ครบ
   while (urls.length < 4) {
-    urls.push(noImage);
+    urls.push(noImage)
   }
 
-  imageUrls.value = urls.slice(0, 4); // จำกัดไม่เกิน 4 รูป
-};
+  imageUrls.value = urls.slice(0, 4) // จำกัดไม่เกิน 4 รูป
+}
 
 // ฟังก์ชันสำหรับเปลี่ยนรูปหลัก
 const changeMainImage = (index) => {
-  currentImageIndex.value = index;
-};
+  currentImageIndex.value = index
+}
 
 const fetchSaleItemById = async () => {
   try {
     if (!saleItemId) {
-      throw new Error("Invalid ID");
+      throw new Error('Invalid ID')
     }
-    const response = await getSaleItemById_v2(saleItemId);
+    const response = await getSaleItemById_v2(saleItemId)
     if (!response.error) {
-      selectSaleItem.value = response;
-      console.log(response);
+      selectSaleItem.value = response
+      console.log(response)
 
       // โหลดรูปภาพ
-      await loadImages(response.saleItemImages);
+      await loadImages(response.saleItemImages)
     } else {
-      throw new Error("The requested sale item does not exist.");
+      throw new Error('The requested sale item does not exist.')
     }
   } catch (error) {
-    errorMessage.value = error.message;
-    isNotFound.value = true;
+    errorMessage.value = error.message
+    isNotFound.value = true
   }
-};
-const showDeleteModal = ref(false);
+}
+const showDeleteModal = ref(false)
 
-const deleteSuccess = ref(false);
+const deleteSuccess = ref(false)
 
-const handleDelete = async (id) => {
-  try {
-    if (selectSaleItem.value && selectSaleItem.value.id) {
-      const response = await deleteSaleItemById(selectSaleItem.value.id);
-      showDeleteModal.value = false;
-      if (response.success) {
-        deleteSuccess.value = true;
-        selectSaleItem.value = null;
-      } else {
-        throw new Error("The requested sale item does not exist.");
-      }
-    }
-  } catch (e) {
-    errorMessage.value = e.message;
-    isNotFound.value = true;
-  }
-};
+// const handleDelete = async (id) => {
+//   try {
+//     if (selectSaleItem.value && selectSaleItem.value.id) {
+//       const response = await deleteSaleItemById(selectSaleItem.value.id);
+//       showDeleteModal.value = false;
+//       if (response.success) {
+//         deleteSuccess.value = true;
+//         selectSaleItem.value = null;
+//       } else {
+//         throw new Error("The requested sale item does not exist.");
+//       }
+//     }
+//   } catch (e) {
+//     errorMessage.value = e.message;
+//     isNotFound.value = true;
+//   }
+// };
 
-const successOk = () => {
-  deleteSuccess.value = false;
-  router.push({ name: "sale-items" });
-};
+// const successOk = () => {
+//   deleteSuccess.value = false;
+//   router.push({ name: "sale-items" });
+// };
 
-onMounted(fetchSaleItemById);
+onMounted(fetchSaleItemById)
 
 onBeforeUnmount(() => {
   imageUrls.value.forEach((url) => {
-    if (url !== noImage && url.startsWith("blob:")) {
-      URL.revokeObjectURL(url);
+    if (url !== noImage && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url)
     }
-  });
-});
+  })
+})
 
-const showUpdatedModal = ref(false);
-onMounted(() => {
-  if (notiStore.updateSuccess) {
-    showUpdatedModal.value = true;
-    notiStore.updateSuccess = false;
+const showUpdatedModal = ref(false)
+// onMounted(() => {
+//   if (notiStore.updateSuccess) {
+//     showUpdatedModal.value = true;
+//     notiStore.updateSuccess = false;
+//   }
+// });
+
+const cartQuantity = ref(1)
+
+const decreaseQuantity = () => {
+  if (cartQuantity.value > 1) {
+    cartQuantity.value--
   }
-});
+}
+
+const increaseQuantity = () => {
+  if (
+    selectSaleItem.value &&
+    cartQuantity.value < selectSaleItem.value.quantity
+  ) {
+    cartQuantity.value++
+  }
+}
 </script>
 
 <template>
@@ -224,7 +241,7 @@ onMounted(() => {
             <div class="itbms-description">
               <p class="font-semibold">Description:</p>
               <span :class="{ 'text-gray-400': !selectSaleItem.description }">{{
-                selectSaleItem.description || "No description provided"
+                selectSaleItem.description || 'No description provided'
               }}</span>
             </div>
             <div class="itbms-ramGb-unit">
@@ -236,7 +253,7 @@ onMounted(() => {
                 }"
               >
                 <span class="itbms-ramGb"
-                  >{{ selectSaleItem.ramGb}}
+                  >{{ selectSaleItem.ramGb || '-' }}
                 </span>
                 <span class="itbms-ramGb-unit">GB</span>
               </span>
@@ -251,7 +268,7 @@ onMounted(() => {
                 }"
               >
                 <span class="itbms-screenSizeInch">{{
-                  selectSaleItem.screenSizeInch || "-"
+                  selectSaleItem.screenSizeInch || '-'
                 }}</span>
                 <span class="itbms-screenSizeInch-unit">Inches</span>
               </span>
@@ -265,7 +282,7 @@ onMounted(() => {
                 }"
               >
                 <span class="itbms-storageGb">
-                  {{ selectSaleItem.storageGb || "-" }}
+                  {{ selectSaleItem.storageGb || '-' }}
                 </span>
                 <span class="itbms-storageGb-unit">GB</span>
               </span>
@@ -273,7 +290,7 @@ onMounted(() => {
             <div class="itbms-color">
               <span class="font-semibold">Color: </span>
               <span :class="{ 'text-gray-400': !selectSaleItem.color }">
-                {{ selectSaleItem.color || "-" }}
+                {{ selectSaleItem.color || '-' }}
               </span>
             </div>
             <div>
@@ -283,7 +300,44 @@ onMounted(() => {
               </span>
             </div>
             <div class="flex gap-4 mt-4">
-              <router-link
+              <!-- Quantity Selector and Add to Cart Button -->
+              <div class="flex gap-3 items-center">
+                <div class="flex items-center bg-gray-200 rounded-lg px-2 py-1">
+                  <!-- ปุ่ม - -->
+                  <button
+                    @click="decreaseQuantity"
+                    class="itbms-dec-qty-button text-md font-bold text-gray-600 hover:text-gray-800 px-2 cursor-pointer"
+                    :disabled="cartQuantity <= 1"
+                    :class="{ 'opacity-50 cursor-not-allowed': cartQuantity <= 1 }"
+                  >
+                    -
+                  </button>
+
+                  <!-- แสดงจำนวน -->
+                  <span
+                    class="itbms-add-to-cart-quantity text-[16px] font-semibold min-w-[40px] text-center text-gray-800"
+                  >
+                    {{ cartQuantity }}
+                  </span>
+
+                  <!-- ปุ่ม + -->
+                  <button
+                    @click="increaseQuantity"
+                    class="itbms-inc-qty-button text-md text-gray-600 font-bold hover:text-gray-800 px-2 cursor-pointer"
+                    :disabled="cartQuantity >= selectSaleItem.quantity"
+                    :class="{ 'opacity-50 cursor-not-allowed': cartQuantity >= selectSaleItem.quantity }"
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  class="itbms-add-to-cart-button btn btn-primary bg-blue-700 hover:bg-blue-800 flex-1 text-white"
+                >
+                  Add to Cart
+                </button>
+              </div>
+
+              <!-- <router-link
                 :to="{ name: 'edit-sale-item', params: { id: saleItemId } }"
                 class="itbms-edit-button btn btn-warning btn-outline"
                 >Edit</router-link
@@ -293,8 +347,8 @@ onMounted(() => {
                 class="itbms-delete-button btn btn-error btn-outline"
               >
                 Delete
-              </button>
-              <dialog
+              </button> -->
+              <!-- <dialog
                 class="modal"
                 :open="showDeleteModal"
                 v-if="showDeleteModal"
@@ -322,7 +376,7 @@ onMounted(() => {
                     </button>
                   </div>
                 </div>
-              </dialog>
+              </dialog> -->
             </div>
           </div>
         </div>
@@ -337,7 +391,7 @@ onMounted(() => {
     :message="errorMessage"
   />
 
-  <div v-if="deleteSuccess" class="modal modal-open">
+  <!-- <div v-if="deleteSuccess" class="modal modal-open">
     <div class="modal-box text-center">
       <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
         The sale item has been deleted.
@@ -348,15 +402,15 @@ onMounted(() => {
         </button>
       </div>
     </div>
-  </div>
+  </div> -->
 
-  <MessageModal
+  <!-- <MessageModal
     v-if="showUpdatedModal"
     :handle-ok="() => (showUpdatedModal = false)"
     :title="'Successfully!'"
     :message="'The sale item has been updated.'"
     :type-modal="'text-success'"
-  />
+  /> -->
 </template>
 
 <style scoped></style>

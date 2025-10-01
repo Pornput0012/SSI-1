@@ -17,21 +17,29 @@ const hasError = ref("");
 
 onMounted(async () => {
   try {
-    console.log("Fetching cart for user:", userId.value);
+    if (cartStore.carts) {
+      carts.value = cartStore.carts.map((ele) => {
+        return {
+          ...ele,
+          checkAll: false,
+        };
+      });
+    } else {
+      console.log("Fetching cart for user:", userId.value);
 
-    const response = await getAllCart(userId.value);
+      const response = await getAllCart(userId.value);
 
-    if (response.error) {
-      throw new Error(response.error);
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      carts.value = response?.map((ele) => {
+        return {
+          ...ele,
+          checkAll: false,
+        };
+      });
     }
-
-    carts.value = response?.map((ele) => {
-      return {
-        ...ele,
-        checkAll: false,
-      };
-    });
-
     console.log("Cart data loaded:", carts.value);
     // โหลดรูปภาพหลังจากได้ข้อมูล cart
     await loadImages();
@@ -39,6 +47,8 @@ onMounted(async () => {
     hasError.value = error.message;
     console.error("Error loading cart:", error);
   }
+
+  console.log(cartStore.carts);
 });
 
 const selectAll = ref(false);
@@ -55,16 +65,14 @@ const selectSellerState = computed(() => {
   });
 });
 
-
-
 const loadImages = async () => {
   console.log("hi");
-  
+
   try {
     for (const ele of carts.value) {
       console.log("hi2");
       console.log(ele.cart);
-      
+
       for (const item of ele.cart) {
         if (item.imageName) {
           console.log("Loading image for:", item.imageName);
@@ -161,7 +169,7 @@ const decreaseQty = (item) => {
                 />
 
                 <p class="font-bold itbms-nickname">
-                  {{ cart.productSellerName }}
+                  {{ cart.productSellerNickname }}
                 </p>
               </div>
               <hr class="my-3 text-base-300" />
