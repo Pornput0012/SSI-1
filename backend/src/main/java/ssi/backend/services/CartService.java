@@ -64,7 +64,7 @@ public class CartService {
             List<Cart> cartBySeller = currentCart.stream().filter((cart) -> sellerName.equals(cart.getProduct().getSeller().getNickname())).toList();
 
             CartResponseDto cartResponseDto = new CartResponseDto();
-            cartResponseDto.setProductSellerName(sellerName);
+            cartResponseDto.setProductSellerNickname(sellerName);
             List<CartResponseSubDto> cartResponseSubDtos = listMapper.mapList(cartBySeller, CartResponseSubDto.class, modelMapper);
 
             cartResponseDto.setCart(cartResponseSubDtos);
@@ -90,6 +90,7 @@ public class CartService {
         Cart saveCart = existCart == null ? new Cart() : existCart;
         saveCart.setUser(existingUser);
         saveCart.setProduct(existingProduct);
+        System.out.println(existingProduct.getSeller().getNickname());
 
         if (saleItemImage == null) {
             saveCart.setImage(null);
@@ -107,7 +108,22 @@ public class CartService {
 
         }
 
+        Cart cartResponseDto = cartRepository.save(saveCart);
+        System.out.println(cartResponseDto.getProduct().getSeller().getNickname());
+        return modelMapper.map(cartResponseDto, CartResponseSubDto.class);
+    }
 
-        return modelMapper.map(cartRepository.save(saveCart), CartResponseSubDto.class);
+
+    public CartResponseSubDto updateQuantity(int cartId ,int quantity) {
+        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ItemNotFoundException("Cart id " + cartId));
+
+        cart.setQuantity(quantity);
+
+        return  modelMapper.map(cartRepository.save(cart), CartResponseSubDto.class);
+    }
+
+    public void removeCart(int cartId) {
+        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ItemNotFoundException("Cart id " + cartId));
+        cartRepository.delete(cart);
     }
 }

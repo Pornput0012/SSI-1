@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 public class CartResponseDto {
-    private String productSellerName;
+    private String productSellerNickname;
     private List<CartResponseSubDto> cart;
 
 }

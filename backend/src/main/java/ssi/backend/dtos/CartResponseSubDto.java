@@ -20,7 +20,7 @@ public class CartResponseSubDto {
     private BigDecimal productScreenSizeInch;
     private String productColor;
     private int quantity;
-    private String productSellerName;
+    private String productSellerNickname;
     private Integer productPrice;
 
 
