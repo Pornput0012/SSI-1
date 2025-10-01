@@ -33,11 +33,11 @@ public class OrderItem {
     private Order order_id;
 
     @Column(name = "line_no", nullable = false)
-    private Integer no;
+    private Integer line_no;
 
     @Column(name = "product_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private Product saleItemId;
+    private Product product_id;
 
     @Column(name = "price", nullable = false)
     private Integer price;

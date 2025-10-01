@@ -36,7 +36,7 @@ public class Order {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User seller;
+    private User sellerId;
 
     @JsonIgnore
     @Column(name = "order_date", insertable = false, updatable = false)
