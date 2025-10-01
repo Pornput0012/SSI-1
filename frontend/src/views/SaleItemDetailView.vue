@@ -4,7 +4,7 @@ import arrowleft from '../assets/icons/arrowleft.svg'
 import dot from '../assets/icons/dot.svg'
 import heart from '../assets/icons/heart.svg'
 import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { onMounted, ref, onBeforeUnmount } from 'vue'
+import { onMounted, ref, onBeforeUnmount, computed } from 'vue'
 import {
   getSaleItemById,
   deleteSaleItemById,
@@ -15,7 +15,13 @@ import Breadcrumbs from '../components/Breadcrumbs.vue'
 import { useNotiStore } from '@/stores/NotiStore'
 import MessageModal from '@/components/MessageModal.vue'
 import noImage from '@/assets/No_image_available.png'
+import { useUserStore } from '@/stores/UserStore'
+import { addItemToCart } from '@/services/CartService'
+import { useCartStore } from '@/stores/CartStore'
 
+
+const userStore = useUserStore()
+const cartStore = useCartStore()
 const route = useRoute()
 const router = useRouter()
 const saleItemStore = useSaleItemStore()
@@ -23,6 +29,10 @@ const saleItemId = route.params.id
 const selectSaleItem = ref(null)
 const isNotFound = ref(false)
 const errorMessage = ref('')
+
+const userNickname = computed(() => userStore.getNickName());
+const userId = computed(() => userStore.getUserId());
+
 
 const notiStore = useNotiStore()
 
@@ -108,6 +118,45 @@ const deleteSuccess = ref(false)
 //   router.push({ name: "sale-items" });
 // };
 
+
+const addToCart = async () => {
+  if (!userNickname.value) {
+    router.push({ name: "signin" });
+    return;
+  }
+
+  console.log("before set data");
+  console.log("uid"+ userId.value);
+  console.log("pid"+ selectSaleItem.value.id);
+  console.log("fileName"+ selectSaleItem.value?.saleItemImages[0]?.fileName );
+  console.log("qty" + cartQuantity.value);
+  
+  
+  
+  try {
+    const data = {
+      userId: userId.value,
+      productId: selectSaleItem.value.id,
+      imageFileName: selectSaleItem.value?.saleItemImages[0]?.fileName || '',
+      quantity: cartQuantity.value,
+    };
+
+    console.log("after set data");
+    console.log("Adding to cart:", data);
+    const response = await addItemToCart(data);
+    console.log("Add to cart response:", response);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    cartStore.addToCart(response,cartQuantity.value);
+    console.log("Successfully added to cart store");
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    // hasError.value = error.message || "Failed to add item to cart";
+  }
+};
 onMounted(fetchSaleItemById)
 
 onBeforeUnmount(() => {
@@ -331,6 +380,7 @@ const increaseQuantity = () => {
                   </button>
                 </div>
                 <button
+                @click="addToCart"
                   class="itbms-add-to-cart-button btn btn-primary bg-blue-700 hover:bg-blue-800 flex-1 text-white"
                 >
                   Add to Cart

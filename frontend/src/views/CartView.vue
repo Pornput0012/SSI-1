@@ -1,6 +1,6 @@
 <script setup>
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import { getAllCart, updateCart } from "@/services/CartService";
+import { deleteCartById, getAllCart, updateCart } from "@/services/CartService";
 import { useCartStore } from "@/stores/CartStore";
 import { useUserStore } from "@/stores/UserStore";
 import noImage from "@/assets/No_image_available.png";
@@ -158,25 +158,30 @@ const itemExist = (item, arr) => {
 };
 
 const increaseQty = (item) => {
-  const itemWait = itemExist(item, queque.value);
-  if (itemWait.index == -1) {
     updateQuantity(item, item.quantity + 1);
-    queque.value.push(item);
-  } else {
-    console.log("else");
-    itemWait.changeQuantity.quantity++;
-  }
+    callUpdateCart(item)
+  // const itemWait = itemExist(item, queque.value);
+  // if (itemWait.index == -1) {
+  //   queque.value.push(item);
+  // } else {
+  //   console.log("else");
+  //   itemWait.changeQuantity.quantity++;
+  // }
 };
 
 const decreaseQty = (item) => {
-  const itemWait = itemExist(item, queque.value);
-  if (itemWait.index == -1) {
+  // const itemWait = itemExist(item, queque.value);
+  // if (itemWait.index == -1) {
     updateQuantity(item, item.quantity - 1);
-    queque.value.push(item);
-  } else {
-    console.log("else");
-    itemWait.changeQuantity.quantity--;
-  }
+    if (item.quantity !==1) {
+      callUpdateCart(item)
+      
+    }
+  //   queque.value.push(item);
+  // } else {
+  //   console.log("else");
+  //   itemWait.changeQuantity.quantity--;
+  // }
   
 
 };
@@ -187,19 +192,51 @@ const checkAllItem = (i) => {
   });
 };
 
-const hasUpdateQueue = ref(false);
-watchEffect(() => {
-  if (!hasUpdateQueue.value) {
-    hasUpdateQueue.value = true;  
-    setTimeout(() => {
-      console.log("callApi");
-      
-      queque.value.forEach((ele) => {
-        callUpdateCart(ele)
+const productLength = computed(() => {
+  let countItem = 0;
+  if (carts.value) {
+    carts.value.forEach(sellerCart => {
+      sellerCart.cart.forEach(item => {
+        countItem++;
       });
-    }, 5000);
+    });
   }
+  return countItem;
 });
+
+const removeCart=async (id,pid)=>{
+  try {
+    console.log(id);
+    
+    if (id) {
+
+      const response = await deleteCartById(id);
+      if (response.success) {
+        cartStore.deleteProductById(pid);
+      } else {
+        throw new Error("An error has occurred, the cart does not exist.");
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    
+    // errorMessage.value = error.message;
+    // isNotFound.value = true;
+  }
+}
+// const hasUpdateQueue = ref(false);
+// watchEffect(() => {
+//   if (!hasUpdateQueue.value) {
+//     hasUpdateQueue.value = true;  
+//     setTimeout(() => {
+//       console.log("callApi");
+      
+//       queque.value.forEach((ele) => {
+//         callUpdateCart(ele)
+//       });
+//     }, 5000);
+//   }
+// });
 </script>
 
 <template>
@@ -216,7 +253,7 @@ watchEffect(() => {
       <div class="w-full flex justify-between">
         <div class="w-full mx-8">
           <h1 class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
-            Shopping Cart ({{ carts.length }})
+            Shopping Cart ({{productLength }})
           </h1>
 
           <div
@@ -236,13 +273,14 @@ watchEffect(() => {
             Select All
           </div>
 
-          <div>
-            <div
-              v-for="(cart, i) in carts"
+          <div  v-for="(cart, i) in carts">
+            <div 
+             v-if="cart.cart.length > 0"
+               
               class="flex flex-col mt-4 bg-white w-full p-4 rounded-xl itbms-row"
             >
               <!-- ร้านค้า -->
-              <div class="flex gap-3 items-center text-md">
+              <div  class="flex gap-3 items-center text-md">
                 <input
                   type="checkbox"
                   v-model="cart.checkAll"
@@ -257,10 +295,10 @@ watchEffect(() => {
               <hr class="my-3 text-base-300" />
 
               <!-- รายการสินค้าในร้าน -->
-              <div
+              <div 
                 v-for="item in cart.cart"
                 :key="item.id"
-                class="flex items-center justify-between mb-6 itbms-item-row"
+                class="flex items-center p-5 justify-between mb-6 itbms-item-row"
               >
                 <div class="flex items-center gap-6">
                   <input
@@ -272,14 +310,14 @@ watchEffect(() => {
                     v-if="item.image"
                     :src="item.image"
                     alt="Product image"
-                    class="w-16 aspect-square"
+                    class="w-16 aspect-square rounded-2xl"
                     :class="'object-cover'"
                   />
                   <img
                     v-else
                     :src="noImage"
                     alt="Product image"
-                    class="w-16 aspect-square"
+                    class="w-16 aspect-square rounded-2xl"
                     :class="'object-contain'"
                   />
                 </div>
@@ -310,6 +348,9 @@ watchEffect(() => {
                 >
                   {{ item.productPrice * item.quantity }} ฿
                 </span>
+                <div @click="removeCart(item.id,item.productId)" class="text-black/20 cursor-pointer">
+                  X
+                </div>
               </div>
             </div>
           </div>

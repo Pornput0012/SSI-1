@@ -4,6 +4,8 @@ import { useUserStore } from "@/stores/UserStore";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import CartIcon from "./CartIcon.vue";
+import { useCartStore } from "@/stores/CartStore";
+import { getAllCart } from "@/services/CartService";
 
 const props = defineProps({
   qty: {
@@ -19,6 +21,8 @@ function setOpenHamburger() {
 const router = useRouter();
 const userStore = useUserStore();
 const nickName = computed(() => userStore.getNickName());
+
+const cartStore = useCartStore();
 
 const menu = [
   {
@@ -49,8 +53,64 @@ onMounted(async () => {
   const userInfo = await getProfile();
   if (userInfo.logined) {
     userStore.setUserInfo(userInfo?.data);
+    if (!cartStore.carts) {
+      try {
+        const userId = userStore.getUserId();
+        if (!userId) {
+          console.log("No user ID available");
+          return;
+        }
+
+        const response = await getAllCart(userId);
+        console.log("Cart response:", response);
+
+        if (!response) {
+          console.log("No response from getAllCart");
+          return;
+        }
+
+        cartStore.setCart(response);
+      } catch (error) {
+        console.error("Error loading cart:", error?.message || "Unknown error");
+      }
+    }
   }
 });
+
+const productLength = computed(() => {
+  let countItem = 0;
+  if (cartStore.carts) {
+    cartStore.carts.forEach((sellerCart) => {
+      sellerCart.cart.forEach((item) => {
+        countItem++;
+      });
+    });
+  }
+  return countItem;
+});
+
+// onMounted(async () => {
+//   console.log(carts.value);
+//   console.log(userStore.getUserId());
+
+//   try {
+//     if (!userStore.getUserId()) {
+//       const userInfo = await getProfile();
+//       if (userInfo.logined) {
+//         userStore.setUserInfo(userInfo?.data);
+//       }
+//     }
+//     const response = await getAllCart(!userStore.getUserId());
+//     console.log(response);
+
+//     if (response?.error) {
+//       throw new Error(response.error);
+//     }
+//     carts.value = response;
+//   } catch (error) {
+//     console.error("Error loading cart:", error);
+//   }
+// });
 </script>
 
 <template>
@@ -66,21 +126,22 @@ onMounted(async () => {
         </RouterLink>
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-2" v-if="!nickName">
-          <router-link :to="{ name: 'register' }">
-            <button
-              class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
+            <router-link :to="{ name: 'register' }">
+              <button
+                class="itbms-register-button btn bg-base-100 text-indigo-700 px-4 py-1 shadow-sm"
+              >
+                Register
+              </button>
+            </router-link>
+            <router-link
+              :to="{ name: 'signin' }"
+              class="btn btn-primary px-4 py-1"
+              >Login</router-link
             >
-              Register
-            </button>
-          </router-link>
-          <router-link
-            :to="{ name: 'signin' }"
-            class="btn btn-primary px-4 py-1"
-            >Login</router-link
-          >
           </div>
           <RouterLink :to="{ name: 'cart' }">
-            <CartIcon />
+            <CartIcon v-if="nickName" :qty="productLength" />
+            <CartIcon v-else :qty="0" />
           </RouterLink>
           <div class="flex items-center gap-2 mr-3" v-if="!nickName"></div>
           <div v-if="nickName" class="flex items-center justify-center gap-4">
@@ -170,8 +231,9 @@ onMounted(async () => {
     </div> -->
     <div class="flex gap-2 items-center">
       <RouterLink :to="{ name: 'cart' }">
-        <CartIcon class="cursor-pointer" :qty="qty" />
-      </RouterLink>
+        <CartIcon v-if="nickName" :qty="productLength" />
+        <CartIcon v-else :qty="0"
+      /></RouterLink>
       <div class="dropdown dropdown-bottom dropdown-end">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
           <svg

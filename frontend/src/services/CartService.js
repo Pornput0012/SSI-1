@@ -52,7 +52,7 @@ const addItemToCart = async (cart) => {
       body: JSON.stringify(cart),
     });
 
-    if (response.status !== 200) {
+    if (response.status !== 201) {
       throw new Error(`The cart could not be added.`);
     }
 
