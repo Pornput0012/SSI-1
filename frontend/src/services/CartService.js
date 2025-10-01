@@ -68,8 +68,6 @@ const addItemToCart = async (cart) => {
 const updateCart = async (id, cart) => {
   try {
     if (!id) throw new Error("Cart Id is required for updating.");
-    else if (!cart.name)
-      throw new Error("Cart Name is required for updating.");
 
     const response = await fetch(`${CART_API_URL_V1}/${id}`, {
       method: "PUT",
