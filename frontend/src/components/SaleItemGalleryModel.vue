@@ -81,11 +81,11 @@ const addToCart = async () => {
       throw new Error(response.error);
     }
 
-    // cartStore.addToCart(response);
+    cartStore.addToCart(response);
     console.log("Successfully added to cart store");
   } catch (error) {
     console.error("Error adding to cart:", error);
-    hasError.value = error.message;
+    hasError.value = error.message || "Failed to add item to cart";
   }
 };
 </script>
