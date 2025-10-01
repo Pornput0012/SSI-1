@@ -1,8 +1,8 @@
 drop database if exists  INT221;
 
 -- require for production
-SET GLOBAL time_zone = 'Asia/Bangkok';
-SET time_zone = 'Asia/Bangkok';
+ SET GLOBAL time_zone = 'Asia/Bangkok';
+ SET time_zone = 'Asia/Bangkok';
 
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 create database if not exists INT221 CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -65,6 +65,18 @@ CREATE TABLE IF NOT EXISTS sale_item_images (
     fileName VARCHAR(255) NOT NULL,
     imageViewOrder INTEGER,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE if not exists carts (
+    cart_Id INT AUTO_INCREMENT PRIMARY KEY,
+    user_Id int not null,
+    image_Id INT,
+    product_Id INT NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    foreign key (user_id) references users(user_id) ,
+	foreign key (product_Id) references products(product_Id) ON UPDATE CASCADE on delete cascade,
+    foreign key (image_Id) references sale_item_images(image_Id) ON UPDATE CASCADE on delete cascade 
 );
 
 INSERT INTO brands (name, countryOfOrigin, websiteUrl, isActive) VALUES
@@ -155,3 +167,11 @@ INSERT INTO products (product_id, brand_id, seller_id, model, description, price
 (83, 10, 4, 'Find X5 Lite', 'Previous gen lite', 14850, 8, 6.43, 128, 'Starry Black', 8),
 (84, 10, 3, 'A77', 'Budget friendly', 8250, 6, 6.56, 128, 'Ocean Blue', 20),
 (85, 10, 4, 'Reno6 Pro', 'Classic premium', 16500, 12, 6.55, 256, 'Arctic Blue', 7);
+
+
+INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
+(3, 1, 1, 1),   -- Somchai ซื้อ iPhone 14 Pro Max (1 ชิ้น)
+(3, 2, 1, 1); 
+
+INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
+(3, 3, 1, 1);

@@ -1,6 +1,14 @@
 <script setup>
 import noImage from "@/assets/No_image_available.png";
+import router from "@/router";
+import { getImageByFileName } from "@/services/SaleItemService";
+import { useCartStore } from "@/stores/CartStore";
+import { useUserStore } from "@/stores/UserStore";
+import { computed, onMounted, ref } from "vue";
+import { addItemToCart } from "@/services/CartService";
 
+const cartStore = useCartStore();
+const userStore = useUserStore();
 const props = defineProps({
   id: {
     type: Number,
@@ -22,20 +30,62 @@ const props = defineProps({
   },
   color: String,
   fileName: {
-    type: String,
+    type: Object,
     required: false,
   },
 });
 
-const loadImages = async (imageFileNames) => {
+const hasError = ref("");
+const userNickname = computed(() => userStore.getNickName());
+const userId = computed(() => userStore.getUserId());
+
+const imageUrl = ref(null);
+
+const loadImages = async () => {
   try {
-    if (imageFileNames != null || imageFileNames != "") {
-      const imageBlob = await getImageByFileName(imageFileNames);
-      const imageUrl = URL.createObjectURL(imageBlob);
-      return imageUrl;
+    if (props.fileName?.fileName) {
+      const image_url = await getImageByFileName(props.fileName.fileName);
+      imageUrl.value = image_url;
+    } else {
+      imageUrl.value = noImage;
     }
   } catch (error) {
-    console.error(`Failed to load image ${fileName}:`, error);
+    console.error(`Failed to load image:`, error);
+    imageUrl.value = noImage;
+  }
+};
+
+onMounted(async () => {
+  await loadImages();
+});
+
+const addToCart = async () => {
+  if (!userNickname.value) {
+    router.push({ name: "signin" });
+    return;
+  }
+
+  try {
+    const data = {
+      userId: userId.value,
+      productId: props.id,
+      imageFileName: props.fileName?.fileName || '',
+      quantity: 1,
+    };
+
+    console.log("Adding to cart:", data);
+    const response = await addItemToCart(data);
+    console.log("Add to cart response:", response);
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+
+    cartStore.addToCart(response);
+    console.log("Successfully added to cart store");
+  } catch (error) {
+    console.error("Error adding to cart:", error);
+    hasError.value = error.message || "Failed to add item to cart";
   }
 };
 </script>
@@ -52,10 +102,18 @@ const loadImages = async (imageFileNames) => {
         class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
       >
         <img
-          :src="fileName ? loadImages(fileName) : noImage"
+          v-if="imageUrl"
+          :src="imageUrl"
           alt="Product image"
           class="w-full h-full object-center"
-          :class="fileName ? 'object-cover' : 'object-contain'"
+          :class="'object-cover'"
+        />
+        <img
+          v-else
+          :src="noImage"
+          alt="Product image"
+          class="w-full h-full object-center"
+          :class="'object-contain'"
         />
       </div>
 
@@ -91,13 +149,14 @@ const loadImages = async (imageFileNames) => {
             >{{ price.toLocaleString() }}
           </p>
           <button
-            class="ml-1 btn btn-sm btn-primary btn-square hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+            @click.prevent="addToCart"
+            class="itbms-add-to-cart-button ml-1 btn btn-sm btn-primary text-xs hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
           >
             <svg
-              class="p-1 sm:p-0"
+              class=""
               xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
+              width="20"
+              height="20"
               viewBox="0 0 24 24"
             >
               <path
@@ -105,6 +164,7 @@ const loadImages = async (imageFileNames) => {
                 d="M19 20c0 1.11-.89 2-2 2a2 2 0 0 1-2-2c0-1.11.89-2 2-2a2 2 0 0 1 2 2M7 18c-1.11 0-2 .89-2 2a2 2 0 0 0 2 2c1.11 0 2-.89 2-2s-.89-2-2-2m.2-3.37l-.03.12c0 .14.11.25.25.25H19v2H7a2 2 0 0 1-2-2c0-.35.09-.68.24-.96l1.36-2.45L3 4H1V2h3.27l.94 2H20c.55 0 1 .45 1 1c0 .17-.05.34-.12.5l-3.58 6.47c-.34.61-1 1.03-1.75 1.03H8.1zM8.5 11H10V9H7.56zM11 9v2h3V9zm3-1V6h-3v2zm3.11 1H15v2h1zm1.67-3H15v2h2.67zM6.14 6l.94 2H10V6z"
               />
             </svg>
+            Add to Cart
           </button>
         </div>
       </div>

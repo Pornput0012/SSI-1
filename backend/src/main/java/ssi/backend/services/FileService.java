@@ -12,6 +12,7 @@ import ssi.backend.configuration.FileStorageProperties;
 import ssi.backend.dtos.SaleItemImageDto;
 import ssi.backend.entities.Product;
 import ssi.backend.entities.SaleItemImage;
+import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.repositories.SaleItemImageRepository;
 
 import java.io.File;
@@ -237,4 +238,6 @@ public class FileService {
         File file = new java.io.File("picture/" + product.getId() + "/" + fileName);
         return file.exists();
     }
+
+
 }

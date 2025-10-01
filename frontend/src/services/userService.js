@@ -7,7 +7,7 @@ const AUTH_API_URL = `${
 }/itb-mshop/v2/auth`;
 
 const getAccessToken = () => {
-  return localStorage.getItem("accessToken");
+  return localStorage.getItem("access_token");
 };
 
 const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
@@ -61,17 +61,22 @@ const login = async (email, password) => {
       throw new Error("Please enter your email and password!");
     }
 
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    if (getAccessToken()) {
+      headers.Authorization = `Bearer ${getAccessToken()}`;
+    }
+
     const response = await fetch(`${AUTH_API_URL}/login`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
+      headers,
       body: JSON.stringify({ email, password }),
     });
     const data = await response.json();
-    if (data.accessToken) {
-      localStorage.setItem("accessToken", data.accessToken);
+    if (data.access_token) {
+      localStorage.setItem("access_token", data.access_token);
     }
 
     if (response.status === 200) {
@@ -99,14 +104,14 @@ const getAccessTokenFromRefreshToken = async () => {
       credentials: "include",
     });
     const data = await response.json();
-    if (data.accessToken) {
-      localStorage.setItem("accessToken", data.accessToken);
+    if (data.access_token) {
+      localStorage.setItem("access_token", data.access_token);
     }
 
     if (response.status != 200) {
-      throw new Error("get AccessToken not successful...");
+      throw new Error("get access_token not successful...");
     }
-    return { ok: response.ok, accessToken: data.accessToken };
+    return { ok: response.ok, access_token: data.access_token };
   } catch (err) {
     return { error: err };
   }
@@ -137,8 +142,8 @@ const getProfile = async (retryCount = 0) => {
   } catch (error) {
     if (retryCount < 1) {
       console.log("use refresh!");
-      
-      localStorage.removeItem("accessToken");
+
+      localStorage.removeItem("access_token");
       const res = await getAccessTokenFromRefreshToken();
       if (res.ok) {
         return await getProfile(retryCount + 1);
@@ -205,11 +210,12 @@ const logout = async () => {
       headers: {
         Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
       },
+      credentials: "include",
     });
 
     if (response.ok) {
       console.log("Success");
-      localStorage.removeItem("accessToken");
+      localStorage.removeItem("access_token");
       return { success: true };
     }
     throw new Error("logout fail");

@@ -9,7 +9,7 @@ const SALE_ITEM_API_URL_V2 = `${
 }/itb-mshop/v2/sale-items`;
 
 const getAccessToken = () => {
-  return localStorage.getItem("accessToken");
+  return localStorage.getItem("access_token");
 };
 
 // GET all sale-items
@@ -119,9 +119,7 @@ const getImageByFileName = async (fileName) => {
   try {
     if (!fileName) throw new Error("fileName is required.");
     const response = await fetch(
-      `${
-        import.meta.env.VITE_URL_API || "/ssi1"
-      }/itb-mshop/sale-items/${fileName}`,
+      `${import.meta.env.VITE_URL_API || "/ssi1"}/itb-mshop/sale-items/${fileName}`,
       {
         mode: "cors",
       }
@@ -228,7 +226,7 @@ const createSaleItem_v2 = async (saleItem, images) => {
       });
     }
 
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("access_token");
 
     const response = await fetch(`${SALE_ITEM_API_URL_V2}`, {
       method: "POST",

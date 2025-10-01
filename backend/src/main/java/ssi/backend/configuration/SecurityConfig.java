@@ -22,7 +22,7 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
 
-    public SecurityConfig(JwtService jwtService,JwtProperties jwtProperties) {
+    public SecurityConfig(JwtService jwtService, JwtProperties jwtProperties) {
         this.jwtService = jwtService;
         this.jwtProperties = jwtProperties;
     }
@@ -33,13 +33,15 @@ public class SecurityConfig {
                 .cors(cors -> {
                 })
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/itb-mshop/v2/sale-items/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/itb-mshop/v2/sale-items/**").permitAll()
+                                .requestMatchers("/itb-mshop/v2/auth/**").permitAll()
+
+                                .requestMatchers(HttpMethod.POST, "/itb-mshop/v2/sale-items/**").authenticated()
+                                .requestMatchers(HttpMethod.GET, "/itb-mshop/v2/sale-items/**").permitAll()
 //                        .requestMatchers(HttpMethod.PUT, "/v2/sale-items/**").authenticated()
 //                        .requestMatchers(HttpMethod.DELETE, "/v2/sale-items/**").authenticated()
-                        .anyRequest().permitAll()
+                                .anyRequest().permitAll()
                 )
-                .addFilterBefore(new JwtAuthFilter(jwtService,jwtProperties), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthFilter(jwtService, jwtProperties), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
