@@ -1,7 +1,7 @@
 <script setup>
 import { getProfile, logout } from "@/services/userService";
 import { useUserStore } from "@/stores/UserStore";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import CartIcon from "./CartIcon.vue";
 import { useCartStore } from "@/stores/CartStore";
@@ -53,30 +53,38 @@ onMounted(async () => {
   const userInfo = await getProfile();
   if (userInfo.logined) {
     userStore.setUserInfo(userInfo?.data);
-    if (!cartStore.carts) {
-      try {
-        const userId = userStore.getUserId();
-        if (!userId) {
-          console.log("No user ID available");
-          return;
-        }
+  }
+});
+watchEffect(async () => {
 
-        const response = await getAllCart(userId);
-        console.log("Cart response:", response);
+  if (userStore.getUserId() && !cartStore.carts) {
+    console.log(cartStore.carts);
+    try {  
 
-        if (!response) {
-          console.log("No response from getAllCart");
-          return;
-        }
-
-        cartStore.setCart(response);
-      } catch (error) {
-        console.error("Error loading cart:", error?.message || "Unknown error");
+      const userId = userStore.getUserId();
+      if (!userId) {
+        console.log("No user ID available");
+        return;
       }
+
+      const response = await getAllCart(userId);
+      console.log("Cart response:", response);
+
+      if (!response) {
+        console.log("No response from getAllCart");
+        return;
+      }
+
+      if (response.error) {
+        throw new Error(error);
+      }
+
+      cartStore.setCart(response);
+    } catch (error) {
+      console.error("Error loading cart:", error?.message || "Unknown error");
     }
   }
 });
-
 const productLength = computed(() => {
   let countItem = 0;
   if (cartStore.carts) {
@@ -140,7 +148,7 @@ const productLength = computed(() => {
             >
           </div>
           <RouterLink :to="{ name: 'cart' }">
-            <CartIcon v-if="nickName" :qty="productLength" />
+            <CartIcon v-if="nickName && cartStore.carts" :qty="productLength" />
             <CartIcon v-else :qty="0" />
           </RouterLink>
           <div class="flex items-center gap-2 mr-3" v-if="!nickName"></div>

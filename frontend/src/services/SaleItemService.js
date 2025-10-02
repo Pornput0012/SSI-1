@@ -397,7 +397,7 @@ const getSaleItemsBySeller = async (
   pageInfo = { page: 0, size: 10 }
 ) => {
   try {
-    console.log(sellerId);
+    
 
     if (!sellerId) throw new Error("Seller ID is required");
     const getRequestParameter = () => {
