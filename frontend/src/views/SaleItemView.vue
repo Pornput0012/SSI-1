@@ -307,8 +307,7 @@ const initializeSaleItems = async (pageInfo) => {
 const showSuccessModal = () => {
   if (
     notiStore.createSuccess ||
-    notiStore.createUserSuccess ||
-    notiStore.loginUserSuccess
+    notiStore.createUserSuccess 
   ) {
     showCreatedModal.value = true;
   }
@@ -724,9 +723,8 @@ const updateWidth = () => {
         {{
           notiStore.createUserSuccess
             ? "The user account has been successfully registered."
-            : notiStore.createSuccess
-            ? "The sale item has been successfully added."
-            : "The user account has been successfully logged in."
+            : "The sale item has been successfully added."
+            
         }}
       </p>
       <div class="itbms-button modal-action justify-center">

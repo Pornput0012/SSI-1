@@ -1,6 +1,8 @@
 package ssi.backend.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ssi.backend.dtos.CartRequestDto;
 import ssi.backend.dtos.CartResponseDto;
@@ -26,14 +28,26 @@ public class CartController {
 
 
     @GetMapping("/{userId}")
-    public List<CartResponseDto> getCartById(@PathVariable int userId) {
-        return cartService.getAllCartById(userId);
+    public ResponseEntity<List<CartResponseDto>> getCartById(@PathVariable int userId) {
+        return ResponseEntity.ok(cartService.getAllCartById(userId));
     }
 
 
     @PostMapping("")
-    public CartResponseSubDto addToCart( @RequestBody CartRequestDto cartRequestDto) {
+    public ResponseEntity<CartResponseSubDto> addToCart( @RequestBody CartRequestDto cartRequestDto) {
 
-        return cartService.addToCart(cartRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(cartService.addToCart(cartRequestDto));
+    }
+
+    @PutMapping("/{cartId}")
+    public ResponseEntity<CartResponseSubDto>  updateCartByCartId( @PathVariable int cartId, @RequestBody CartRequestDto cartRequestDto) {
+
+        return ResponseEntity.ok(cartService.updateQuantity(cartId,cartRequestDto.getQuantity()));
+    }
+
+    @DeleteMapping("/{cartId}")
+    public ResponseEntity<Void> deleteCartByCartId(@PathVariable int cartId) {
+       cartService.removeCart(cartId);
+        return ResponseEntity.noContent().build();
     }
 }
