@@ -169,9 +169,9 @@ INSERT INTO products (product_id, brand_id, seller_id, model, description, price
 (85, 10, 4, 'Reno6 Pro', 'Classic premium', 16500, 12, 6.55, 256, 'Arctic Blue', 7);
 
 
-INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
-(3, 1, 1, 1),   -- Somchai ซื้อ iPhone 14 Pro Max (1 ชิ้น)
-(3, 2, 1, 1); 
+-- INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
+-- (3, 1, 1, 1),   -- Somchai ซื้อ iPhone 14 Pro Max (1 ชิ้น)
+-- (3, 2, 1, 1); 
 
-INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
-(3, 3, 1, 1);
+-- INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
+-- (3, 3, 1, 1);

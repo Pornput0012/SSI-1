@@ -1,5 +1,6 @@
 package ssi.backend.services;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.nimbusds.jose.JOSEException;
 
 import jakarta.transaction.Transactional;
 import ssi.backend.dtos.OrderItemDTO;
@@ -34,12 +37,18 @@ public class OrderService {
     private OrderItemRepository orderItemRepository;
 
     @Transactional
-    public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) {
+    public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
         // 1. Authentication check
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Integer userId = (Integer) authentication.getDetails();
+        String userEmail = authentication.getName(); // ใช้ email แทน
+        
+        User currentUser = userRepository.findByEmail(userEmail);
+        if (currentUser == null) {
+            throw new UnauthorizedException("Invalid token");
+        }
 
-        if (!userId.equals(orderRequestDTO.getBuyerId())) {
+        // เช็คว่า current user เป็น buyer ที่สั่งซื้อหรือไม่
+        if (!currentUser.getId().equals(orderRequestDTO.getBuyerId())) {
             throw new UnauthorizedException("Invalid token for this buyer");
         }
 
