@@ -9,6 +9,7 @@ import ssi.backend.dtos.CartRequestDto;
 import ssi.backend.dtos.CartResponseDto;
 import ssi.backend.dtos.CartResponseSubDto;
 import ssi.backend.entities.*;
+import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.CartRepository;
@@ -86,6 +87,10 @@ public class CartService {
 
         Brand existingBrand = brandRepository.findById(existingProduct.getBrand().getId()).orElseThrow(() -> new ItemNotFoundException("Brand id " + existingProduct.getBrand().getId() + " does not exist"));
 
+
+        if(existingProduct.getSeller().getId() == cartRequestDto.getUserId()){
+            throw new BadRequestException("Can't add your own sale item");
+        }
         Cart existCart = cartRepository.findAllByProductIdAndUserId(existingProduct.getId(), existingUser.getId());
         Cart saveCart = existCart == null ? new Cart() : existCart;
         saveCart.setUser(existingUser);
@@ -109,7 +114,7 @@ public class CartService {
         }
 
         Cart cartResponseDto = cartRepository.save(saveCart);
-        System.out.println(cartResponseDto.getProduct().getSeller().getNickname());
+
         return modelMapper.map(cartResponseDto, CartResponseSubDto.class);
     }
 
