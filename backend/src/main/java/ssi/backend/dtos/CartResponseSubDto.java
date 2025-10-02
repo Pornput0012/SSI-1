@@ -1,5 +1,6 @@
 package ssi.backend.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +20,7 @@ public class CartResponseSubDto {
     private Integer productStorageGb;
     private BigDecimal productScreenSizeInch;
     private String productColor;
+    private int productQuantity;
     private int quantity;
     private String productSellerNickname;
     private Integer productPrice;
