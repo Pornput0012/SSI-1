@@ -164,6 +164,7 @@ watch(
           :storage-gb="itemInList.storageGb"
           :color="itemInList.color"
           :id="itemInList.id"
+          :sellerId="itemInList.seller.id"
         />
       </template>
     </ContainerList>

@@ -6,7 +6,8 @@ import { useCartStore } from "@/stores/CartStore";
 import { useUserStore } from "@/stores/UserStore";
 import { computed, onMounted, ref } from "vue";
 import { addItemToCart } from "@/services/CartService";
-
+import { useNotiStore } from "@/stores/NotiStore";
+const notiStore = useNotiStore()
 const cartStore = useCartStore();
 const userStore = useUserStore();
 const props = defineProps({
@@ -33,6 +34,11 @@ const props = defineProps({
     type: Object,
     required: false,
   },
+
+  sellerId :{
+    type: Number,
+    required: true,
+  }
 });
 
 const hasError = ref("");
@@ -65,7 +71,14 @@ const addToCart = async () => {
     return;
   }
 
+  if (userId.value === props.sellerId) {
+    notiStore.addToCartFail = true
+    return ;
+  }
+  
   try {
+    
+
     const data = {
       userId: userId.value,
       productId: props.id,
@@ -78,6 +91,7 @@ const addToCart = async () => {
     console.log("Add to cart response:", response);
 
     if (response.error) {
+      notiStore.addToCartFail = true
       throw new Error(response.error);
     }
 

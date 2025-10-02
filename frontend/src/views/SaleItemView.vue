@@ -9,6 +9,7 @@ import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
 import { useUserStore } from "@/stores/UserStore";
 import { getProfile } from "@/services/userService";
+import MessageModal from "@/components/MessageModal.vue";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
 const STORAGE_KEYS = {
@@ -307,8 +308,7 @@ const initializeSaleItems = async (pageInfo) => {
 const showSuccessModal = () => {
   if (
     notiStore.createSuccess ||
-    notiStore.createUserSuccess ||
-    notiStore.loginUserSuccess
+    notiStore.createUserSuccess 
   ) {
     showCreatedModal.value = true;
   }
@@ -724,9 +724,8 @@ const updateWidth = () => {
         {{
           notiStore.createUserSuccess
             ? "The user account has been successfully registered."
-            : notiStore.createSuccess
-            ? "The sale item has been successfully added."
-            : "The user account has been successfully logged in."
+            : "The sale item has been successfully added."
+            
         }}
       </p>
       <div class="itbms-button modal-action justify-center">
@@ -734,6 +733,13 @@ const updateWidth = () => {
       </div>
     </div>
   </div>
+
+  <MessageModal
+    v-if="notiStore.addToCartFail"
+    :handle-ok="() => (notiStore.addToCartFail = false)"
+    :title="'Add to cart fail'"
+    :message="'Can not add your own sale item'"
+  />
 </template>
 
 <style scoped></style>
