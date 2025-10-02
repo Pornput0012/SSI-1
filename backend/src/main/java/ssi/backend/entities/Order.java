@@ -54,7 +54,7 @@ public class Order {
     @Column(name = "order_note")
     private String orderNote;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     @ColumnDefault("'COMPLETED'")
     private String status;
 
