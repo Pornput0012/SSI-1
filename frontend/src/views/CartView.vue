@@ -197,7 +197,7 @@ const decreaseQty = (item) => {
     deleteTargetPid.value = item.productId;
     console.log("after set");
     confirmDelete();
-    return ;
+    return;
   }
 
   updateQuantity(item, item.quantity - 1);
@@ -212,9 +212,26 @@ const decreaseQty = (item) => {
 };
 
 const checkAllItem = (i) => {
-  carts.value[i].cart.forEach((item) => {
-    item.checked = !item.checked;
+  const isAllTrue = carts.value[i].cart.every((item) => {
+    return item.checked;
   });
+  const isAllFalse = carts.value[i].cart.every((item) => {
+    return !item.checked;
+  });
+  if (isAllTrue || isAllFalse) {
+    carts.value[i].cart.forEach((item) => {
+      item.checked = !item.checked;
+      return;
+    });
+  } else {
+    carts.value[i].cart.forEach((item) => {
+      if (item.checked === true) {
+        item.checked = false;
+      }
+      item.checked = !item.checked;
+      return;
+    });
+  }
 };
 
 const productLength = computed(() => {
@@ -231,7 +248,7 @@ const productLength = computed(() => {
 
 const removeCart = async (id, pid) => {
   try {
-    showDeleteModal.value =false
+    showDeleteModal.value = false;
     console.log(id);
 
     if (id) {
@@ -286,8 +303,8 @@ const removeCart = async (id, pid) => {
     </div>
     <!-- Header Section -->
     <div class="w-full flex flex-col lg:flex-row justify-between items-center">
-      <div class="w-full flex justify-between">
-        <div class="w-full mx-8">
+      <div class="w-full flex flex-col gap-10 md:flex-row justify-between">
+        <div class="w-full mx-auto">
           <h1 class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
             Shopping Cart ({{ productLength }})
           </h1>
@@ -333,63 +350,73 @@ const removeCart = async (id, pid) => {
               <div
                 v-for="item in cart.cart"
                 :key="item.id"
-                class="flex items-center p-5 justify-between mb-6 itbms-item-row"
+                class="flex flex-col gap-6 md:flex-row items-center justify-between mb-6 itbms-item-row"
               >
-                <div class="flex items-center gap-6">
-                  <input
-                    type="checkbox"
-                    v-model="item.checked"
-                    class="checkbox checkbox-primary"
-                  />
-                  <img
-                    v-if="item.image"
-                    :src="item.image"
-                    alt="Product image"
-                    class="w-16 aspect-square rounded-2xl"
-                    :class="'object-cover'"
-                  />
-                  <img
-                    v-else
-                    :src="noImage"
-                    alt="Product image"
-                    class="w-16 aspect-square rounded-2xl"
-                    :class="'object-contain'"
-                  />
+                <div class="flex flex-col gap-14 md:flex-row">
+                  <div class="flex items-center gap-5">
+                    <input
+                      type="checkbox"
+                      v-model="item.checked"
+                      class="checkbox checkbox-primary"
+                    />
+
+                    <img
+                      v-if="item.image"
+                      :src="item.image"
+                      alt="Product image"
+                      class="w-16 aspect-square rounded-2xl"
+                      :class="'object-cover'"
+                    />
+                    <img
+                      v-else
+                      :src="noImage"
+                      alt="Product image"
+                      class="w-16 aspect-square rounded-2xl"
+                      :class="'object-contain'"
+                    />
+                  </div>
+                  <span class="itbms-item-description text-sm lg:text-lg">{{
+                    item.productBrandName +
+                    " " +
+                    item.productModel +
+                    " (" +
+                    item.productStorageGb +
+                    "GB," +
+                    item.productColor +
+                    ")"
+                  }}</span>
                 </div>
+                <div class="flex gap-6 items-center">
+                  <div class="quantity flex items-center gap-2">
+                    <button
+                      class="btn btn-sm itbms-dec-qty-button"
+                      :disabled="item.quantity === 0"
+                      @click="decreaseQty(item)"
+                    >
+                      -
+                    </button>
 
-                <span class="itbms-item-description w-40">{{
-                  item.productModel
-                }}</span>
+                    <span class="itbms-item-quantity">{{ item.quantity }}</span>
+                    <button
+                      class="btn btn-sm itbms-inc-qty-button"
+                      :disabled="item.quantity === item.productQuantity"
+                      @click="increaseQty(item)"
+                    >
+                      +
+                    </button>
+                  </div>
 
-                <div class="quantity flex items-center gap-2">
-                  <button
-                    class="btn btn-sm itbms-dec-qty-button"
-                    :disabled="item.quantity === 0"
-                    @click="decreaseQty(item)"
+                  <span
+                    class="price font-bold text-blue-600 itbms-item-total-price"
                   >
-                    -
-                  </button>
-
-                  <span class="itbms-item-quantity">{{ item.quantity }}</span>
-                  <button
-                    class="btn btn-sm itbms-inc-qty-button"
-                    :disabled="item.quantity === item.productQuantity"
-                    @click="increaseQty(item)"
+                    {{ item.productPrice * item.quantity }} ฿
+                  </span>
+                  <div
+                    @click="removeCart(item.id, item.productId)"
+                    class="text-black/20 cursor-pointer"
                   >
-                    +
-                  </button>
-                </div>
-
-                <span
-                  class="price font-bold text-blue-600 itbms-item-total-price"
-                >
-                  {{ item.productPrice * item.quantity }} ฿
-                </span>
-                <div
-                  @click="removeCart(item.id, item.productId)"
-                  class="text-black/20 cursor-pointer"
-                >
-                  X
+                    X
+                  </div>
                 </div>
               </div>
             </div>
@@ -397,7 +424,7 @@ const removeCart = async (id, pid) => {
         </div>
 
         <!-- Summary -->
-        <div class="flex flex-col h-fit bg-white w-80 p-4 rounded-xl">
+        <div class="flex flex-col h-fit bg-white w-60 md:w-80 p-4 rounded-xl">
           <div>
             <p class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
               Cart Summary
