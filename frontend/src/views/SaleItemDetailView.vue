@@ -125,6 +125,11 @@ const addToCart = async () => {
     return;
   }
 
+  if (selectSaleItem.value.seller.id === userId.value) {
+    notiStore.addToCartFail = true
+    return ;
+  }
+
   console.log("before set data");
   console.log("uid"+ userId.value);
   console.log("pid"+ selectSaleItem.value.id);
@@ -147,6 +152,7 @@ const addToCart = async () => {
     console.log("Add to cart response:", response);
 
     if (response.error) {
+       notiStore.addToCartFail = true
       throw new Error(response.error);
     }
 
@@ -441,6 +447,12 @@ const increaseQuantity = () => {
     :message="errorMessage"
   />
 
+   <MessageModal
+    v-if="notiStore.addToCartFail"
+    :handle-ok="() => (notiStore.addToCartFail = false)"
+    :title="'Add to cart fail'"
+    :message="'Can not add your own sale item'"
+  />
   <!-- <div v-if="deleteSuccess" class="modal modal-open">
     <div class="modal-box text-center">
       <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">

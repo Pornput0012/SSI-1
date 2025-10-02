@@ -7,5 +7,6 @@ export const useNotiStore = defineStore('Noti', () => {
   const createUserSuccess = ref(false)
   const loginUserSuccess = ref(false)
 
-  return { updateSuccess, createSuccess, createUserSuccess, loginUserSuccess};
+  const addToCartFail = ref(false)
+  return { updateSuccess, createSuccess, createUserSuccess, loginUserSuccess,addToCartFail};
 });
