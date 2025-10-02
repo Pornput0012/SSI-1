@@ -38,20 +38,6 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
-        // 1. Authentication check
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userEmail = authentication.getName(); // ใช้ email แทน
-        
-        User currentUser = userRepository.findByEmail(userEmail);
-        if (currentUser == null) {
-            throw new UnauthorizedException("Invalid token");
-        }
-
-        // เช็คว่า current user เป็น buyer ที่สั่งซื้อหรือไม่
-        if (!currentUser.getId().equals(orderRequestDTO.getBuyerId())) {
-            throw new UnauthorizedException("Invalid token for this buyer");
-        }
-
         // 2. Validate และหา User
         User buyer = userRepository.findById(orderRequestDTO.getBuyerId())
                 .orElseThrow(
@@ -98,6 +84,7 @@ public class OrderService {
         Order order = new Order();
         order.setBuyer(buyer);
         order.setSeller(seller);
+        order.setOrderDate(orderRequestDTO.getOrderDate());
         order.setShippingAddress(orderRequestDTO.getShippingAddress());
         order.setOrderNote(orderRequestDTO.getOrderNote());
         order.setStatus(orderRequestDTO.getOrderStatus());

@@ -31,8 +31,12 @@ public class OrderController {
 
     // @PreAuthorize("hasRole('BUYER')")
     @PostMapping("/v2/orders")
-    public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException{
+    public ResponseEntity<List<OrderResponseDTO>> createOrders(@Valid @RequestBody List<OrderRequestDTO> orderRequestDTOs) throws ParseException, JOSEException {
+    List<OrderResponseDTO> responses = new ArrayList<>();
+    for (OrderRequestDTO orderRequestDTO : orderRequestDTOs) {
         OrderResponseDTO response = orderService.createOrder(orderRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        responses.add(response);
+    }
+    return ResponseEntity.status(HttpStatus.CREATED).body(responses);
 }
 }
