@@ -1,6 +1,6 @@
 <script setup>
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import { getAllCart, updateCart } from "@/services/CartService";
+import { deleteCartById, getAllCart, updateCart } from "@/services/CartService";
 import { useCartStore } from "@/stores/CartStore";
 import { useUserStore } from "@/stores/UserStore";
 import noImage from "@/assets/No_image_available.png";
@@ -120,7 +120,7 @@ const queque = ref([]);
 // เพิ่ม/ลดจำนวน
 const updateQuantity = (item, newQuantity) => {
   // ป้องกันไม่ให้ quantity น้อยกว่า 1
-  item.quantity = Math.max(1, newQuantity);
+  item.quantity = Math.max(0, newQuantity);
 };
 
 const callUpdateCart = async (item) => {
@@ -156,50 +156,140 @@ const itemExist = (item, arr) => {
     changeQuantity,
   };
 };
+const deleteTargetId = ref(null);
+const deleteTargetPid = ref(null);
 
 const increaseQty = (item) => {
-  const itemWait = itemExist(item, queque.value);
-  if (itemWait.index == -1) {
+  if (item.quantity <= item.productQuantity) {
     updateQuantity(item, item.quantity + 1);
-    queque.value.push(item);
-  } else {
-    console.log("else");
-    itemWait.changeQuantity.quantity++;
+    callUpdateCart(item);
   }
+  // const itemWait = itemExist(item, queque.value);
+  // if (itemWait.index == -1) {
+  //   queque.value.push(item);
+  // } else {
+  //   console.log("else");
+  //   itemWait.changeQuantity.quantity++;
+  // }
+};
+
+const showWarningModal = ref(false);
+const showDeleteModal = ref(false);
+
+const confirmDelete = () => {
+  console.log("confirm");
+
+  showDeleteModal.value = true;
 };
 
 const decreaseQty = (item) => {
-  const itemWait = itemExist(item, queque.value);
-  if (itemWait.index == -1) {
-    updateQuantity(item, item.quantity - 1);
-    queque.value.push(item);
-  } else {
-    console.log("else");
-    itemWait.changeQuantity.quantity--;
-  }
-  
+  // const itemWait = itemExist(item, queque.value);
+  // if (itemWait.index == -1) {
+  console.log("0");
+  if (item.quantity === 1) {
+    console.log("before set");
 
+    console.log("id" + item.id);
+    console.log("pid" + item.productId);
+    deleteTargetId.value = item.id;
+    console.log(deleteTargetId.value);
+
+    deleteTargetPid.value = item.productId;
+    console.log("after set");
+    confirmDelete();
+    return;
+  }
+
+  updateQuantity(item, item.quantity - 1);
+  if (item.quantity !== 0) {
+    callUpdateCart(item);
+  }
+  //   queque.value.push(item);
+  // } else {
+  //   console.log("else");
+  //   itemWait.changeQuantity.quantity--;
+  // }
 };
 
 const checkAllItem = (i) => {
-  carts.value[i].cart.forEach((item) => {
-    item.checked = !item.checked;
+  const isAllTrue = carts.value[i].cart.every((item) => {
+    return item.checked;
   });
+  const isAllFalse = carts.value[i].cart.every((item) => {
+    return !item.checked;
+  });
+  if (isAllTrue || isAllFalse) {
+    carts.value[i].cart.forEach((item) => {
+      item.checked = !item.checked;
+      return;
+    });
+  } else {
+    carts.value[i].cart.forEach((item) => {
+      if (item.checked === true) {
+        item.checked = false;
+      }
+      item.checked = !item.checked;
+      return;
+    });
+  }
 };
 
-const hasUpdateQueue = ref(false);
-watchEffect(() => {
-  if (!hasUpdateQueue.value) {
-    hasUpdateQueue.value = true;  
-    setTimeout(() => {
-      console.log("callApi");
-      
-      queque.value.forEach((ele) => {
-        callUpdateCart(ele)
+const productLength = computed(() => {
+  let countItem = 0;
+  if (carts.value) {
+    carts.value.forEach((sellerCart) => {
+      sellerCart.cart.forEach((item) => {
+        countItem++;
       });
-    }, 5000);
+    });
   }
+  return countItem;
 });
+
+const removeCart = async (id, pid) => {
+  try {
+    showDeleteModal.value = false;
+    console.log(id);
+
+    if (id) {
+      const response = await deleteCartById(id);
+      if (response.success) {
+        const hasSaleItem = cartStore.findProductById(pid);
+        if (hasSaleItem.found) {
+          cartStore.deleteProductById(pid);
+          deleteTargetId.value = null;
+          deleteTargetPid.value = null;
+          return;
+        } else {
+          showWarningModal.value = true;
+          deleteTargetId.value = null;
+          deleteTargetPid.value = null;
+          return;
+        }
+      } else {
+        throw new Error("An error has occurred, the cart does not exist.");
+      }
+    }
+  } catch (error) {
+    console.error(error);
+
+    // errorMessage.value = error.message;
+    // isNotFound.value = true;
+  }
+};
+// const hasUpdateQueue = ref(false);
+// watchEffect(() => {
+//   if (!hasUpdateQueue.value) {
+//     hasUpdateQueue.value = true;
+//     setTimeout(() => {
+//       console.log("callApi");
+
+//       queque.value.forEach((ele) => {
+//         callUpdateCart(ele)
+//       });
+//     }, 5000);
+//   }
+// });
 </script>
 
 <template>
@@ -213,10 +303,10 @@ watchEffect(() => {
     </div>
     <!-- Header Section -->
     <div class="w-full flex flex-col lg:flex-row justify-between items-center">
-      <div class="w-full flex justify-between">
-        <div class="w-full mx-8">
+      <div class="w-full flex flex-col gap-10 md:flex-row justify-between">
+        <div class="w-full mx-auto">
           <h1 class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
-            Shopping Cart ({{ carts.length }})
+            Shopping Cart ({{ productLength }})
           </h1>
 
           <div
@@ -236,9 +326,9 @@ watchEffect(() => {
             Select All
           </div>
 
-          <div>
+          <div v-for="(cart, i) in carts">
             <div
-              v-for="(cart, i) in carts"
+              v-if="cart.cart.length > 0"
               class="flex flex-col mt-4 bg-white w-full p-4 rounded-xl itbms-row"
             >
               <!-- ร้านค้า -->
@@ -260,63 +350,81 @@ watchEffect(() => {
               <div
                 v-for="item in cart.cart"
                 :key="item.id"
-                class="flex items-center justify-between mb-6 itbms-item-row"
+                class="flex flex-col gap-6 md:flex-row items-center justify-between mb-6 itbms-item-row"
               >
-                <div class="flex items-center gap-6">
-                  <input
-                    type="checkbox"
-                    v-model="item.checked"
-                    class="checkbox checkbox-primary"
-                  />
-                  <img
-                    v-if="item.image"
-                    :src="item.image"
-                    alt="Product image"
-                    class="w-16 aspect-square"
-                    :class="'object-cover'"
-                  />
-                  <img
-                    v-else
-                    :src="noImage"
-                    alt="Product image"
-                    class="w-16 aspect-square"
-                    :class="'object-contain'"
-                  />
+                <div class="flex flex-col gap-14 md:flex-row">
+                  <div class="flex items-center gap-5">
+                    <input
+                      type="checkbox"
+                      v-model="item.checked"
+                      class="checkbox checkbox-primary"
+                    />
+
+                    <img
+                      v-if="item.image"
+                      :src="item.image"
+                      alt="Product image"
+                      class="w-16 aspect-square rounded-2xl"
+                      :class="'object-cover'"
+                    />
+                    <img
+                      v-else
+                      :src="noImage"
+                      alt="Product image"
+                      class="w-16 aspect-square rounded-2xl"
+                      :class="'object-contain'"
+                    />
+                  </div>
+                  <span class="itbms-item-description text-sm lg:text-lg">{{
+                    item.productBrandName +
+                    " " +
+                    item.productModel +
+                    " (" +
+                    item.productStorageGb +
+                    "GB," +
+                    item.productColor +
+                    ")"
+                  }}</span>
                 </div>
+                <div class="flex gap-6 items-center">
+                  <div class="quantity flex items-center gap-2">
+                    <button
+                      class="btn btn-sm itbms-dec-qty-button"
+                      :disabled="item.quantity === 0"
+                      @click="decreaseQty(item)"
+                    >
+                      -
+                    </button>
 
-                <span class="itbms-item-description w-40">{{
-                  item.productModel
-                }}</span>
+                    <span class="itbms-item-quantity">{{ item.quantity }}</span>
+                    <button
+                      class="btn btn-sm itbms-inc-qty-button"
+                      :disabled="item.quantity === item.productQuantity"
+                      @click="increaseQty(item)"
+                    >
+                      +
+                    </button>
+                  </div>
 
-                <div class="quantity flex items-center gap-2">
-                  <button
-                    class="btn btn-sm itbms-dec-qty-button"
-                    @click="decreaseQty(item)"
+                  <span
+                    class="price font-bold text-blue-600 itbms-item-total-price"
                   >
-                    -
-                  </button>
-
-                  <span class="itbms-item-quantity">{{ item.quantity }}</span>
-                  <button
-                    class="btn btn-sm itbms-inc-qty-button"
-                    @click="increaseQty(item)"
+                    {{ item.productPrice * item.quantity }} ฿
+                  </span>
+                  <div
+                    @click="removeCart(item.id, item.productId)"
+                    class="text-black/20 cursor-pointer"
                   >
-                    +
-                  </button>
+                    X
+                  </div>
                 </div>
-
-                <span
-                  class="price font-bold text-blue-600 itbms-item-total-price"
-                >
-                  {{ item.productPrice * item.quantity }} ฿
-                </span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Summary -->
-        <div class="flex flex-col h-fit bg-white w-80 p-4 rounded-xl">
+        <div class="flex flex-col h-fit bg-white w-60 md:w-80 p-4 rounded-xl">
           <div>
             <p class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
               Cart Summary
@@ -342,6 +450,49 @@ watchEffect(() => {
         </div>
       </div>
     </div>
+    <dialog class="modal" :open="showDeleteModal" v-if="showDeleteModal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold">Delete Confirmation</h3>
+
+        <p class="itbms-message py-4">
+          Do you want to remove the sale item from the cart?
+        </p>
+        <div class="modal-action">
+          <form method="dialog">
+            <button
+              @click="showDeleteModal = false"
+              class="btn btn-error itbms-cancel-button"
+            >
+              Cancel
+            </button>
+          </form>
+          <button
+            @click="removeCart(deleteTargetId, deleteTargetPid)"
+            class="btn btn-success itbms-confirm-button"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="modal" :open="showWarningModal" v-if="showWarningModal">
+      <div class="modal-box">
+        <h3 class="text-lg font-bold">Cannot Delete</h3>
+
+        <p class="itbms-message py-3">This cart is not found</p>
+        <div class="modal-action">
+          <form method="dialog">
+            <button
+              @click="showWarningModal = false"
+              class="btn btn-error itbms-cancel-button"
+            >
+              Cancel
+            </button>
+          </form>
+        </div>
+      </div>
+    </dialog>
   </div>
 </template>
 

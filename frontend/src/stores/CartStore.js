@@ -37,12 +37,20 @@ export const useCartStore = defineStore("Cart", () => {
   }
 
   function deleteProductById(id) {
-    if (!Array.isArray(carts.value)) {
+    const { found, sellerIndex,productIndex } = findProductById(id);
+    
+    if (found) {
+      carts.value[sellerIndex].cart.splice(productIndex, 1)
+      console.log(carts.value[sellerIndex]);
+      console.log(carts.value[sellerIndex].cart.length === 0);
+      
+      if (carts.value[sellerIndex].cart.length === 0 ) {
+         carts.value.splice(sellerIndex, 1)
+         
+         console.log(carts.value);
+         
+      }
       return;
-    }
-
-    if (id && findProductById(id) !== -1) {
-      carts.value.splice(findProductById(id), 1);
     }
   }
 
@@ -65,7 +73,9 @@ export const useCartStore = defineStore("Cart", () => {
     
   }
 
-   function addToCart(product) {
+   function addToCart(product,quantity=1) {
+  
+    
     if (!carts.value) {
       carts.value = [];
     }
@@ -75,8 +85,10 @@ export const useCartStore = defineStore("Cart", () => {
 
     const { found, sellerIndex,productIndex } = findProductById(product.productId);
     
+    console.log(product.quantity);
     if (found) {
-      carts.value[sellerIndex].cart[productIndex].quantity++
+      
+      carts.value[sellerIndex].cart[productIndex].quantity+=quantity
       return;
     }
 
