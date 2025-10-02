@@ -212,9 +212,26 @@ const decreaseQty = (item) => {
 };
 
 const checkAllItem = (i) => {
-  carts.value[i].cart.forEach((item) => {
-    item.checked = !item.checked;
+  const isAllTrue = carts.value[i].cart.every((item) => {
+    return item.checked;
   });
+  const isAllFalse = carts.value[i].cart.every((item) => {
+    return !item.checked;
+  });
+  if (isAllTrue || isAllFalse) {
+    carts.value[i].cart.forEach((item) => {
+      item.checked = !item.checked;
+      return;
+    });
+  } else {
+    carts.value[i].cart.forEach((item) => {
+      if (item.checked === true) {
+        item.checked = false;
+      }
+      item.checked = !item.checked;
+      return;
+    });
+  }
 };
 
 const productLength = computed(() => {
@@ -358,7 +375,7 @@ const removeCart = async (id, pid) => {
                       :class="'object-contain'"
                     />
                   </div>
-                  <span class="itbms-item-description text-sm  lg:text-lg">{{
+                  <span class="itbms-item-description text-sm lg:text-lg">{{
                     item.productBrandName +
                     " " +
                     item.productModel +
