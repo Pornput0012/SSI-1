@@ -75,9 +75,9 @@ public class OrderService {
             orderItem.setQuantity(itemDTO.getQuantity());
             orderItem.setUnitPrice(itemDTO.getPrice());
             orderItem.setTotalPrice(itemDTO.getPrice() * itemDTO.getQuantity());
+            orderItem.setDescription(itemDTO.getDescription());
 
             // คัดลอกข้อมูลจาก Product เพื่อป้องกันการเปลี่ยนแปลงในอนาคต
-            orderItem.setDescription(product.getDescription());
             orderItem.setModel(product.getModel());
             orderItem.setRamGb(product.getRamGb());
             orderItem.setScreenSizeInch(product.getScreenSizeInch());
@@ -136,7 +136,7 @@ public class OrderService {
             dto.setSaleItemId(orderItem.getProduct().getId());
             dto.setPrice(orderItem.getUnitPrice());
             dto.setQuantity(orderItem.getQuantity());
-            dto.setDescription(orderItem.getProduct().getDescription());
+            dto.setDescription(orderItem.getDescription());
             orderItemDTOs.add(dto);
         }
         orderResponseDTO.setOrderItems(orderItemDTOs);

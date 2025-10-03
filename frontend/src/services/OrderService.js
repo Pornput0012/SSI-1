@@ -1,13 +1,16 @@
 const ORDER_API_URL_V2 = `${
   import.meta.env.VITE_URL_API || '/ssi1'
 }/itb-mshop/v2/orders`
-
+const getAccessToken = () => {
+  return localStorage.getItem("access_token");
+};
 const createOrder = async (orders) => {
   try {
     const response = await fetch(`${ORDER_API_URL_V2}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : '',
       },
       body: JSON.stringify(orders),
     })
@@ -23,6 +26,8 @@ const createOrder = async (orders) => {
   } catch (error) {
     return {
       error: `Error creating order: ${error.message}`,
-    };
+    }
   }
 }
+
+export { createOrder }

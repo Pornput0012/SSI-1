@@ -17,8 +17,6 @@ public class OrderRequestDTO {
     @NotNull(message = "Seller ID is required")
     private Integer sellerId;
     
-    private Instant orderDate;
-    
     @NotNull(message = "Shipping address is required")
     private String shippingAddress;
     

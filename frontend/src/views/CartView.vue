@@ -1,19 +1,20 @@
 <script setup>
-import Breadcrumbs from "@/components/Breadcrumbs.vue";
-import { deleteCartById, getAllCart, updateCart } from "@/services/CartService";
-import { useCartStore } from "@/stores/CartStore";
-import { useUserStore } from "@/stores/UserStore";
-import noImage from "@/assets/No_image_available.png";
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
-import { getImageByFileName } from "@/services/SaleItemService";
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import { deleteCartById, getAllCart, updateCart } from '@/services/CartService'
+import { useCartStore } from '@/stores/CartStore'
+import { useUserStore } from '@/stores/UserStore'
+import noImage from '@/assets/No_image_available.png'
+import { computed, onMounted, ref, watch, watchEffect } from 'vue'
+import { getImageByFileName } from '@/services/SaleItemService'
+import { createOrder } from '@/services/OrderService'
 
-const userStore = useUserStore();
-const cartStore = useCartStore();
-const userId = computed(() => userStore.getUserId());
+const userStore = useUserStore()
+const cartStore = useCartStore()
+const userId = computed(() => userStore.getUserId())
 // Mockup ข้อมูลสินค้า
-const carts = ref([]);
+const carts = ref([])
 
-const hasError = ref("");
+const hasError = ref('')
 
 onMounted(async () => {
   try {
@@ -22,106 +23,104 @@ onMounted(async () => {
         return {
           ...ele,
           checkAll: false,
-        };
-      });
+        }
+      })
     } else {
-      console.log("Fetching cart for user:", userId.value);
+      console.log('Fetching cart for user:', userId.value)
 
-      const response = await getAllCart(userId.value);
+      const response = await getAllCart(userId.value)
 
       if (response.error) {
-        throw new Error(response.error);
+        throw new Error(response.error)
       }
 
       carts.value = response?.map((ele) => {
         return {
           ...ele,
           cart: ele?.cart.map((ele) => {
-            return { ...ele, checked: false };
+            return { ...ele, checked: false }
           }),
           checkAll: false,
-        };
-      });
+        }
+      })
     }
-    console.log("Cart data loaded:", carts.value);
+    console.log('Cart data loaded:', carts.value)
     // โหลดรูปภาพหลังจากได้ข้อมูล cart
-    await loadImages();
+    await loadImages()
   } catch (error) {
-    hasError.value = error.message;
-    console.error("Error loading cart:", error);
+    hasError.value = error.message
+    console.error('Error loading cart:', error)
   }
 
-  console.log(cartStore.carts);
-});
+  console.log(cartStore.carts)
+})
 
-const selectAll = ref(false);
+const selectAll = ref(false)
 
 const itemSelected = computed(() => {
-  return carts.value.flatMap((cart) =>
-    cart.cart.filter((item) => item.checked)
-  );
-});
+  return carts.value.flatMap((cart) => cart.cart.filter((item) => item.checked))
+})
 
 const selectSellerState = computed(() => {
   return carts.value.every((item) => {
-    return item.checkAll === true;
-  });
-});
+    return item.checkAll === true
+  })
+})
 
 const loadImages = async () => {
-  console.log("hi");
+  console.log('hi')
 
   try {
     for (const ele of carts.value) {
-      console.log("hi2");
-      console.log(ele.cart);
+      console.log('hi2')
+      console.log(ele.cart)
 
       for (const item of ele.cart) {
         if (item.imageName) {
-          console.log("Loading image for:", item.imageName);
-          const image_url = await getImageByFileName(item.imageName);
-          item.image = image_url;
-          console.log("Loaded image:", item.image);
+          console.log('Loading image for:', item.imageName)
+          const image_url = await getImageByFileName(item.imageName)
+          item.image = image_url
+          console.log('Loaded image:', item.image)
         } else {
-          console.log("No image name, using default");
-          item.image = noImage;
+          console.log('No image name, using default')
+          item.image = noImage
         }
       }
     }
   } catch (error) {
-    console.error(`Failed to load images:`, error);
+    console.error(`Failed to load images:`, error)
   }
-};
+}
 
 onMounted(async () => {
-  await loadImages();
-});
+  await loadImages()
+})
 
 watchEffect(() => {
   carts.value.forEach((cart) => {
     // ถ้าสินค้าทุกตัวในร้านถูกเลือก
     cart.checkAll =
-      cart.cart.length > 0 && cart.cart.every((item) => item.checked);
-  });
+      cart.cart.length > 0 && cart.cart.every((item) => item.checked)
+  })
 
   // sync selectAll ด้วย (ยังใช้ได้เหมือนเดิม)
   selectAll.value =
-    carts.value.length > 0 && carts.value.every((cart) => cart.checkAll);
-});
+    carts.value.length > 0 && carts.value.every((cart) => cart.checkAll)
+})
 
 const totalPrice = computed(() => {
   return itemSelected.value.reduce(
     (sum, item) => sum + item.productPrice * item.quantity,
     0
-  );
-});
+  )
+})
 
-const queque = ref([]);
+const queque = ref([])
 // เพิ่ม/ลดจำนวน
 const updateQuantity = (item, newQuantity) => {
   // ป้องกันไม่ให้ quantity น้อยกว่า 1
-  item.quantity = Math.max(0, newQuantity);
-};
+  item.quantity = Math.max(0, newQuantity)
+}
 
 const callUpdateCart = async (item) => {
   try {
@@ -130,39 +129,39 @@ const callUpdateCart = async (item) => {
       productId: item.id,
       imageFileName: item.fileName,
       quantity: item.quantity,
-    };
-
-    const response = await updateCart(item.id, data);
-    if (response.error) {
-      throw new Error(response.error);
     }
 
-    cartStore.updateProductCartById(item);
+    const response = await updateCart(item.id, data)
+    if (response.error) {
+      throw new Error(response.error)
+    }
+
+    cartStore.updateProductCartById(item)
   } catch (error) {
-    hasError.value = error.message;
-    console.error("Error update cart:", error);
+    hasError.value = error.message
+    console.error('Error update cart:', error)
   }
-};
+}
 
 const itemExist = (item, arr) => {
-  let changeQuantity;
+  let changeQuantity
   return {
     index: arr.findIndex((ele) => {
       if (ele.id === item.id) {
-        changeQuantity = ele;
+        changeQuantity = ele
       }
-      return ele.id === item.id;
+      return ele.id === item.id
     }),
     changeQuantity,
-  };
-};
-const deleteTargetId = ref(null);
-const deleteTargetPid = ref(null);
+  }
+}
+const deleteTargetId = ref(null)
+const deleteTargetPid = ref(null)
 
 const increaseQty = (item) => {
   if (item.quantity <= item.productQuantity) {
-    updateQuantity(item, item.quantity + 1);
-    callUpdateCart(item);
+    updateQuantity(item, item.quantity + 1)
+    callUpdateCart(item)
   }
   // const itemWait = itemExist(item, queque.value);
   // if (itemWait.index == -1) {
@@ -171,112 +170,112 @@ const increaseQty = (item) => {
   //   console.log("else");
   //   itemWait.changeQuantity.quantity++;
   // }
-};
+}
 
-const showWarningModal = ref(false);
-const showDeleteModal = ref(false);
+const showWarningModal = ref(false)
+const showDeleteModal = ref(false)
 
 const confirmDelete = () => {
-  console.log("confirm");
+  console.log('confirm')
 
-  showDeleteModal.value = true;
-};
+  showDeleteModal.value = true
+}
 
 const decreaseQty = (item) => {
   // const itemWait = itemExist(item, queque.value);
   // if (itemWait.index == -1) {
-  console.log("0");
+  console.log('0')
   if (item.quantity === 1) {
-    console.log("before set");
+    console.log('before set')
 
-    console.log("id" + item.id);
-    console.log("pid" + item.productId);
-    deleteTargetId.value = item.id;
-    console.log(deleteTargetId.value);
+    console.log('id' + item.id)
+    console.log('pid' + item.productId)
+    deleteTargetId.value = item.id
+    console.log(deleteTargetId.value)
 
-    deleteTargetPid.value = item.productId;
-    console.log("after set");
-    confirmDelete();
-    return;
+    deleteTargetPid.value = item.productId
+    console.log('after set')
+    confirmDelete()
+    return
   }
 
-  updateQuantity(item, item.quantity - 1);
+  updateQuantity(item, item.quantity - 1)
   if (item.quantity !== 0) {
-    callUpdateCart(item);
+    callUpdateCart(item)
   }
   //   queque.value.push(item);
   // } else {
   //   console.log("else");
   //   itemWait.changeQuantity.quantity--;
   // }
-};
+}
 
 const checkAllItem = (i) => {
   const isAllTrue = carts.value[i].cart.every((item) => {
-    return item.checked;
-  });
+    return item.checked
+  })
   const isAllFalse = carts.value[i].cart.every((item) => {
-    return !item.checked;
-  });
+    return !item.checked
+  })
   if (isAllTrue || isAllFalse) {
     carts.value[i].cart.forEach((item) => {
-      item.checked = !item.checked;
-      return;
-    });
+      item.checked = !item.checked
+      return
+    })
   } else {
     carts.value[i].cart.forEach((item) => {
       if (item.checked === true) {
-        item.checked = false;
+        item.checked = false
       }
-      item.checked = !item.checked;
-      return;
-    });
+      item.checked = !item.checked
+      return
+    })
   }
-};
+}
 
 const productLength = computed(() => {
-  let countItem = 0;
+  let countItem = 0
   if (carts.value) {
     carts.value.forEach((sellerCart) => {
       sellerCart.cart.forEach((item) => {
-        countItem++;
-      });
-    });
+        countItem++
+      })
+    })
   }
-  return countItem;
-});
+  return countItem
+})
 
 const removeCart = async (id, pid) => {
   try {
-    showDeleteModal.value = false;
-    console.log(id);
+    showDeleteModal.value = false
+    console.log(id)
 
     if (id) {
-      const response = await deleteCartById(id);
+      const response = await deleteCartById(id)
       if (response.success) {
-        const hasSaleItem = cartStore.findProductById(pid);
+        const hasSaleItem = cartStore.findProductById(pid)
         if (hasSaleItem.found) {
-          cartStore.deleteProductById(pid);
-          deleteTargetId.value = null;
-          deleteTargetPid.value = null;
-          return;
+          cartStore.deleteProductById(pid)
+          deleteTargetId.value = null
+          deleteTargetPid.value = null
+          return
         } else {
-          showWarningModal.value = true;
-          deleteTargetId.value = null;
-          deleteTargetPid.value = null;
-          return;
+          showWarningModal.value = true
+          deleteTargetId.value = null
+          deleteTargetPid.value = null
+          return
         }
       } else {
-        throw new Error("An error has occurred, the cart does not exist.");
+        throw new Error('An error has occurred, the cart does not exist.')
       }
     }
   } catch (error) {
-    console.error(error);
+    console.error(error)
 
     // errorMessage.value = error.message;
     // isNotFound.value = true;
   }
-};
+}
 // const hasUpdateQueue = ref(false);
 // watchEffect(() => {
 //   if (!hasUpdateQueue.value) {
@@ -290,6 +289,72 @@ const removeCart = async (id, pid) => {
 //     }, 5000);
 //   }
 // });
+const shippingAddress = ref('')
+const orderNote = ref('')
+
+const handlePlaceOrder = async () => {
+  try {
+    const orderRequestList = []
+
+    carts.value.forEach((sellerCart) => {
+      const selectedItems = sellerCart.cart.filter((item) => item.checked)
+      if (selectedItems.length === 0) {
+        return
+      }
+      const orderItems = selectedItems.map((item) => ({
+        saleItemId: item.productId,
+        price: item.productPrice,
+        quantity: item.quantity,
+        description:
+          item.productBrandName +
+          ' ' +
+          item.productModel +
+          ' (' +
+          item.productStorageGb +
+          'GB,' +
+          item.productColor +
+          ')',
+      }))
+
+      const sellerId = sellerCart.productSellerId
+
+      orderRequestList.push({
+        buyerId: userId.value,
+        sellerId,
+        shippingAddress: shippingAddress.value,
+        orderNote: orderNote.value,
+        orderItems,
+        orderStatus: 'COMPLETED',
+      })
+    })
+
+    if (orderRequestList.length === 0) {
+      return
+    }
+
+    console.log('📦 Order Payload:', JSON.stringify(orderRequestList, null, 2))
+
+    const response = await createOrder(orderRequestList)
+
+    if (response.error) {
+      throw new Error(response.error)
+    }
+
+    carts.value.forEach((sellerCart, i) => {
+      sellerCart.cart = sellerCart.cart.filter((item) => !item.checked)
+      if (sellerCart.cart.length === 0) {
+        carts.value.splice(i, 1)
+      }
+    })
+
+    cartStore.setCart(carts.value)
+
+    shippingAddress.value = ''
+    orderNote.value = ''
+  } catch (error) {
+    console.error(error)
+  }
+}
 </script>
 
 <template>
@@ -317,8 +382,8 @@ const removeCart = async (id, pid) => {
               v-model="selectAll"
               @change="
                 carts.forEach((cart) => {
-                  cart.checkAll = selectAll;
-                  cart.cart.forEach((item) => (item.checked = selectAll));
+                  cart.checkAll = selectAll
+                  cart.cart.forEach((item) => (item.checked = selectAll))
                 })
               "
               class="checkbox checkbox-primary itbms-select-all"
@@ -377,13 +442,13 @@ const removeCart = async (id, pid) => {
                   </div>
                   <span class="itbms-item-description text-sm lg:text-lg">{{
                     item.productBrandName +
-                    " " +
+                    ' ' +
                     item.productModel +
-                    " (" +
+                    ' (' +
                     item.productStorageGb +
-                    "GB," +
+                    'GB,' +
                     item.productColor +
-                    ")"
+                    ')'
                   }}</span>
                 </div>
                 <div class="flex gap-6 items-center">
@@ -429,7 +494,37 @@ const removeCart = async (id, pid) => {
             <p class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
               Cart Summary
             </p>
-            <hr class="my-1 text-base-300" />
+             <hr class="my-3 text-base-300" />
+
+            <!-- Ship To Section -->
+            <div class="mt-4 mb-4">
+              <p class="font-bold text-lg mb-2">Ship To</p>
+              <label class="text-sm mb-1 block">
+                <span class="font-bold">Address </span>
+                <span class="text-gray-400"
+                  >(Address No, Street, Subdistrict, District, Province, Postal
+                  Code)</span
+                >
+              </label>
+              <textarea
+                v-model="shippingAddress"
+                class="textarea textarea-bordered w-full h-24 text-sm"
+                placeholder="123/45 Moo 6, T. Bangna, A. Bangna, Bangkok 10260"
+              ></textarea>
+            </div>
+
+            <!-- Note Section -->
+            <div class="mb-4">
+              <p class="font-bold text-sm mb-2">Note</p>
+              <textarea
+                v-model="orderNote"
+                class="textarea textarea-bordered w-full h-20 text-sm"
+                placeholder="Additional instructions or requests"
+              ></textarea>
+            </div>
+
+             <hr class="my-3 text-base-300" />
+
             <div class="mt-3">
               <div class="flex justify-between">
                 <p class="text-black/30">Total items</p>
@@ -444,6 +539,7 @@ const removeCart = async (id, pid) => {
           <button
             class="mt-6 btn btn-primary w-full"
             :disabled="itemSelected.length === 0"
+            @click="handlePlaceOrder"
           >
             Place order
           </button>
