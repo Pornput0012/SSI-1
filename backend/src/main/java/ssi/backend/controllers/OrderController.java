@@ -29,7 +29,7 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    // @PreAuthorize("hasRole('BUYER')")
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/v2/orders")
     public ResponseEntity<List<OrderResponseDTO>> createOrders(@Valid @RequestBody List<OrderRequestDTO> orderRequestDTOs) throws ParseException, JOSEException {
     List<OrderResponseDTO> responses = new ArrayList<>();

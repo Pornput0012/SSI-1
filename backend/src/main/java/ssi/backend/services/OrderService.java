@@ -38,7 +38,7 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
-        // 2. Validate และหา User
+        // Validate และหา User
         User buyer = userRepository.findById(orderRequestDTO.getBuyerId())
                 .orElseThrow(
                         () -> new ItemNotFoundException("Buyer not found with id: " + orderRequestDTO.getBuyerId()));
@@ -47,7 +47,7 @@ public class OrderService {
                 .orElseThrow(
                         () -> new ItemNotFoundException("Seller not found with id: " + orderRequestDTO.getSellerId()));
 
-        // 3. Validate quantity และเตรียม OrderItem ก่อนการ save
+        // Validate quantity และเตรียม OrderItem ก่อนการ save
         List<OrderItem> orderItems = new ArrayList<>();
         Integer totalAmount = 0;
 
@@ -55,6 +55,11 @@ public class OrderService {
             Product product = productRepository.findById(itemDTO.getSaleItemId())
                     .orElseThrow(() -> new ItemNotFoundException(
                             "Sale item not found with id: " + itemDTO.getSaleItemId()));
+
+            // ห้ามซื้อสินค้าที่ตัวเองเป็นเจ้าของ
+            if (product.getSeller() != null && buyer.getId().equals(product.getSeller().getId())) {
+                throw new ConfilctResourceException("Cannot order product id " + product.getId() + " because buyer is the owner of the product.");
+            }
 
             // ตรวจสอบ quantity ก่อน
             if (product.getQuantity() < itemDTO.getQuantity()) {
@@ -80,11 +85,10 @@ public class OrderService {
             totalAmount += orderItem.getTotalPrice();
         }
 
-        // 4. สร้างและ save Order
+        // สร้างและ save Order
         Order order = new Order();
         order.setBuyer(buyer);
         order.setSeller(seller);
-        order.setOrderDate(orderRequestDTO.getOrderDate());
         order.setShippingAddress(orderRequestDTO.getShippingAddress());
         order.setOrderNote(orderRequestDTO.getOrderNote());
         order.setStatus(orderRequestDTO.getOrderStatus());
@@ -92,7 +96,7 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        // 5. Save OrderItem และ update Product quantity
+        // Save OrderItem และ update Product quantity
         for (OrderItem orderItem : orderItems) {
             orderItem.setOrder(savedOrder);
             orderItemRepository.save(orderItem);
@@ -103,7 +107,7 @@ public class OrderService {
             productRepository.save(product);
         }
 
-        // 6. สร้าง OrderResponseDTO
+        // สร้าง OrderResponseDTO
         OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
         orderResponseDTO.setId(savedOrder.getId());
         orderResponseDTO.setBuyerId(buyer.getId());
