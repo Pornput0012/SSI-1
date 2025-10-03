@@ -20,6 +20,7 @@ import ssi.backend.entities.*;
 import ssi.backend.exceptions.ConfilctResourceException;
 import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.exceptions.UnauthorizedException;
+import ssi.backend.repositories.CartRepository;
 import ssi.backend.repositories.OrderItemRepository;
 import ssi.backend.repositories.OrderRepository;
 import ssi.backend.repositories.ProductRepository;
@@ -35,6 +36,8 @@ public class OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private OrderItemRepository orderItemRepository;
+    @Autowired
+    private CartRepository cartRepository;
 
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
@@ -105,6 +108,8 @@ public class OrderService {
             Product product = orderItem.getProduct();
             product.setQuantity(product.getQuantity() - orderItem.getQuantity());
             productRepository.save(product);
+
+            cartRepository.deleteByUserIdAndProductId(buyer.getId(), product.getId());
         }
 
         // สร้าง OrderResponseDTO

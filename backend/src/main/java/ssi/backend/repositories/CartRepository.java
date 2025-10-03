@@ -15,4 +15,6 @@ public interface CartRepository extends JpaRepository<Cart, Integer> {
 
     @NativeQuery("select * from carts c where c.product_Id = :productId and user_Id = :userId")
     Cart findAllByProductIdAndUserId(int productId,int userId);
+
+    void deleteByUserIdAndProductId(Integer userId, Integer productId);
 }
