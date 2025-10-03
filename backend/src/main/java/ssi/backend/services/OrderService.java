@@ -130,10 +130,9 @@ public class OrderService {
 
         // สร้าง OrderItemDTO list
         List<OrderItemDTO> orderItemDTOs = new ArrayList<>();
-        int no = 1;
         for (OrderItem orderItem : orderItems) {
             OrderItemDTO dto = new OrderItemDTO();
-            dto.setNo(no++);
+            dto.setNo(orderItem.getId());
             dto.setSaleItemId(orderItem.getProduct().getId());
             dto.setPrice(orderItem.getUnitPrice());
             dto.setQuantity(orderItem.getQuantity());
