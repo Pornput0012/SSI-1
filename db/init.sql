@@ -99,9 +99,9 @@ CREATE TABLE IF NOT EXISTS orders(
   quantity INT NOT NULL CHECK (quantity > 0),
   unit_price INT NOT NULL CHECK (unit_price >= 0),
   total_price INT NOT NULL CHECK (total_price >= 0),
+  description TEXT,
   
   -- เก็บข้อมูล product ณ ขณะที่สั่งซื้อ
-  description TEXT,
   model varchar(60) not null,
   ramGb integer,
   screenSizeInch decimal(4, 2),

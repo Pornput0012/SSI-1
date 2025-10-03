@@ -1,6 +1,5 @@
 package ssi.backend.services;
 
-
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,26 +46,35 @@ public class CartService {
     private SaleItemImageService saleItemImageService;
 
     public List<CartResponseDto> getAllCartById(int userId) {
-//        if () {
-//            throw new IllegalArgumentException("userId is null");
-//        }
+        // if () {
+        // throw new IllegalArgumentException("userId is null");
+        // }
         List<Cart> currentCart = cartRepository.findAllByUserId(userId);
         List<CartResponseDto> cartResponseDtos = new ArrayList<>();
 
         Set<String> sellerNameSet = new HashSet<>();
         currentCart.stream().forEach(cart -> {
-            //cart -> id ...
+            // cart -> id ...
             String sellerName = cart.getProduct().getSeller().getNickname();
             sellerNameSet.add(sellerName);
         });
 
-
         sellerNameSet.stream().forEach(sellerName -> {
-            List<Cart> cartBySeller = currentCart.stream().filter((cart) -> sellerName.equals(cart.getProduct().getSeller().getNickname())).toList();
+            List<Cart> cartBySeller = currentCart.stream()
+                    .filter((cart) -> sellerName.equals(cart.getProduct().getSeller().getNickname())).toList();
+
+            if (cartBySeller.isEmpty())
+                return; // กัน error
+
+            // ✅ ดึง sellerId จากสินค้าชิ้นแรก (เพราะทุกสินค้าของร้านเดียวกันมี seller
+            // เดียวกัน)
+            Integer sellerId = cartBySeller.get(0).getProduct().getSeller().getId();
 
             CartResponseDto cartResponseDto = new CartResponseDto();
+            cartResponseDto.setProductSellerId(sellerId);
             cartResponseDto.setProductSellerNickname(sellerName);
-            List<CartResponseSubDto> cartResponseSubDtos = listMapper.mapList(cartBySeller, CartResponseSubDto.class, modelMapper);
+            List<CartResponseSubDto> cartResponseSubDtos = listMapper.mapList(cartBySeller, CartResponseSubDto.class,
+                    modelMapper);
 
             cartResponseDto.setCart(cartResponseSubDtos);
 
@@ -75,20 +83,21 @@ public class CartService {
         return cartResponseDtos;
     }
 
-
     public CartResponseSubDto addToCart(CartRequestDto cartRequestDto) {
 
         System.out.println(cartRequestDto.getQuantity());
         SaleItemImage saleItemImage = saleItemImageService.findSaleItemImageByNameV2(cartRequestDto.getImageFileName());
-        User existingUser = userRepository.findById(cartRequestDto.getUserId()).orElseThrow(() -> new ItemNotFoundException("User id " + cartRequestDto.getUserId() + " does not exist"));
+        User existingUser = userRepository.findById(cartRequestDto.getUserId()).orElseThrow(
+                () -> new ItemNotFoundException("User id " + cartRequestDto.getUserId() + " does not exist"));
         ;
 
-        Product existingProduct = productRepository.findById(cartRequestDto.getProductId()).orElseThrow(() -> new ItemNotFoundException("Product id " + cartRequestDto.getProductId() + " does not exist"));
+        Product existingProduct = productRepository.findById(cartRequestDto.getProductId()).orElseThrow(
+                () -> new ItemNotFoundException("Product id " + cartRequestDto.getProductId() + " does not exist"));
 
-        Brand existingBrand = brandRepository.findById(existingProduct.getBrand().getId()).orElseThrow(() -> new ItemNotFoundException("Brand id " + existingProduct.getBrand().getId() + " does not exist"));
+        Brand existingBrand = brandRepository.findById(existingProduct.getBrand().getId()).orElseThrow(
+                () -> new ItemNotFoundException("Brand id " + existingProduct.getBrand().getId() + " does not exist"));
 
-
-        if(existingProduct.getSeller().getId() == cartRequestDto.getUserId()){
+        if (existingProduct.getSeller().getId() == cartRequestDto.getUserId()) {
             throw new BadRequestException("Can't add your own sale item");
         }
         Cart existCart = cartRepository.findAllByProductIdAndUserId(existingProduct.getId(), existingUser.getId());
@@ -101,7 +110,8 @@ public class CartService {
             saveCart.setImage(null);
         } else {
             SaleItemImage image = saleItemImageService.findSaleItemImage(saleItemImage.getId());
-            Boolean imageExist = fileService.fileExists(existingProduct, saleItemImageService.findSaleItemImage(saleItemImage.getId()).getFileName());
+            Boolean imageExist = fileService.fileExists(existingProduct,
+                    saleItemImageService.findSaleItemImage(saleItemImage.getId()).getFileName());
             saveCart.setImage(image);
         }
 
@@ -118,13 +128,12 @@ public class CartService {
         return modelMapper.map(cartResponseDto, CartResponseSubDto.class);
     }
 
-
-    public CartResponseSubDto updateQuantity(int cartId ,int quantity) {
+    public CartResponseSubDto updateQuantity(int cartId, int quantity) {
         Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ItemNotFoundException("Cart id " + cartId));
 
         cart.setQuantity(quantity);
 
-        return  modelMapper.map(cartRepository.save(cart), CartResponseSubDto.class);
+        return modelMapper.map(cartRepository.save(cart), CartResponseSubDto.class);
     }
 
     public void removeCart(int cartId) {

@@ -20,6 +20,7 @@ import ssi.backend.entities.*;
 import ssi.backend.exceptions.ConfilctResourceException;
 import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.exceptions.UnauthorizedException;
+import ssi.backend.repositories.CartRepository;
 import ssi.backend.repositories.OrderItemRepository;
 import ssi.backend.repositories.OrderRepository;
 import ssi.backend.repositories.ProductRepository;
@@ -35,10 +36,12 @@ public class OrderService {
     private OrderRepository orderRepository;
     @Autowired
     private OrderItemRepository orderItemRepository;
+    @Autowired
+    private CartRepository cartRepository;
 
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
-        // 2. Validate และหา User
+        // Validate และหา User
         User buyer = userRepository.findById(orderRequestDTO.getBuyerId())
                 .orElseThrow(
                         () -> new ItemNotFoundException("Buyer not found with id: " + orderRequestDTO.getBuyerId()));
@@ -47,7 +50,7 @@ public class OrderService {
                 .orElseThrow(
                         () -> new ItemNotFoundException("Seller not found with id: " + orderRequestDTO.getSellerId()));
 
-        // 3. Validate quantity และเตรียม OrderItem ก่อนการ save
+        // Validate quantity และเตรียม OrderItem ก่อนการ save
         List<OrderItem> orderItems = new ArrayList<>();
         Integer totalAmount = 0;
 
@@ -55,6 +58,11 @@ public class OrderService {
             Product product = productRepository.findById(itemDTO.getSaleItemId())
                     .orElseThrow(() -> new ItemNotFoundException(
                             "Sale item not found with id: " + itemDTO.getSaleItemId()));
+
+            // ห้ามซื้อสินค้าที่ตัวเองเป็นเจ้าของ
+            if (product.getSeller() != null && buyer.getId().equals(product.getSeller().getId())) {
+                throw new ConfilctResourceException("Cannot order product id " + product.getId() + " because buyer is the owner of the product.");
+            }
 
             // ตรวจสอบ quantity ก่อน
             if (product.getQuantity() < itemDTO.getQuantity()) {
@@ -67,9 +75,9 @@ public class OrderService {
             orderItem.setQuantity(itemDTO.getQuantity());
             orderItem.setUnitPrice(itemDTO.getPrice());
             orderItem.setTotalPrice(itemDTO.getPrice() * itemDTO.getQuantity());
+            orderItem.setDescription(itemDTO.getDescription());
 
             // คัดลอกข้อมูลจาก Product เพื่อป้องกันการเปลี่ยนแปลงในอนาคต
-            orderItem.setDescription(product.getDescription());
             orderItem.setModel(product.getModel());
             orderItem.setRamGb(product.getRamGb());
             orderItem.setScreenSizeInch(product.getScreenSizeInch());
@@ -80,11 +88,10 @@ public class OrderService {
             totalAmount += orderItem.getTotalPrice();
         }
 
-        // 4. สร้างและ save Order
+        // สร้างและ save Order
         Order order = new Order();
         order.setBuyer(buyer);
         order.setSeller(seller);
-        order.setOrderDate(orderRequestDTO.getOrderDate());
         order.setShippingAddress(orderRequestDTO.getShippingAddress());
         order.setOrderNote(orderRequestDTO.getOrderNote());
         order.setStatus(orderRequestDTO.getOrderStatus());
@@ -92,7 +99,7 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        // 5. Save OrderItem และ update Product quantity
+        // Save OrderItem และ update Product quantity
         for (OrderItem orderItem : orderItems) {
             orderItem.setOrder(savedOrder);
             orderItemRepository.save(orderItem);
@@ -101,9 +108,11 @@ public class OrderService {
             Product product = orderItem.getProduct();
             product.setQuantity(product.getQuantity() - orderItem.getQuantity());
             productRepository.save(product);
+
+            cartRepository.deleteByUserIdAndProductId(buyer.getId(), product.getId());
         }
 
-        // 6. สร้าง OrderResponseDTO
+        // สร้าง OrderResponseDTO
         OrderResponseDTO orderResponseDTO = new OrderResponseDTO();
         orderResponseDTO.setId(savedOrder.getId());
         orderResponseDTO.setBuyerId(buyer.getId());
@@ -121,14 +130,13 @@ public class OrderService {
 
         // สร้าง OrderItemDTO list
         List<OrderItemDTO> orderItemDTOs = new ArrayList<>();
-        int no = 1;
         for (OrderItem orderItem : orderItems) {
             OrderItemDTO dto = new OrderItemDTO();
-            dto.setNo(no++);
+            dto.setNo(orderItem.getId());
             dto.setSaleItemId(orderItem.getProduct().getId());
             dto.setPrice(orderItem.getUnitPrice());
             dto.setQuantity(orderItem.getQuantity());
-            dto.setDescription(orderItem.getProduct().getDescription());
+            dto.setDescription(orderItem.getDescription());
             orderItemDTOs.add(dto);
         }
         orderResponseDTO.setOrderItems(orderItemDTOs);
