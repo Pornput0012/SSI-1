@@ -38,6 +38,7 @@ public class SecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/itb-mshop/v2/sale-items/**").authenticated()
                                 .requestMatchers(HttpMethod.GET, "/itb-mshop/v2/sale-items/**").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/itb-mshop/v2/orders/**").authenticated()
+                                // .requestMatchers(HttpMethod.GET, "/itb-mshop/v2/users/*/orders").authenticated()
 //                        .requestMatchers(HttpMethod.PUT, "/v2/sale-items/**").authenticated()
 //                        .requestMatchers(HttpMethod.DELETE, "/v2/sale-items/**").authenticated()
                                 .anyRequest().permitAll()

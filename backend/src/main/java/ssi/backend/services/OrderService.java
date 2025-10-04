@@ -19,12 +19,14 @@ import com.nimbusds.jose.JOSEException;
 import jakarta.transaction.Transactional;
 import ssi.backend.dtos.BuyerDTO;
 import ssi.backend.dtos.OrderBuyerPageDTO;
+import ssi.backend.dtos.OrderDetailResponseDTO;
 import ssi.backend.dtos.OrderItemDTO;
 import ssi.backend.dtos.OrderRequestDTO;
 import ssi.backend.dtos.OrderResponseDTO;
 import ssi.backend.dtos.OrderSellerPageDTO;
 import ssi.backend.dtos.OrderSellerResponseDTO;
 import ssi.backend.dtos.SellerDTO;
+import ssi.backend.dtos.SellerDetailDTO;
 import ssi.backend.entities.*;
 import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ConfilctResourceException;
@@ -55,6 +57,13 @@ public class OrderService {
 
         User user = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ItemNotFoundException("User not found with id: " + buyerId));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
+
+        if (!userId.equals(buyerId)) {
+            throw new ForbiddenException("Request buyer id not matched with id in access token.");
+        }
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
         boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
@@ -125,7 +134,8 @@ public class OrderService {
 
     public OrderSellerPageDTO getOrderSeller(Integer sellerId, Integer page, Integer size, String sortField,
             String sortDirection) throws ParseException, JOSEException {
-        userRepository.findById(sellerId).orElseThrow(() -> new ItemNotFoundException("User not found with id: " + sellerId));
+        userRepository.findById(sellerId)
+                .orElseThrow(() -> new ItemNotFoundException("User not found with id: " + sellerId));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Integer userId = (Integer) authentication.getDetails();
 
@@ -172,16 +182,16 @@ public class OrderService {
             dto.setOrderStatus(order.getStatus());
 
             List<OrderItemDTO> itemDTOs = order.getOrderItems().stream()
-                .filter(oi -> oi.getProduct().getSeller().getId().equals(sellerId))
-                .map(oi -> {
-                    OrderItemDTO i = new OrderItemDTO();
-                    i.setNo(oi.getId());
-                    i.setSaleItemId(oi.getProduct().getId());
-                    i.setPrice(oi.getUnitPrice());
-                    i.setQuantity(oi.getQuantity());
-                    i.setDescription(oi.getDescription());
-                    return i;
-                }).toList();
+                    .filter(oi -> oi.getProduct().getSeller().getId().equals(sellerId))
+                    .map(oi -> {
+                        OrderItemDTO i = new OrderItemDTO();
+                        i.setNo(oi.getId());
+                        i.setSaleItemId(oi.getProduct().getId());
+                        i.setPrice(oi.getUnitPrice());
+                        i.setQuantity(oi.getQuantity());
+                        i.setDescription(oi.getDescription());
+                        return i;
+                    }).toList();
 
             dto.setOrderItems(itemDTOs);
             return dto;
@@ -200,6 +210,53 @@ public class OrderService {
         response.setSort((sortField == null ? "orderDate" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
 
         return response;
+    }
+
+    public OrderDetailResponseDTO getOrderById(Integer orderId) throws ParseException, JOSEException {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ItemNotFoundException("Order not found with id: " + orderId));
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
+
+        boolean isBuyer = order.getBuyer().getId().equals(userId);
+        boolean isSeller = order.getSeller().getId().equals(userId);
+
+        if (!isBuyer && !isSeller) {
+            throw new ForbiddenException(
+                    "User id: " + userId + " not an owner (seller or buyer) of order id: " + orderId);
+        }
+
+        OrderDetailResponseDTO dto = new OrderDetailResponseDTO();
+        dto.setId(order.getId());
+        dto.setBuyerId(order.getBuyer().getId());
+
+        SellerDetailDTO sellerDTO = new SellerDetailDTO();
+        sellerDTO.setId(order.getSeller().getId());
+        sellerDTO.setEmail(order.getSeller().getEmail());
+        sellerDTO.setFullName(order.getSeller().getFullname());
+        sellerDTO.setUserType(order.getSeller().getUserType());
+        sellerDTO.setNickName(order.getSeller().getNickname());
+        dto.setSeller(sellerDTO);
+
+        dto.setOrderDate(order.getOrderDate());
+        dto.setShippingAddress(order.getShippingAddress());
+        dto.setOrderNote(order.getOrderNote());
+        dto.setOrderStatus(order.getStatus());
+
+        List<OrderItemDTO> itemDTOs = order.getOrderItems().stream().map(oi -> {
+            OrderItemDTO i = new OrderItemDTO();
+            i.setNo(oi.getId());
+            i.setSaleItemId(oi.getProduct().getId());
+            i.setPrice(oi.getUnitPrice());
+            i.setQuantity(oi.getQuantity());
+            i.setDescription(oi.getDescription());
+            return i;
+        }).toList();
+
+        dto.setOrderItems(itemDTOs);
+
+        return dto;
     }
 
     @Transactional

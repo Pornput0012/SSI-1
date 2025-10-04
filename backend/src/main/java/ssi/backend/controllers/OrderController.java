@@ -22,6 +22,7 @@ import com.nimbusds.jose.JOSEException;
 
 import jakarta.validation.Valid;
 import ssi.backend.dtos.OrderBuyerPageDTO;
+import ssi.backend.dtos.OrderDetailResponseDTO;
 import ssi.backend.dtos.OrderRequestDTO;
 import ssi.backend.dtos.OrderResponseDTO;
 import ssi.backend.dtos.OrderSellerPageDTO;
@@ -45,6 +46,7 @@ public class OrderController {
         return ResponseEntity.ok(orderBuyerPage);
     }
 
+    @PreAuthorize("hasRole('SELLER')")
     @GetMapping("/v2/sellers/{sid}/orders")
     public ResponseEntity<OrderSellerPageDTO> getOrderSeller(@PathVariable("sid") Integer sellerId,
             @RequestParam Integer page,
@@ -56,7 +58,12 @@ public class OrderController {
         return ResponseEntity.ok(orderSellerPage);
     }
 
-    @PreAuthorize("hasRole('BUYER') or hasRole('SELLER')")
+    @GetMapping("/v2/orders/{id}")
+    public ResponseEntity<OrderDetailResponseDTO> getOrderById(@PathVariable("id") Integer orderId) throws ParseException, JOSEException {
+        OrderDetailResponseDTO orderDetailResponseDTO = orderService.getOrderById(orderId);
+        return ResponseEntity.ok(orderDetailResponseDTO);
+    }
+
     @PostMapping("/v2/orders")
     public ResponseEntity<List<OrderResponseDTO>> createOrders(@Valid @RequestBody List<OrderRequestDTO> orderRequestDTOs) throws ParseException, JOSEException {
     List<OrderResponseDTO> responses = new ArrayList<>();
