@@ -295,7 +295,7 @@ const orderNote = ref('')
 const handlePlaceOrder = async () => {
   try {
     if (!shippingAddress.value || shippingAddress.value === '') {
-      alert('Please enter a shipping address.')
+      console.log('Please enter a shipping address.')
       return
       
     }
