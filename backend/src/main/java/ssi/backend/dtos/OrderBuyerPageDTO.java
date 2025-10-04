@@ -4,6 +4,11 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class OrderBuyerPageDTO {
     private List<OrderResponseDTO> content;
     private Boolean last;
