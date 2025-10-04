@@ -294,6 +294,12 @@ const orderNote = ref('')
 
 const handlePlaceOrder = async () => {
   try {
+    if (!shippingAddress.value || shippingAddress.value === '') {
+      alert('Please enter a shipping address.')
+      return
+      
+    }
+
     const orderRequestList = []
 
     carts.value.forEach((sellerCart) => {
@@ -507,7 +513,7 @@ const handlePlaceOrder = async () => {
                 >
               </label>
               <textarea
-                v-model="shippingAddress"
+                v-model.trim="shippingAddress"
                 class="textarea textarea-bordered w-full h-24 text-sm"
                 placeholder="123/45 Moo 6, T. Bangna, A. Bangna, Bangkok 10260"
               ></textarea>
@@ -517,7 +523,7 @@ const handlePlaceOrder = async () => {
             <div class="mb-4">
               <p class="font-bold text-sm mb-2">Note</p>
               <textarea
-                v-model="orderNote"
+                v-model.trim="orderNote"
                 class="textarea textarea-bordered w-full h-20 text-sm"
                 placeholder="Additional instructions or requests"
               ></textarea>

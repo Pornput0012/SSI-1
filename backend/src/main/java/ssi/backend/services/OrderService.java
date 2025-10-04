@@ -17,6 +17,7 @@ import ssi.backend.dtos.OrderRequestDTO;
 import ssi.backend.dtos.OrderResponseDTO;
 import ssi.backend.dtos.SellerDTO;
 import ssi.backend.entities.*;
+import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ConfilctResourceException;
 import ssi.backend.exceptions.ItemNotFoundException;
 import ssi.backend.exceptions.UnauthorizedException;
@@ -41,6 +42,19 @@ public class OrderService {
 
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
+
+        if (orderRequestDTO.getBuyerId() == null ||
+                orderRequestDTO.getSellerId() == null ||
+                orderRequestDTO.getShippingAddress() == null ||
+                orderRequestDTO.getOrderItems() == null) {
+            throw new BadRequestException("Missing request parameters.");
+        }
+
+        if (orderRequestDTO.getOrderItems().isEmpty()) {
+            throw new BadRequestException("Invalid request parameters.");
+
+        }
+
         // Validate และหา User
         User buyer = userRepository.findById(orderRequestDTO.getBuyerId())
                 .orElseThrow(
@@ -55,13 +69,22 @@ public class OrderService {
         Integer totalAmount = 0;
 
         for (OrderItemDTO itemDTO : orderRequestDTO.getOrderItems()) {
+            if (itemDTO.getSaleItemId() == null || itemDTO.getPrice() == null || itemDTO.getQuantity() == null) {
+                throw new BadRequestException("Missing request parameters in orderItems");
+            }
+
+            if (itemDTO.getPrice() < 0 || itemDTO.getQuantity() <= 0) {
+                throw new BadRequestException("Invalid request parameters in orderItems");
+            }
+
             Product product = productRepository.findById(itemDTO.getSaleItemId())
                     .orElseThrow(() -> new ItemNotFoundException(
                             "Sale item not found with id: " + itemDTO.getSaleItemId()));
 
             // ห้ามซื้อสินค้าที่ตัวเองเป็นเจ้าของ
             if (product.getSeller() != null && buyer.getId().equals(product.getSeller().getId())) {
-                throw new ConfilctResourceException("Cannot order product id " + product.getId() + " because buyer is the owner of the product.");
+                throw new ConfilctResourceException(
+                        "Cannot order product id " + product.getId() + " because buyer is the owner of the product.");
             }
 
             // ตรวจสอบ quantity ก่อน
