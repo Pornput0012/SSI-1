@@ -70,6 +70,7 @@ public class OrderController {
     for (OrderRequestDTO orderRequestDTO : orderRequestDTOs) {
         OrderResponseDTO response = orderService.createOrder(orderRequestDTO);
         responses.add(response);
+        System.out.println("sellerMiss:" + response.getSeller().getId());
     }
     return ResponseEntity.status(HttpStatus.CREATED).body(responses);
 }

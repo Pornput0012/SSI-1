@@ -23,6 +23,7 @@ public class CartResponseSubDto {
     private int productQuantity;
     private int quantity;
     private String productSellerNickname;
+    private Integer productSellerId;
     private Integer productPrice;
 
 

@@ -308,6 +308,8 @@ const handlePlaceOrder = async () => {
     const orderRequestList = []
 
     carts.value.forEach((sellerCart) => {
+      console.log(sellerCart);
+      
       const selectedItems = sellerCart.cart.filter((item) => item.checked)
       if (selectedItems.length === 0) {
         return
@@ -327,16 +329,22 @@ const handlePlaceOrder = async () => {
           ')',
       }))
 
-      const sellerId = sellerCart.productSellerId
+      console.log(sellerCart.productSellerId);
 
-      orderRequestList.push({
-        buyerId: userId.value,
-        sellerId,
-        shippingAddress: shippingAddress.value,
-        orderNote: orderNote.value,
-        orderItems,
-        orderStatus: 'COMPLETED',
-      })
+      const isSellerSelect = sellerCart.cart.some((item) => item.checked)
+     console.log(isSellerSelect);
+     
+      
+      if (isSellerSelect) {
+        orderRequestList.push({
+          buyerId: userId.value,
+          sellerId : sellerCart.productSellerId,
+          shippingAddress: shippingAddress.value,
+          orderNote: orderNote.value,
+          orderItems,
+          orderStatus: 'COMPLETED',
+        })
+      }
     })
 
     if (orderRequestList.length === 0) {
@@ -384,7 +392,7 @@ const handlePlaceOrder = async () => {
     </div>
     <!-- Header Section -->
     <div class="w-full flex flex-col lg:flex-row justify-between items-center">
-      <div class="w-full flex flex-col gap-10 md:flex-row justify-between">
+      <div class="w-full flex flex-col gap-10 lg:flex-row justify-between">
         <div class="w-full mx-auto">
           <h1 class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
             Shopping Cart ({{ productLength }})
@@ -505,7 +513,7 @@ const handlePlaceOrder = async () => {
         </div>
 
         <!-- Summary -->
-        <div class="flex flex-col h-fit bg-white w-60 md:w-80 p-4 rounded-xl">
+        <div class="flex flex-col h-fit bg-white w-full lg:w-80 mx-auto p-4 rounded-xl">
           <div>
             <p class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
               Cart Summary

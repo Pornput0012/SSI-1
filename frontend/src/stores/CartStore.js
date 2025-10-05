@@ -102,6 +102,7 @@ export const useCartStore = defineStore("Cart", () => {
       carts.value[existingSellerIndex].cart.push(product);
     } else {
       carts.value.push({
+        productSellerId : product.productSellerId,
         productSellerNickname: product.productSellerNickname,
         cart: [product],
         checkAll: false
