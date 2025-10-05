@@ -172,6 +172,7 @@ public class ProductService {
             });
             productPage
                     .setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
+            System.out.println(productPage.getContent().get(0).getSeller().getNickname());
             return productPage;
         }
     }
@@ -533,7 +534,7 @@ public class ProductService {
 
                     SellerDTO sellerDto = new SellerDTO();
                     sellerDto.setId(p.getSeller().getId());
-                    sellerDto.setUserName(p.getSeller().getNickname());
+                    sellerDto.setNickname(p.getSeller().getNickname());
                     item.setSeller(sellerDto);
 
                     return item;

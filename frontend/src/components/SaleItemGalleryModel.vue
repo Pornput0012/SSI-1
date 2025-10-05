@@ -97,6 +97,7 @@ const addToCart = async () => {
 
     cartStore.addToCart(response);
     console.log("Successfully added to cart store");
+    console.log( cartStore.getCarts());
   } catch (error) {
     console.error("Error adding to cart:", error);
     hasError.value = error.message || "Failed to add item to cart";

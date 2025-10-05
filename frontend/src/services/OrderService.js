@@ -72,7 +72,7 @@ const getOrderById = async (orderId) => {
   }
 }
 
-const getOrdersSeller = async (sellerId, pageInfo = { page: 0, size: 10, sortD }) => {
+const getOrdersSeller = async (sellerId, pageInfo = { page: 0, size: 10 }) => {
   try {
     if (!sellerId) throw new Error('Seller ID is required')
     const getRequestParameter = () => {
@@ -118,6 +118,8 @@ const getOrdersSeller = async (sellerId, pageInfo = { page: 0, size: 10, sortD }
 
 const createOrder = async (orders) => {
   try {
+    console.log(orders);
+    
     const response = await fetch(`${ORDER_API_URL_V2}`, {
       method: 'POST',
       headers: {

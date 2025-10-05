@@ -362,12 +362,12 @@ const updateWidth = () => {
     >
       <h1 class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">Products</h1>
       <div class="flex flex-col md:flex-row gap-4 items-center">
-        <router-link
+        <!-- <router-link
           :to="{ name: 'create-sale-item' }"
           class="itbms-sale-item-add btn btn-primary text-xs md:text-base"
         >
           Add Sale Item
-        </router-link>
+        </router-link> -->
         <div class="flex gap-2">
           <label class="w-fit h-8 input input-xs flex">
             <input

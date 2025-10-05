@@ -9,7 +9,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative itbms-cart-quantity">
     <div class="rounded-full text-xs px-1 bg-red-500 text-white font-semibold text-center absolute left-3 bottom-4 itbms-cart-quantity" >{{ qty }}</div>
     <Icon
       icon="material-symbols:shopping-cart-rounded"

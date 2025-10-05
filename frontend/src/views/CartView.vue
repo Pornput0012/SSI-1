@@ -1,5 +1,6 @@
 <script setup>
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import MessageModal from '@/components/MessageModal.vue'
 import { deleteCartById, getAllCart, updateCart } from '@/services/CartService'
 import { useCartStore } from '@/stores/CartStore'
 import { useUserStore } from '@/stores/UserStore'
@@ -295,10 +296,11 @@ const removeCart = async (id, pid) => {
 const shippingAddress = ref('')
 const orderNote = ref('')
 const orderStore = useOrderStore()
+const showShippingModal = ref(false)
 const handlePlaceOrder = async () => {
   try {
     if (!shippingAddress.value || shippingAddress.value === '') {
-      console.log('Please enter a shipping address.')
+      showShippingModal.value = true
       return
       
     }
@@ -306,6 +308,8 @@ const handlePlaceOrder = async () => {
     const orderRequestList = []
 
     carts.value.forEach((sellerCart) => {
+      console.log(sellerCart);
+      
       const selectedItems = sellerCart.cart.filter((item) => item.checked)
       if (selectedItems.length === 0) {
         return
@@ -325,16 +329,22 @@ const handlePlaceOrder = async () => {
           ')',
       }))
 
-      const sellerId = sellerCart.productSellerId
+      console.log(sellerCart.productSellerId);
 
-      orderRequestList.push({
-        buyerId: userId.value,
-        sellerId,
-        shippingAddress: shippingAddress.value,
-        orderNote: orderNote.value,
-        orderItems,
-        orderStatus: 'COMPLETED',
-      })
+      const isSellerSelect = sellerCart.cart.some((item) => item.checked)
+     console.log(isSellerSelect);
+     
+      
+      if (isSellerSelect) {
+        orderRequestList.push({
+          buyerId: userId.value,
+          sellerId : sellerCart.productSellerId,
+          shippingAddress: shippingAddress.value,
+          orderNote: orderNote.value,
+          orderItems,
+          orderStatus: 'COMPLETED',
+        })
+      }
     })
 
     if (orderRequestList.length === 0) {
@@ -382,7 +392,7 @@ const handlePlaceOrder = async () => {
     </div>
     <!-- Header Section -->
     <div class="w-full flex flex-col lg:flex-row justify-between items-center">
-      <div class="w-full flex flex-col gap-10 md:flex-row justify-between">
+      <div class="w-full flex flex-col gap-10 lg:flex-row justify-between">
         <div class="w-full mx-auto">
           <h1 class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
             Shopping Cart ({{ productLength }})
@@ -503,7 +513,7 @@ const handlePlaceOrder = async () => {
         </div>
 
         <!-- Summary -->
-        <div class="flex flex-col h-fit bg-white w-60 md:w-80 p-4 rounded-xl">
+        <div class="flex flex-col h-fit bg-white w-full lg:w-80 mx-auto p-4 rounded-xl">
           <div>
             <p class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
               Cart Summary
@@ -540,18 +550,18 @@ const handlePlaceOrder = async () => {
              <hr class="my-3 text-base-300" />
 
             <div class="mt-3">
-              <div class="flex justify-between">
+              <div class="flex justify-between itbms-total-orders-items">
                 <p class="text-black/30">Total items</p>
                 <p>{{ itemSelected.length }}</p>
               </div>
-              <div class="flex justify-between">
+              <div class="flex justify-between itbms-total-order-price">
                 <p class="text-black/30">Total price</p>
                 <p>{{ totalPrice.toLocaleString() }} ฿</p>
               </div>
             </div>
           </div>
           <button
-            class="mt-6 btn btn-primary w-full"
+            class="mt-6 btn btn-primary w-full itbms-place-order-button"
             :disabled="itemSelected.length === 0"
             @click="handlePlaceOrder"
           >
@@ -560,6 +570,14 @@ const handlePlaceOrder = async () => {
         </div>
       </div>
     </div>
+
+    <MessageModal
+      v-if="showShippingModal"
+      :handle-ok="() => (showShippingModal = false)"
+      :title="'Shipping Address Required'"
+      :message="'Please enter a shipping address before placing your order.'"
+    />
+
     <dialog class="modal" :open="showDeleteModal" v-if="showDeleteModal">
       <div class="modal-box">
         <h3 class="text-lg font-bold">Delete Confirmation</h3>

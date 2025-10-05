@@ -94,7 +94,7 @@ public class OrderService {
 
             SellerDTO sellerDTO = new SellerDTO();
             sellerDTO.setId(order.getSeller().getId());
-            sellerDTO.setUserName(order.getSeller().getNickname());
+            sellerDTO.setNickname(order.getSeller().getNickname());
             dto.setSeller(sellerDTO);
 
             dto.setOrderDate(order.getOrderDate());
@@ -165,6 +165,7 @@ public class OrderService {
 
         Page<Order> orderPage = orderRepository.findAllSellerOrder(sellerId, pageable);
 
+        System.out.println(orderPage.getContent().isEmpty());
         List<OrderSellerResponseDTO> orderDTOs = orderPage.getContent().stream().map(order -> {
             OrderSellerResponseDTO dto = new OrderSellerResponseDTO();
             dto.setId(order.getId());
@@ -200,6 +201,7 @@ public class OrderService {
 
         OrderSellerPageDTO response = new OrderSellerPageDTO();
         response.setContent(orderDTOs);
+        System.out.println(orderDTOs);
         response.setFirst(orderPage.isFirst());
         response.setLast(orderPage.isLast());
         response.setTotalPages(orderPage.getTotalPages());
@@ -240,6 +242,7 @@ public class OrderService {
         dto.setSeller(sellerDTO);
 
         dto.setOrderDate(order.getOrderDate());
+        dto.setPaymentDate(order.getPaymentDate());
         dto.setShippingAddress(order.getShippingAddress());
         dto.setOrderNote(order.getOrderNote());
         dto.setOrderStatus(order.getStatus());
@@ -362,7 +365,7 @@ public class OrderService {
         // สร้าง SellerDTO
         SellerDTO sellerDTO = new SellerDTO();
         sellerDTO.setId(seller.getId());
-        sellerDTO.setUserName(seller.getNickname());
+        sellerDTO.setNickname(seller.getNickname());
         orderResponseDTO.setSeller(sellerDTO);
 
         orderResponseDTO.setOrderDate(savedOrder.getOrderDate());

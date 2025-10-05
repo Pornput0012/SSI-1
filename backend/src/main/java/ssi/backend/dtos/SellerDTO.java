@@ -1,5 +1,7 @@
 package ssi.backend.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,5 +10,8 @@ import lombok.Setter;
 
 public class SellerDTO {
     private Integer id;
-    private String userName;
+    @JsonProperty("userName")
+    private String nickname;
+
+
 }

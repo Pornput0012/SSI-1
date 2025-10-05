@@ -24,6 +24,7 @@ export const useUserStore = defineStore("user", () => {
   sessionStorage.removeItem("userInfo"); 
   sessionStorage.removeItem("pageInfo");
   sessionStorage.removeItem("orderPageInfo");
+  sessionStorage.removeItem("sellerSaleItemPageInfo");
 };
   const getUserId = () => userInfo.value.id;
   

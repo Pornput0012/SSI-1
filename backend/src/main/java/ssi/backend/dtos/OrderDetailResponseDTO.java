@@ -13,6 +13,7 @@ public class OrderDetailResponseDTO {
     private Integer buyerId;
     private SellerDetailDTO seller;
     private Instant orderDate;
+    private Instant paymentDate;
     private String shippingAddress;
     private String orderNote;
     private List<OrderItemDTO> orderItems;
