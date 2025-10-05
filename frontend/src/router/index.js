@@ -16,6 +16,7 @@ import EditProfileView from "@/views/EditProfileView.vue";
 import { useUserStore } from "@/stores/UserStore";
 import CartView from "@/views/CartView.vue";
 import OrderView from "@/views/OrderView.vue";
+import OrderDetailView from "@/views/OrderDetailView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -106,6 +107,12 @@ const router = createRouter({
       path: "/your-orders",
       component: OrderView,
       name: "order",
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/your-orders/:orderId",
+      component: OrderDetailView,
+      name: "order-detail",
       meta: { requiresAuth: true },
     },
   ],

@@ -1,5 +1,6 @@
 <script setup>
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import MessageModal from '@/components/MessageModal.vue'
 import { deleteCartById, getAllCart, updateCart } from '@/services/CartService'
 import { useCartStore } from '@/stores/CartStore'
 import { useUserStore } from '@/stores/UserStore'
@@ -295,10 +296,11 @@ const removeCart = async (id, pid) => {
 const shippingAddress = ref('')
 const orderNote = ref('')
 const orderStore = useOrderStore()
+const showShippingModal = ref(false)
 const handlePlaceOrder = async () => {
   try {
     if (!shippingAddress.value || shippingAddress.value === '') {
-      console.log('Please enter a shipping address.')
+      showShippingModal.value = true
       return
       
     }
@@ -540,18 +542,18 @@ const handlePlaceOrder = async () => {
              <hr class="my-3 text-base-300" />
 
             <div class="mt-3">
-              <div class="flex justify-between">
+              <div class="flex justify-between itbms-total-orders-items">
                 <p class="text-black/30">Total items</p>
                 <p>{{ itemSelected.length }}</p>
               </div>
-              <div class="flex justify-between">
+              <div class="flex justify-between itbms-total-order-price">
                 <p class="text-black/30">Total price</p>
                 <p>{{ totalPrice.toLocaleString() }} ฿</p>
               </div>
             </div>
           </div>
           <button
-            class="mt-6 btn btn-primary w-full"
+            class="mt-6 btn btn-primary w-full itbms-place-order-button"
             :disabled="itemSelected.length === 0"
             @click="handlePlaceOrder"
           >
@@ -560,6 +562,14 @@ const handlePlaceOrder = async () => {
         </div>
       </div>
     </div>
+
+    <MessageModal
+      v-if="showShippingModal"
+      :handle-ok="() => (showShippingModal = false)"
+      :title="'Shipping Address Required'"
+      :message="'Please enter a shipping address before placing your order.'"
+    />
+
     <dialog class="modal" :open="showDeleteModal" v-if="showDeleteModal">
       <div class="modal-box">
         <h3 class="text-lg font-bold">Delete Confirmation</h3>

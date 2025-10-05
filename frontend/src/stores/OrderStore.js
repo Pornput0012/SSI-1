@@ -22,19 +22,6 @@ export const useOrderStore = defineStore('order', () => {
     return ordersPage.value
   }
 
-  function getOrderById(orderId) {
-    if (!Array.isArray(orders.value)) {
-      return null
-    }
-
-    const index = orders.value.findIndex((item) => item.id == orderId)
-
-    if (index === -1) {
-      return null
-    }
-    return orders.value[index]
-  }
-
   function addOrder(order) {
     console.log('🟢 Before add:', orders.value)
 
@@ -68,7 +55,6 @@ export const useOrderStore = defineStore('order', () => {
     ordersPage,
     setOrdersPage,
     getOrdersPage,
-    getOrderById,
     currentOrderPage,
     setCurrentOrderPage,
     getCurrentOrderPage,
