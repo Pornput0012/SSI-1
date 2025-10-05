@@ -522,7 +522,7 @@ const handlePlaceOrder = async () => {
               </label>
               <textarea
                 v-model.trim="shippingAddress"
-                class="textarea textarea-bordered w-full h-24 text-sm"
+                class="itbms-shipping-address textarea textarea-bordered w-full h-24 text-sm"
                 placeholder="123/45 Moo 6, T. Bangna, A. Bangna, Bangkok 10260"
               ></textarea>
             </div>
@@ -532,7 +532,7 @@ const handlePlaceOrder = async () => {
               <p class="font-bold text-sm mb-2">Note</p>
               <textarea
                 v-model.trim="orderNote"
-                class="textarea textarea-bordered w-full h-20 text-sm"
+                class="itbms-order-note textarea textarea-bordered w-full h-20 text-sm"
                 placeholder="Additional instructions or requests"
               ></textarea>
             </div>
