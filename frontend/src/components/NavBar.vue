@@ -6,6 +6,7 @@ import { RouterLink, useRouter } from "vue-router";
 import CartIcon from "./CartIcon.vue";
 import { useCartStore } from "@/stores/CartStore";
 import { getAllCart } from "@/services/CartService";
+import { Icon } from "@iconify/vue";
 
 const props = defineProps({
   qty: {
@@ -147,6 +148,7 @@ const productLength = computed(() => {
               >Login</router-link
             >
           </div>
+          <RouterLink class="mr-2" :to="{ name: 'order' }">Your orders</RouterLink>
           <RouterLink :to="{ name: 'cart' }">
             <CartIcon v-if="nickName && cartStore.carts" :qty="productLength" />
             <CartIcon v-else :qty="0" />
