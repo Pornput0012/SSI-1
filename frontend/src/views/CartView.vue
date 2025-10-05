@@ -7,6 +7,9 @@ import noImage from '@/assets/No_image_available.png'
 import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import { getImageByFileName } from '@/services/SaleItemService'
 import { createOrder } from '@/services/OrderService'
+import { useOrderStore } from '@/stores/OrderStore'
+import router from '@/router'
+import { useFilterStore } from '@/stores/FilterStore'
 
 const userStore = useUserStore()
 const cartStore = useCartStore()
@@ -291,7 +294,7 @@ const removeCart = async (id, pid) => {
 // });
 const shippingAddress = ref('')
 const orderNote = ref('')
-
+const orderStore = useOrderStore()
 const handlePlaceOrder = async () => {
   try {
     if (!shippingAddress.value || shippingAddress.value === '') {
@@ -346,17 +349,22 @@ const handlePlaceOrder = async () => {
       throw new Error(response.error)
     }
 
+    orderStore.addOrder(response)
+
     carts.value.forEach((sellerCart, i) => {
       sellerCart.cart = sellerCart.cart.filter((item) => !item.checked)
-      if (sellerCart.cart.length === 0) {
-        carts.value.splice(i, 1)
-      }
     })
+
+    carts.value = carts.value.filter((sellerCart) => sellerCart.cart.length > 0)
 
     cartStore.setCart(carts.value)
 
     shippingAddress.value = ''
     orderNote.value = ''
+
+    sessionStorage.removeItem('pageInfo')
+
+    router.push({ name: 'order' })
   } catch (error) {
     console.error(error)
   }

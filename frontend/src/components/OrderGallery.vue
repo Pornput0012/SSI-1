@@ -1,0 +1,250 @@
+<script setup>
+import { ref, onMounted, watch } from 'vue'
+import ContainerList from "./ContainerList.vue";
+import OrderGalleryModel from "./OrderGalleryModel.vue";
+
+const props = defineProps({
+  orders: {
+    type: [Array, null],
+    required: true,
+  },
+  pageInfo: Object,
+  hasError: String,
+})
+
+const emit = defineEmits(['pageChanged'])
+
+const currentPage = ref(props.pageInfo?.page ?? 0)
+const pageNumbers = ref([])
+const startPageIndex = ref(0)
+const isActionPage = ref(true)
+
+const calcPageNumber = (oldPage) => {
+  if (!props.pageInfo) {
+    return
+  }
+  
+  const totalPages = props.pageInfo.totalPages
+  const MAX_SHOW_PAGE = Math.min(totalPages, 10)
+
+  if (
+    currentPage.value >= 10 &&
+    totalPages > 10 &&
+    !isNaN(pageNumbers.value[9])
+  ) {
+    isActionPage.value = true
+    startPageIndex.value += 1
+  } else if (oldPage && currentPage.value < oldPage) {
+    isActionPage.value = true
+    startPageIndex.value -= 1
+  }
+
+  if (isActionPage.value) {
+    const newPageNumber = []
+    for (
+      let i = startPageIndex.value;
+      i < MAX_SHOW_PAGE + startPageIndex.value;
+      i++
+    ) {
+      newPageNumber.push(i + 1)
+    }
+
+    pageNumbers.value = newPageNumber
+  }
+  isActionPage.value = false
+}
+
+onMounted(() => {
+  if (!props.pageInfo) {
+    return
+  }
+
+  if (currentPage.value >= 10) {
+    startPageIndex.value =
+      Math.floor((currentPage.value + 1) / 10) > 1
+        ? ((currentPage.value + 1) / 10) * 10 - 10
+        : (currentPage.value + 1) % 10
+  }
+  calcPageNumber()
+})
+
+function changePage(pageIndex) {
+  if (!props.pageInfo) {
+    return
+  }
+  currentPage.value = pageIndex
+  if (pageIndex === 0) {
+    startPageIndex.value = 0
+    isActionPage.value = true
+    calcPageNumber()
+  } else if (pageIndex === props.pageInfo.totalPages - 1) {
+    startPageIndex.value =
+      props.pageInfo.totalPages > 10
+        ? Math.floor(currentPage.value / 10) > 1
+          ? (currentPage.value / 10) * 10 - 10
+          : currentPage.value % 10
+        : 0
+
+    isActionPage.value = true
+    calcPageNumber()
+  }
+  emit('pageChanged', currentPage.value)
+}
+
+function nextPage() {
+  if (!props.pageInfo) {
+    return
+  }
+  if (currentPage.value < props.pageInfo.totalPages - 1) {
+    currentPage.value++
+    if (currentPage.value > 9) {
+      calcPageNumber()
+    }
+    changePage(currentPage.value)
+  }
+}
+
+function prevPage() {
+  if (currentPage.value > 0) {
+    const oldPageNumber = currentPage.value
+    currentPage.value--
+    if (currentPage.value < pageNumbers.value[0] - 1) {
+      calcPageNumber(oldPageNumber)
+    }
+
+    changePage(currentPage.value)
+  }
+}
+
+watch(
+  () => props.pageInfo,
+  (newVal, oldVal) => {
+    // ✅ ถ้า newVal เป็น null ให้หยุดทันที
+    if (!newVal) {
+      return
+    }
+
+    // ✅ กรณีที่ oldVal เป็น null (รอบแรก) - ให้ init pagination
+    if (!oldVal) {
+      startPageIndex.value = 0
+      currentPage.value = newVal.page ?? 0
+      isActionPage.value = true
+      calcPageNumber()
+      return
+    }
+
+    // ✅ กรณีที่มีการเปลี่ยนแปลง metadata
+    if (
+      newVal.size !== oldVal.size ||
+      newVal.totalPages !== oldVal.totalPages ||
+      newVal.sort !== oldVal.sort ||
+      newVal.totalElements !== oldVal.totalElements
+    ) {
+      startPageIndex.value = 0
+      currentPage.value = newVal.page ?? 0
+      isActionPage.value = true
+      calcPageNumber()
+    } 
+    // ✅ กรณีที่เปลี่ยนแค่ page number
+    else if (newVal.page !== oldVal.page) {
+      currentPage.value = newVal.page ?? 0
+    }
+  },
+  { deep: true }
+)
+</script>
+
+<template>
+  <div>
+    <!-- Error message -->
+    <div
+      v-if="!orders && hasError !== '' && hasError"
+      class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-red-100 border-1 border-red-300"
+    >
+      <p class="text-red-500 font-extralight">{{ hasError }}</p>
+    </div>
+
+    <!-- Loader -->
+    <div
+      v-else-if="!orders"
+      class="w-full h-full justify-center items-center space-y-6"
+    >
+      <div v-for="i in 3" :key="i" class="flex w-full flex-col gap-4">
+        <div class="skeleton h-48 w-full"></div>
+      </div>
+    </div>
+
+    <!-- Show orders -->
+    <ContainerList
+      v-else-if="orders && orders.length > 0"
+      :items="orders"
+      class="space-y-6"
+    >
+      <template v-slot="{ itemInList }">
+        <OrderGalleryModel :order="itemInList" />
+      </template>
+    </ContainerList>
+
+    <!-- No orders -->
+    <div
+      v-if="orders && orders.length === 0"
+      class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
+    >
+      <p class="text-purple-700 font-medium">No orders found</p>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      v-if="pageInfo && !hasError && orders && orders.length !== 0"
+      class="join mt-7 w-full justify-center flex-wrap md:flex-nowrap"
+    >
+      <button
+        class="itbms-page-first join-item btn"
+        :class="pageInfo.totalPages === 1 ? 'hidden' : ''"
+        @click="changePage(0)"
+        :disabled="pageInfo.first"
+      >
+        First
+      </button>
+      <button
+        class="itbms-page-prev join-item btn"
+        :class="pageInfo.totalPages === 1 ? 'hidden' : ''"
+        @click="prevPage"
+        :disabled="pageInfo.first"
+      >
+        Prev
+      </button>
+      <button
+        v-for="(number, index) in pageNumbers"
+        :key="index"
+        :class="[
+          'itbms-page-' + index,
+          pageInfo.totalPages === 1 ? 'hidden' : '',
+        ]"
+        class="btn"
+        :disabled="currentPage == number - 1"
+        @click="changePage(number - 1)"
+      >
+        {{ number }}
+      </button>
+      <button
+        class="itbms-page-next join-item btn"
+        @click="nextPage"
+        :class="pageInfo.totalPages === 1 ? 'hidden' : ''"
+        :disabled="pageInfo.last"
+      >
+        Next
+      </button>
+      <button
+        class="itbms-page-last join-item btn"
+        @click="changePage(pageInfo.totalPages - 1)"
+        :class="pageInfo.totalPages === 1 ? 'hidden' : ''"
+        :disabled="pageInfo.last"
+      >
+        Last
+      </button>
+    </div>
+  </div>
+</template>
+
+<style scoped></style>
