@@ -148,7 +148,7 @@ const productLength = computed(() => {
               >Login</router-link
             >
           </div>
-          <RouterLink class="mr-2" :to="{ name: 'order' }">Your orders</RouterLink>
+          <RouterLink v-if="nickName" class="mr-2" :to="{ name: 'order' }">Your orders</RouterLink>
           <RouterLink :to="{ name: 'cart' }">
             <CartIcon v-if="nickName && cartStore.carts" :qty="productLength" />
             <CartIcon v-else :qty="0" />
