@@ -135,7 +135,7 @@ const orders = [
                 <p class="text-sm text-gray-500">Qty <span class="itbms-item-quantity">{{ item.quantity }}</span></p>
               </div>
               <div class="text-right">
-                <p class="text-lg font-bold text-blue-600">฿<span class="itbms-item-total-price"></span>{{ item.price }}</p>
+                <p class="text-lg font-bold text-blue-600">฿<span class="itbms-item-total-price"></span>{{ item.price * item.quantity}}</p>
               </div>
             </div>
 
