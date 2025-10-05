@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 public class CartResponseDto {
+    private Integer productSellerId;
     private String productSellerNickname;
     private List<CartResponseSubDto> cart;
 

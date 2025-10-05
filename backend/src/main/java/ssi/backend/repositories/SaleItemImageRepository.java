@@ -26,7 +26,7 @@ public interface SaleItemImageRepository extends JpaRepository<SaleItemImage, In
 
     List<SaleItemImage> findSaleItemImageByFileName(String saleItemImageName);
 
-    @NativeQuery("select * from sale_Item_images s where s.fileName = :fileName")
+    @NativeQuery("select * from sale_item_images s where s.fileName = :fileName")
     SaleItemImage findSaleItemImageByFileNameV2(String fileName);
     
     Optional<SaleItemImage> findByProductAndFileName(Product product, String fileName);

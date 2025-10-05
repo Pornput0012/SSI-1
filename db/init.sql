@@ -79,6 +79,38 @@ CREATE TABLE if not exists carts (
     foreign key (image_Id) references sale_item_images(image_Id) ON UPDATE CASCADE on delete cascade 
 );
 
+CREATE TABLE IF NOT EXISTS orders(
+  order_id INT AUTO_INCREMENT PRIMARY KEY,
+  buyer_id INT NOT NULL,
+  seller_id INT NOT NULL,
+  order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  payment_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  shipping_address TEXT NOT NULL,
+  order_note TEXT,
+  status ENUM('COMPLETED','CANCELED') DEFAULT 'COMPLETED',
+  total_amount INT NOT NULL DEFAULT 0,
+  FOREIGN KEY (buyer_id) REFERENCES users(user_id) ON UPDATE CASCADE,
+  FOREIGN KEY (seller_id) REFERENCES users(user_id) ON UPDATE CASCADE);
+  
+  CREATE TABLE IF NOT EXISTS order_items (
+  order_item_id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  product_id INT NOT NULL,
+  quantity INT NOT NULL CHECK (quantity > 0),
+  unit_price INT NOT NULL CHECK (unit_price >= 0),
+  total_price INT NOT NULL CHECK (total_price >= 0),
+  description TEXT,
+  
+  -- เก็บข้อมูล product ณ ขณะที่สั่งซื้อ
+  model varchar(60) not null,
+  ramGb integer,
+  screenSizeInch decimal(4, 2),
+  storageGb integer,
+  color varchar(40),
+  FOREIGN KEY (order_id)  REFERENCES orders(order_id)   ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products(product_id) ON UPDATE CASCADE
+);
+
 INSERT INTO brands (name, countryOfOrigin, websiteUrl, isActive) VALUES
 ('Samsung', 'South Korea', 'https://www.samsung.com', 1),
 ('Apple', 'United States', 'https://www.apple.com', 1),
@@ -169,9 +201,9 @@ INSERT INTO products (product_id, brand_id, seller_id, model, description, price
 (85, 10, 4, 'Reno6 Pro', 'Classic premium', 16500, 12, 6.55, 256, 'Arctic Blue', 7);
 
 
-INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
-(3, 1, 1, 1),   -- Somchai ซื้อ iPhone 14 Pro Max (1 ชิ้น)
-(3, 2, 1, 1); 
+-- INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
+-- (3, 1, 1, 1),   -- Somchai ซื้อ iPhone 14 Pro Max (1 ชิ้น)
+-- (3, 2, 1, 1); 
 
-INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
-(3, 3, 1, 1);
+-- INSERT INTO carts (user_id, product_id, image_id, quantity) VALUES
+-- (3, 3, 1, 1);
