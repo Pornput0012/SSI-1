@@ -94,7 +94,7 @@ public class OrderService {
 
             SellerDTO sellerDTO = new SellerDTO();
             sellerDTO.setId(order.getSeller().getId());
-            sellerDTO.setUserName(order.getSeller().getNickname());
+            sellerDTO.setNickname(order.getSeller().getNickname());
             dto.setSeller(sellerDTO);
 
             dto.setOrderDate(order.getOrderDate());
@@ -362,7 +362,7 @@ public class OrderService {
         // สร้าง SellerDTO
         SellerDTO sellerDTO = new SellerDTO();
         sellerDTO.setId(seller.getId());
-        sellerDTO.setUserName(seller.getNickname());
+        sellerDTO.setNickname(seller.getNickname());
         orderResponseDTO.setSeller(sellerDTO);
 
         orderResponseDTO.setOrderDate(savedOrder.getOrderDate());
