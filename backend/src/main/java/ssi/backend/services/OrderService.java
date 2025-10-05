@@ -240,6 +240,7 @@ public class OrderService {
         dto.setSeller(sellerDTO);
 
         dto.setOrderDate(order.getOrderDate());
+        dto.setPaymentDate(order.getPaymentDate());
         dto.setShippingAddress(order.getShippingAddress());
         dto.setOrderNote(order.getOrderNote());
         dto.setOrderStatus(order.getStatus());
