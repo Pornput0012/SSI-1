@@ -3,29 +3,23 @@ import { defineStore, acceptHMRUpdate } from 'pinia'
 
 export const useOrderStore = defineStore('order', () => {
   const orders = ref([])
-  const buyerOrdersPage = ref(null) // pagination ของ buyer
-  const sellerOrdersPage = ref(null) // pagination ของ seller
+  const ordersPage = ref(null)
+  const currentOrderPage = ref(0)
 
   function setOrders(orderArray) {
     orders.value = orderArray
   }
 
-  function setBuyerOrdersPage(orderArray) {
-    buyerOrdersPage.value = orderArray
-  }
-  function setSellerOrdersPage(orderArray) {
-    sellerOrdersPage.value = orderArray
+  function setOrdersPage(orderArray) {
+    ordersPage.value = orderArray
   }
 
   function getOrders() {
     return orders.value
   }
 
-  function getBuyerOrdersPage() {
-    return buyerOrdersPage.value
-  }
-  function getSellerOrdersPage() {
-    return sellerOrdersPage.value
+  function getOrdersPage() {
+    return ordersPage.value
   }
 
   function getOrderById(orderId) {
@@ -53,17 +47,32 @@ export const useOrderStore = defineStore('order', () => {
     console.log('🟢 After add:', orders.value)
   }
 
+  // ✅ เพิ่มฟังก์ชันจัดการ currentOrderPage
+  function setCurrentOrderPage(page) {
+    currentOrderPage.value = page
+  }
+
+  function getCurrentOrderPage() {
+    return currentOrderPage.value
+  }
+
+  function resetOrderPage() {
+    currentOrderPage.value = 0
+  }
+
   return {
     orders,
     setOrders,
     getOrders,
     addOrder,
     ordersPage,
-    setBuyerOrdersPage,
-    getBuyerOrdersPage,
-    setSellerOrdersPage,
-    getSellerOrdersPage,
+    setOrdersPage,
+    getOrdersPage,
     getOrderById,
+    currentOrderPage,
+    setCurrentOrderPage,
+    getCurrentOrderPage,
+    resetOrderPage,
   }
 })
 

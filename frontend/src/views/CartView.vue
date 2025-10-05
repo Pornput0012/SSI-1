@@ -8,6 +8,8 @@ import { computed, onMounted, ref, watch, watchEffect } from 'vue'
 import { getImageByFileName } from '@/services/SaleItemService'
 import { createOrder } from '@/services/OrderService'
 import { useOrderStore } from '@/stores/OrderStore'
+import router from '@/router'
+import { useFilterStore } from '@/stores/FilterStore'
 
 const userStore = useUserStore()
 const cartStore = useCartStore()
@@ -293,7 +295,6 @@ const removeCart = async (id, pid) => {
 const shippingAddress = ref('')
 const orderNote = ref('')
 const orderStore = useOrderStore()
-
 const handlePlaceOrder = async () => {
   try {
     if (!shippingAddress.value || shippingAddress.value === '') {
@@ -360,6 +361,10 @@ const handlePlaceOrder = async () => {
 
     shippingAddress.value = ''
     orderNote.value = ''
+
+    sessionStorage.removeItem('pageInfo')
+
+    router.push({ name: 'order' })
   } catch (error) {
     console.error(error)
   }

@@ -23,6 +23,7 @@ export const useUserStore = defineStore("user", () => {
   userInfo.value = {};
   sessionStorage.removeItem("userInfo"); 
   sessionStorage.removeItem("pageInfo");
+  sessionStorage.removeItem("orderPageInfo");
 };
   const getUserId = () => userInfo.value.id;
   

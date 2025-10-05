@@ -7,7 +7,7 @@ const getAccessToken = () => {
   return localStorage.getItem('access_token')
 }
 
-const getOrderBuyer = async (buyerId, pageInfo = { page: 0, size: 10 }) => {
+const getOrdersBuyer = async (buyerId, pageInfo = { page: 0, size: 10 }) => {
   try {
     if (!buyerId) {
       throw new Error('Buyer ID is required')
@@ -44,7 +44,7 @@ const getOrderBuyer = async (buyerId, pageInfo = { page: 0, size: 10 }) => {
     const data = await response.json()
     const orderStore = useOrderStore()
 
-    orderStore.setBuyerOrdersPage({ ...data })
+    orderStore.setOrdersPage({ ...data })
     return data
   } catch (error) {
     return { error }
@@ -72,7 +72,7 @@ const getOrderById = async (orderId) => {
   }
 }
 
-const getOrderSeller = async (sellerId, pageInfo = { page: 0, size: 10 }) => {
+const getOrdersSeller = async (sellerId, pageInfo = { page: 0, size: 10, sortD }) => {
   try {
     if (!sellerId) throw new Error('Seller ID is required')
     const getRequestParameter = () => {
@@ -109,7 +109,7 @@ const getOrderSeller = async (sellerId, pageInfo = { page: 0, size: 10 }) => {
     const data = await response.json()
     const orderStore = useOrderStore()
 
-    orderStore.setSellerOrdersPage({ ...data, isSeller: true })
+    orderStore.setOrdersPage({ ...data, isSeller: true })
     return data
   } catch (error) {
     return { error }
@@ -142,4 +142,4 @@ const createOrder = async (orders) => {
   }
 }
 
-export { createOrder }
+export { createOrder, getOrdersBuyer, getOrderById, getOrdersSeller }
