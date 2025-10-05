@@ -16,17 +16,15 @@ const route = useRoute();
 const userStore = useUserStore();
 const hasError = ref("");
 const STORAGE_KEYS = {
-  PAGE_INFO: "pageInfo",
+  PAGE_INFO: "sellerSaleItemPageInfo",
 };
-
-const filterStore = useFilterStore();
-
-const { setCurrentPage } = filterStore;
 
 const saleItemStore = useSaleItemStore();
 
+const currentPage = computed(() => saleItemStore.getCurrentSellerSaleItemPage());
+const { setCurrentSellerSaleItemPage } = saleItemStore;
+
 const { getSaleItemsPage } = saleItemStore;
-const currentPage = computed(() => filterStore.currentPage);
 
 const saleItems = computed(() => getSaleItemsPage());
 
@@ -48,11 +46,11 @@ const getFromLocalStorage = () => {
 
 const setDefaultStoreValues = (pageInfo) => {
   getFromLocalStorage();
-  setCurrentPage(pageInfo?.page ?? 0);
+  setCurrentSellerSaleItemPage(pageInfo?.page ?? 0);
 };
 
 const handlePageChange = async (pageIndex) => {
-  setCurrentPage(pageIndex);
+  setCurrentSellerSaleItemPage(pageIndex);
   await saleItemsBySeller();
 };
 

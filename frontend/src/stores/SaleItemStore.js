@@ -4,6 +4,7 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 export const useSaleItemStore = defineStore("SaleItem", () => {
   const saleItems = ref(null);
   const saleItemsPage = ref(null);
+  const currentSellerSaleItemPage = ref(0)
 
   function setSaleItems(itemArray) {
     saleItems.value = itemArray;
@@ -103,6 +104,18 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     }
   }
 
+  function setCurrentSellerSaleItemPage(page) {
+    currentSellerSaleItemPage.value = page
+  }
+
+  function getCurrentSellerSaleItemPage() {
+    return currentSellerSaleItemPage.value
+  }
+
+  function resetSellerSaleItemPage() {
+    currentSellerSaleItemPage.value = 0
+  }
+
   return {
     saleItems,
     setSaleItems,
@@ -114,6 +127,9 @@ export const useSaleItemStore = defineStore("SaleItem", () => {
     getSaleItemByIdPage,
     getSaleItemsPage,
     setSaleItemsPage,
+    getCurrentSellerSaleItemPage,
+    setCurrentSellerSaleItemPage,
+    resetSellerSaleItemPage
   };
 });
 
