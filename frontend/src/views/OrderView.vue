@@ -7,6 +7,7 @@ import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import OrderGallery from '@/components/OrderGallery.vue'
 import { getOrdersBuyer, getOrdersSeller } from '@/services/OrderService'
 import MessageModal from '@/components/MessageModal.vue'
+import { useNotiStore } from '@/stores/NotiStore'
 
 const userStore = useUserStore()
 const filterStore = useFilterStore()
@@ -64,7 +65,12 @@ const fetchOrders = async (pageInfo) => {
     }
 
     const response = isSeller.value
-      ? await getOrdersSeller(userId.value, {
+      // ? await getOrdersSeller(userId.value, {
+      //     page: pageInfo?.page ?? currentPage.value,
+      //     size: 10,
+      //     sortDirection: 'DESC',
+      //   })
+      ? await getOrdersBuyer(userId.value, {
           page: pageInfo?.page ?? currentPage.value,
           size: 10,
           sortDirection: 'DESC',
@@ -110,38 +116,14 @@ const pageInfo = computed(() => {
     page: ordersPage.value.page ?? 0,
   }
 })
-// const orders = [
-//   {
-//     id: '123456',
-//     buyerId : '6262',
-//     Seller:{id:'123',username: 'Somsuan'},
-//     orderDate: 'October 1, 2025',
-//     paymentDate: 'October 1, 2025',
-//     total: '62,700',
-//     orderStatus: 'Completed',
-//     shippingAddress: 'Somchai Jaidee, 123/45 Moo 6, T. Bangna, A. Bangna, Bangkok 10260',
-//     note: 'hi',
-//     orderItems: [
-//       {
-//         no: '123',
-//         saleItemId : '123',
-
-//         description: 'Apple iPhone 14 Pro Max (512GB, Space Black)',
-//         quantity: 1,
-//         price: '42,900',
-//         image: '📱'
-//       },
-//       {
-//         no: '123',
-//         saleItemId : '123',
-//         description: 'Apple iPhone 13 mini (128GB, Green)',
-//         quantity: 1,
-//         price: '19,800',
-//         image: '📱'
-//       }
-//     ]
-//   }
-// ];
+const notiStore = useNotiStore();
+const showOrderCreatedModal = ref(false);
+onMounted(() => {
+  if (notiStore.orderCreateSuccess) {
+    showOrderCreatedModal.value = true;
+    notiStore.orderCreateSuccess = false;
+  }
+});
 </script>
 
 <template>
@@ -185,6 +167,14 @@ const pageInfo = computed(() => {
       />
     </div>
   </div>
+
+  <MessageModal
+    v-if="showOrderCreatedModal"
+    :handle-ok="() => (showOrderCreatedModal = false)"
+    :title="'Successfully!'"
+    :message="'Your order has been successfully processed.'"
+    :type-modal="'text-success'"
+  />
 </template>
 
 <style scoped>

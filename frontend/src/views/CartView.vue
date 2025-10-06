@@ -1,6 +1,5 @@
 <script setup>
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import MessageModal from '@/components/MessageModal.vue'
 import { deleteCartById, getAllCart, updateCart } from '@/services/CartService'
 import { useCartStore } from '@/stores/CartStore'
 import { useUserStore } from '@/stores/UserStore'
@@ -11,6 +10,7 @@ import { createOrder } from '@/services/OrderService'
 import { useOrderStore } from '@/stores/OrderStore'
 import router from '@/router'
 import { useFilterStore } from '@/stores/FilterStore'
+import { useNotiStore } from '@/stores/NotiStore'
 
 const userStore = useUserStore()
 const cartStore = useCartStore()
@@ -21,6 +21,7 @@ const carts = ref([])
 const hasError = ref('')
 
 onMounted(async () => {
+  loadSavedData()
   try {
     if (cartStore.carts) {
       carts.value = cartStore.carts.map((ele) => {
@@ -293,18 +294,34 @@ const removeCart = async (id, pid) => {
 //     }, 5000);
 //   }
 // });
+const STORAGE_KEYS = {
+  SHIPPING_ADDRESS: 'shippingAddress',
+  ORDER_NOTE: 'orderNote',
+}
 const shippingAddress = ref('')
 const orderNote = ref('')
 const orderStore = useOrderStore()
-const showShippingModal = ref(false)
+
+const loadSavedData = () => {
+  const savedAddress = sessionStorage.getItem(STORAGE_KEYS.SHIPPING_ADDRESS)
+  const savedNote = sessionStorage.getItem(STORAGE_KEYS.ORDER_NOTE)
+
+  if (savedAddress) {
+    shippingAddress.value = savedAddress
+  }
+  if (savedNote) {
+    orderNote.value = savedNote
+  }
+}
+
+// บันทึก address และ note ลง sessionStorage
+const saveFormData = () => {
+  sessionStorage.setItem(STORAGE_KEYS.SHIPPING_ADDRESS, shippingAddress.value.trim())
+  sessionStorage.setItem(STORAGE_KEYS.ORDER_NOTE, orderNote.value.trim())
+}
+
 const handlePlaceOrder = async () => {
   try {
-    if (!shippingAddress.value || shippingAddress.value === '') {
-      showShippingModal.value = true
-      return
-      
-    }
-
     const orderRequestList = []
 
     carts.value.forEach((sellerCart) => {
@@ -359,6 +376,8 @@ const handlePlaceOrder = async () => {
       throw new Error(response.error)
     }
 
+    saveFormData()
+
     orderStore.addOrder(response)
 
     carts.value.forEach((sellerCart, i) => {
@@ -369,16 +388,34 @@ const handlePlaceOrder = async () => {
 
     cartStore.setCart(carts.value)
 
-    shippingAddress.value = ''
-    orderNote.value = ''
+    // shippingAddress.value = ''
+    // orderNote.value = ''
 
     sessionStorage.removeItem('pageInfo')
 
-    router.push({ name: 'order' })
+    orderCreateSuccess()
   } catch (error) {
     console.error(error)
   }
 }
+
+watch([shippingAddress, orderNote], () => {
+  if (shippingAddress.value || orderNote.value) {
+    saveFormData()
+  }
+})
+
+const notiStore = useNotiStore();
+const orderCreateSuccess = () => {
+  notiStore.orderCreateSuccess = true;
+  router.push({ name: "order" });
+};
+
+const isPlaceOrderDisabled = computed(() => {
+  const hasNoItems = itemSelected.value.length === 0
+  const hasNoAddress = !shippingAddress.value || shippingAddress.value.trim() === ''
+  return hasNoItems || hasNoAddress
+})
 </script>
 
 <template>
@@ -498,7 +535,7 @@ const handlePlaceOrder = async () => {
                   <span
                     class="price font-bold text-blue-600 itbms-item-total-price"
                   >
-                    {{ item.productPrice * item.quantity }} ฿
+                    {{ (item.productPrice * item.quantity).toLocaleString() }} ฿
                   </span>
                   <div
                     @click="removeCart(item.id, item.productId)"
@@ -562,7 +599,7 @@ const handlePlaceOrder = async () => {
           </div>
           <button
             class="mt-6 btn btn-primary w-full itbms-place-order-button"
-            :disabled="itemSelected.length === 0"
+            :disabled="isPlaceOrderDisabled"
             @click="handlePlaceOrder"
           >
             Place order
@@ -570,13 +607,6 @@ const handlePlaceOrder = async () => {
         </div>
       </div>
     </div>
-
-    <MessageModal
-      v-if="showShippingModal"
-      :handle-ok="() => (showShippingModal = false)"
-      :title="'Shipping Address Required'"
-      :message="'Please enter a shipping address before placing your order.'"
-    />
 
     <dialog class="modal" :open="showDeleteModal" v-if="showDeleteModal">
       <div class="modal-box">
