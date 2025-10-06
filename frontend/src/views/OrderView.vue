@@ -64,7 +64,12 @@ const fetchOrders = async (pageInfo) => {
     }
 
     const response = isSeller.value
-      ? await getOrdersSeller(userId.value, {
+      // ? await getOrdersSeller(userId.value, {
+      //     page: pageInfo?.page ?? currentPage.value,
+      //     size: 10,
+      //     sortDirection: 'DESC',
+      //   })
+      ? await getOrdersBuyer(userId.value, {
           page: pageInfo?.page ?? currentPage.value,
           size: 10,
           sortDirection: 'DESC',
