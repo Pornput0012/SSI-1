@@ -535,7 +535,7 @@ const isPlaceOrderDisabled = computed(() => {
                   <span
                     class="price font-bold text-blue-600 itbms-item-total-price"
                   >
-                    {{ item.productPrice * item.quantity }} ฿
+                    {{ (item.productPrice * item.quantity).toLocaleString() }} ฿
                   </span>
                   <div
                     @click="removeCart(item.id, item.productId)"
