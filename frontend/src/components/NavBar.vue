@@ -44,7 +44,7 @@ const handleLogout = async () => {
   const res = await logout();
   if (res.success) {
     userStore.clearUserInfo();
-    router.push({ name: "home" });
+    router.push({ name: "sale-items" });
   } else {
     alert("Logout Not Successful...");
   }
