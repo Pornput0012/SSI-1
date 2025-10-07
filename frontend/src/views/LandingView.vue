@@ -9,7 +9,7 @@ import { ref, onMounted } from "vue";
         <div class="carousel-item relative w-full">
           <div
             class="w-full h-full bg-no-repeat bg-cover bg-center"
-            style="background-image: url('/hero.jpg')"
+            style="background-image: url('https://picsum.photos/id/1/1280/720')"
           >
             <div class="absolute inset-0 bg-black/40">
               <div
