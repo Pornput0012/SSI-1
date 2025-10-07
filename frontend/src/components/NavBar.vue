@@ -45,6 +45,10 @@ const handleLogout = async () => {
   if (res.success) {
     userStore.clearUserInfo();
     cartStore.setCart(null);
+    console.log(cartStore.getCarts());
+
+    
+    
     router.push({ name: "sale-items" });
   } else {
     alert("Logout Not Successful...");
@@ -66,7 +70,8 @@ watchEffect(async () => {
         console.log("No user ID available");
         return;
       }
-
+      console.log("User Id : ",userId);
+      
       const response = await getAllCart(userId);
       console.log("Cart response:", response);
 

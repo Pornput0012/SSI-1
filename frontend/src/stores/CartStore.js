@@ -7,6 +7,8 @@ export const useCartStore = defineStore("Cart", () => {
   function setCart(cart) {
     if (Array.isArray(cart)) {
       carts.value = cart;
+    }else{
+      carts.value = null
     }
   }
 
