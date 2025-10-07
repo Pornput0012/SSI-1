@@ -44,6 +44,7 @@ const handleLogout = async () => {
   const res = await logout();
   if (res.success) {
     userStore.clearUserInfo();
+    cartStore.setCart(null);
     router.push({ name: "sale-items" });
   } else {
     alert("Logout Not Successful...");
@@ -57,11 +58,9 @@ onMounted(async () => {
   }
 });
 watchEffect(async () => {
-
   if (userStore.getUserId() && !cartStore.carts) {
     console.log(cartStore.carts);
-    try {  
-
+    try {
       const userId = userStore.getUserId();
       if (!userId) {
         console.log("No user ID available");
@@ -148,11 +147,17 @@ const productLength = computed(() => {
               >Login</router-link
             >
           </div>
-          <RouterLink v-if="nickName" class="mr-2" :to="{ name: 'order' }">Your orders</RouterLink>
-          <RouterLink :to="{ name: 'cart' }">
+          <RouterLink v-if="nickName" class="mr-2" :to="{ name: 'order' }"
+            >Your orders</RouterLink
+          >
+          <RouterLink v-if="productLength" :to="{ name: 'cart' }">
             <CartIcon v-if="nickName && cartStore.carts" :qty="productLength" />
             <CartIcon v-else :qty="0" />
           </RouterLink>
+          <button v-else class="opacity-60">
+            <CartIcon v-if="nickName && cartStore.carts" :qty="productLength" />
+            <CartIcon v-else :qty="0" />
+          </button>
           <div class="flex items-center gap-2 mr-3" v-if="!nickName"></div>
           <div v-if="nickName" class="flex items-center justify-center gap-4">
             <p>
@@ -240,10 +245,16 @@ const productLength = computed(() => {
       >
     </div> -->
     <div class="flex gap-2 items-center">
-      <RouterLink :to="{ name: 'cart' }">
+      <RouterLink v-if="productLength" :to="{ name: 'cart' }">
         <CartIcon v-if="nickName" :qty="productLength" />
         <CartIcon v-else :qty="0"
       /></RouterLink>
+
+      <button v-else class="opacity-60">
+        <CartIcon v-if="nickName" :qty="productLength" />
+        <CartIcon v-else :qty="0" />
+      </button>
+
       <div class="dropdown dropdown-bottom dropdown-end">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
           <svg

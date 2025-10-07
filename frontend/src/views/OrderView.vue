@@ -64,18 +64,7 @@ const fetchOrders = async (pageInfo) => {
       throw new Error('User not logged in')
     }
 
-    const response = isSeller.value
-      // ? await getOrdersSeller(userId.value, {
-      //     page: pageInfo?.page ?? currentPage.value,
-      //     size: 10,
-      //     sortDirection: 'DESC',
-      //   })
-      ? await getOrdersBuyer(userId.value, {
-          page: pageInfo?.page ?? currentPage.value,
-          size: 10,
-          sortDirection: 'DESC',
-        })
-      : await getOrdersBuyer(userId.value, {
+    const response = await getOrdersBuyer(userId.value, {
           page: pageInfo?.page ?? currentPage.value,
           size: 10,
           sortDirection: 'DESC',
