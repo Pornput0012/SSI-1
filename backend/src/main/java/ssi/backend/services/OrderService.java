@@ -327,6 +327,8 @@ public class OrderService {
             if (product.getQuantity() < itemDTO.getQuantity()) {
                 // throw new ConfilctResourceException("Quantity not enough for product id: " +
                 // itemDTO.getSaleItemId());
+                System.out.println(product.getQuantity() + "qty" + product.getId());
+                System.out.println("order" + itemDTO.getQuantity());
                 allItemsAvailable = false;
             }
 

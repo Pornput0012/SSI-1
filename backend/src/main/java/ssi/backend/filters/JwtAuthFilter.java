@@ -50,6 +50,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
+            //System.out.println("hi");
             String token = header.substring(7);
             try {
                 SignedJWT signedJWT = SignedJWT.parse(token);
@@ -65,6 +66,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
 
                 JwtClaimDTO accessTokenClaim = jwtService.extractUserClaims(token);
+
+//                if (accessTokenClaim==null || accessTokenClaim.getUserId() == null || accessTokenClaim.getRole() == null || accessTokenClaim.getEmail() == null) {
+//                    sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid JWT");
+//                    return;
+//                }
+
                 if (accessTokenClaim.getUserId() == null && accessTokenClaim.getRole() == null && accessTokenClaim.getEmail() == null) {
                     sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid JWT");
                     return;
@@ -89,11 +96,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        else {
-            // ถ้า request ต้อง login จริง ๆ → 401
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Unauthorized: Please log in first");
-            return;
-        }
+//        else {
+//            // ถ้า request ต้อง login จริง ๆ → 401
+//            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Unauthorized: Please log in first");
+//            return;
+//        }
         filterChain.doFilter(request, response);
     }
 

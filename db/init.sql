@@ -1,8 +1,8 @@
 drop database if exists  INT221;
 
 -- require for production
- SET GLOBAL time_zone = 'Asia/Bangkok';
- SET time_zone = 'Asia/Bangkok';
+--  SET GLOBAL time_zone = 'Asia/Bangkok';
+--  SET time_zone = 'Asia/Bangkok';
 
 SET NAMES utf8mb4 COLLATE utf8mb4_0900_ai_ci;
 create database if not exists INT221 CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS orders(
   payment_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   shipping_address TEXT NOT NULL,
   order_note TEXT,
-  status ENUM('COMPLETED','CANCELED') DEFAULT 'COMPLETED',
+  status ENUM('COMPLETED','CANCELLED') DEFAULT 'COMPLETED',
   total_amount INT NOT NULL DEFAULT 0,
   FOREIGN KEY (buyer_id) REFERENCES users(user_id) ON UPDATE CASCADE,
   FOREIGN KEY (seller_id) REFERENCES users(user_id) ON UPDATE CASCADE);
