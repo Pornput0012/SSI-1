@@ -265,6 +265,13 @@ public class OrderService {
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
+
+        if (!userId.equals(orderRequestDTO.getBuyerId())) {
+            throw new ForbiddenException("Request buyer id not matched with id in access token.");
+        }
+
         if (orderRequestDTO.getBuyerId() == null ||
                 orderRequestDTO.getSellerId() == null ||
                 orderRequestDTO.getShippingAddress() == null ||
@@ -289,6 +296,7 @@ public class OrderService {
         // Validate quantity และเตรียม OrderItem ก่อนการ save
         List<OrderItem> orderItems = new ArrayList<>();
         Integer totalAmount = 0;
+        boolean allItemsAvailable = true;
 
         for (OrderItemDTO itemDTO : orderRequestDTO.getOrderItems()) {
             if (itemDTO.getSaleItemId() == null || itemDTO.getPrice() == null || itemDTO.getQuantity() == null) {
@@ -303,15 +311,23 @@ public class OrderService {
                     .orElseThrow(() -> new ItemNotFoundException(
                             "Sale item not found with id: " + itemDTO.getSaleItemId()));
 
+            if (!product.getSeller().getId().equals(orderRequestDTO.getSellerId())) {
+                throw new BadRequestException(
+                        "Sale item " + itemDTO.getSaleItemId() + " does not exist to seller "
+                                + orderRequestDTO.getSellerId());
+            }
+
             // ห้ามซื้อสินค้าที่ตัวเองเป็นเจ้าของ
             if (product.getSeller() != null && buyer.getId().equals(product.getSeller().getId())) {
-                throw new ConfilctResourceException(
+                throw new BadRequestException(
                         "Cannot order product id " + product.getId() + " because buyer is the owner of the product.");
             }
 
             // ตรวจสอบ quantity ก่อน
             if (product.getQuantity() < itemDTO.getQuantity()) {
-                throw new ConfilctResourceException("Quantity not enough for product id: " + itemDTO.getSaleItemId());
+                // throw new ConfilctResourceException("Quantity not enough for product id: " +
+                // itemDTO.getSaleItemId());
+                allItemsAvailable = false;
             }
 
             // เตรียม OrderItem (ยังไม่ save)
@@ -339,7 +355,7 @@ public class OrderService {
         order.setSeller(seller);
         order.setShippingAddress(orderRequestDTO.getShippingAddress());
         order.setOrderNote(orderRequestDTO.getOrderNote());
-        order.setStatus(orderRequestDTO.getOrderStatus());
+        order.setStatus(allItemsAvailable ? "COMPLETED" : "CANCELLED");
         order.setTotalAmount(totalAmount);
 
         Order savedOrder = orderRepository.save(order);
@@ -349,12 +365,14 @@ public class OrderService {
             orderItem.setOrder(savedOrder);
             orderItemRepository.save(orderItem);
 
-            // อัพเดท quantity ของสินค้า
-            Product product = orderItem.getProduct();
-            product.setQuantity(product.getQuantity() - orderItem.getQuantity());
-            productRepository.save(product);
+            if (allItemsAvailable) {
+                // อัพเดท quantity ของสินค้า
+                Product product = orderItem.getProduct();
+                product.setQuantity(product.getQuantity() - orderItem.getQuantity());
+                productRepository.save(product);
 
-            cartRepository.deleteByUserIdAndProductId(buyer.getId(), product.getId());
+                cartRepository.deleteByUserIdAndProductId(buyer.getId(), product.getId());
+            }
         }
 
         // สร้าง OrderResponseDTO
