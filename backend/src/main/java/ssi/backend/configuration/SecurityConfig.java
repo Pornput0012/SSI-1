@@ -8,17 +8,18 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ssi.backend.filters.JwtAuthFilter;
 import ssi.backend.services.JwtService;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
 
@@ -29,21 +30,30 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http.csrf(csrf -> csrf.disable())
-                .cors(cors -> {
-                })
+        return http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/itb-mshop/v2/auth/**").permitAll()
-
-                                .requestMatchers(HttpMethod.POST, "/itb-mshop/v2/sale-items/**").authenticated()
-                                .requestMatchers(HttpMethod.GET, "/itb-mshop/v2/sale-items/**").permitAll()
-                                .requestMatchers(HttpMethod.POST, "/itb-mshop/v2/orders/**").authenticated()
-                                // .requestMatchers(HttpMethod.GET, "/itb-mshop/v2/users/*/orders").authenticated()
-//                        .requestMatchers(HttpMethod.PUT, "/v2/sale-items/**").authenticated()
-//                        .requestMatchers(HttpMethod.DELETE, "/v2/sale-items/**").authenticated()
-                                .anyRequest().permitAll()
+                        .requestMatchers("/itb-mshop/v2/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/itb-mshop/v2/sale-items/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/itb-mshop/v2/sale-items/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/itb-mshop/v2/orders/**").authenticated()
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(new JwtAuthFilter(jwtService, jwtProperties), UsernamePasswordAuthenticationFilter.class)
+                // ปิด anonymous → ยังไม่ได้ login → 401
+                .anonymous(anon -> anon.disable())
+                // กำหนด JSON response สำหรับ unauthorized
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json");
+                            response.setCharacterEncoding("UTF-8");
+                            response.getWriter().write(
+                                    "{\"error\":\"Unauthorized\",\"message\":\"Please login first\",\"status\":401}"
+                            );
+                        })
+                )
                 .build();
     }
 
@@ -51,5 +61,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new Argon2PasswordEncoder(16, 32, 8, 1024 * 128, 2);
     }
-
 }

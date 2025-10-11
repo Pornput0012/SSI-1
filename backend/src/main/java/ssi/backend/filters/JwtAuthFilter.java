@@ -13,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import ssi.backend.configuration.JwtProperties;
 import ssi.backend.dtos.JwtClaimDTO;
@@ -38,7 +39,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return path.startsWith("/itb-mshop/v2/auth/**");
+        return path.startsWith("/itb-mshop/v2/auth/");
     }
 
 
@@ -49,6 +50,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
+            //System.out.println("hi");
             String token = header.substring(7);
             try {
                 SignedJWT signedJWT = SignedJWT.parse(token);
@@ -64,6 +66,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
 
                 JwtClaimDTO accessTokenClaim = jwtService.extractUserClaims(token);
+
+//                if (accessTokenClaim==null || accessTokenClaim.getUserId() == null || accessTokenClaim.getRole() == null || accessTokenClaim.getEmail() == null) {
+//                    sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid JWT");
+//                    return;
+//                }
+
                 if (accessTokenClaim.getUserId() == null && accessTokenClaim.getRole() == null && accessTokenClaim.getEmail() == null) {
                     sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid JWT");
                     return;
@@ -88,6 +96,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
+//        else {
+//            // ถ้า request ต้อง login จริง ๆ → 401
+//            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Unauthorized: Please log in first");
+//            return;
+//        }
         filterChain.doFilter(request, response);
     }
 
