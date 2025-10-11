@@ -89,10 +89,11 @@ CREATE TABLE IF NOT EXISTS orders(
   order_note TEXT,
   status ENUM('COMPLETED','CANCELLED') DEFAULT 'COMPLETED',
   total_amount INT NOT NULL DEFAULT 0,
+  view_order BOOLEAN NOT NULL DEFAULT 0,
   FOREIGN KEY (buyer_id) REFERENCES users(user_id) ON UPDATE CASCADE,
   FOREIGN KEY (seller_id) REFERENCES users(user_id) ON UPDATE CASCADE);
   
-  CREATE TABLE IF NOT EXISTS order_items (
+CREATE TABLE IF NOT EXISTS order_items (
   order_item_id INT AUTO_INCREMENT PRIMARY KEY,
   order_id INT NOT NULL,
   product_id INT NOT NULL,

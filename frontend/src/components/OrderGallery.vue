@@ -10,6 +10,8 @@ const props = defineProps({
   },
   pageInfo: Object,
   hasError: String,
+  newOrder: Boolean,
+  saleOrders: Boolean
 })
 
 const emit = defineEmits(['pageChanged'])
@@ -181,7 +183,7 @@ watch(
       class="space-y-6"
     >
       <template v-slot="{ itemInList }">
-        <OrderGalleryModel :order="itemInList" />
+        <OrderGalleryModel :new-order="newOrder" :order="itemInList" :sale-orders="saleOrders" />
       </template>
     </ContainerList>
 
