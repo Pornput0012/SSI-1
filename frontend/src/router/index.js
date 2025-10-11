@@ -17,6 +17,8 @@ import { useUserStore } from "@/stores/UserStore";
 import CartView from "@/views/CartView.vue";
 import OrderView from "@/views/OrderView.vue";
 import OrderDetailView from "@/views/OrderDetailView.vue";
+import SaleOrders from "@/views/SaleOrders.vue";
+import SaleOrdersDetail from "@/views/SaleOrdersDetail.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -113,6 +115,18 @@ const router = createRouter({
       path: "/your-orders/:orderId",
       component: OrderDetailView,
       name: "order-detail",
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/sale-orders",
+      component: SaleOrders,
+      name: "sale-orders",
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/sale-orders/:orderId",
+      component: SaleOrdersDetail,
+      name: "sale-orders-detail",
       meta: { requiresAuth: true },
     },
   ],

@@ -47,8 +47,6 @@ const handleLogout = async () => {
     cartStore.setCart(null);
     console.log(cartStore.getCarts());
 
-    
-    
     router.push({ name: "sale-items" });
   } else {
     alert("Logout Not Successful...");
@@ -70,8 +68,8 @@ watchEffect(async () => {
         console.log("No user ID available");
         return;
       }
-      console.log("User Id : ",userId);
-      
+      console.log("User Id : ", userId);
+
       const response = await getAllCart(userId);
       console.log("Cart response:", response);
 
@@ -168,6 +166,17 @@ const productLength = computed(() => {
             <p>
               Hello, <span class="itbms-nickname">{{ nickName }}</span>
             </p>
+            <router-link
+              v-if="userStore.getUserInfo().userType?.toUpperCase() == 'SELLER'"
+              :to="{ name: 'sale-orders' }"
+              class="cursor-pointer"
+            >
+              <Icon
+                icon="flowbite:shopping-bag-outline"
+                width="24"
+                height="24"
+              />
+            </router-link>
             <div class="dropdown dropdown-end">
               <!-- Avatar button -->
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">

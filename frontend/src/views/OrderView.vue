@@ -3,14 +3,12 @@ import { useFilterStore } from '@/stores/FilterStore'
 import { useOrderStore } from '@/stores/OrderStore'
 import { useUserStore } from '@/stores/UserStore'
 import { ref, onMounted, computed, watch } from 'vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import OrderGallery from '@/components/OrderGallery.vue'
 import { getOrdersBuyer, getOrdersSeller } from '@/services/OrderService'
 import MessageModal from '@/components/MessageModal.vue'
 import { useNotiStore } from '@/stores/NotiStore'
 
 const userStore = useUserStore()
-const filterStore = useFilterStore()
 const orderStore = useOrderStore()
 
 const STORAGE_KEYS = {
@@ -105,14 +103,6 @@ const pageInfo = computed(() => {
     page: ordersPage.value.page ?? 0,
   }
 })
-const notiStore = useNotiStore();
-const showOrderCreatedModal = ref(false);
-onMounted(() => {
-  if (notiStore.orderCreateSuccess) {
-    showOrderCreatedModal.value = true;
-    notiStore.orderCreateSuccess = false;
-  }
-});
 </script>
 
 <template>
@@ -135,15 +125,15 @@ onMounted(() => {
           Completed
         </button>
         <button
-          @click="activeTab = 'CANCELED'"
+          @click="activeTab = 'CANCELLED'"
           :class="[
-            'px-6 py-3 font-medium transition-all',
-            activeTab === 'CANCELED'
+            'px-6 py-3 font-medium transition-all cursor-pointer',
+            activeTab === 'CANCELLED'
               ? 'text-blue-600 border-b-4 border-blue-600 -mb-0.5'
               : 'text-gray-500 hover:text-gray-700',
           ]"
         >
-          Canceled
+          Cancelled
         </button>
       </div>
 
@@ -156,14 +146,6 @@ onMounted(() => {
       />
     </div>
   </div>
-
-  <MessageModal
-    v-if="showOrderCreatedModal"
-    :handle-ok="() => (showOrderCreatedModal = false)"
-    :title="'Successfully!'"
-    :message="'Your order has been successfully processed.'"
-    :type-modal="'text-success'"
-  />
 </template>
 
 <style scoped>
