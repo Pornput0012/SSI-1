@@ -53,6 +53,9 @@ public class UserService {
 
 
     public User createUser(RegisterRequestDTO user, List<MultipartFile> images) {
+        if (user.getUserType() == null) {
+            throw new BadRequestException("Role is required");
+        }
         if (getAllUserEmails().contains(user.getEmail())) {
             throw new BadRequestException("Email already exists: " + user.getEmail());
         }
@@ -60,14 +63,29 @@ public class UserService {
             throw new BadRequestException("Password is required");
         }
 
-        if (user.getUserType() == null) {
-            throw new BadRequestException("Role is required");
+        if (user.getUserType().equals("SELLER")) {
+
+            if (user.getPhoneNumber() == null || user.getPhoneNumber().isBlank()) {
+                throw new BadRequestException("Phone number is required");
+            }
+
+            if (user.getBankAccount() == null || user.getBankAccount().isBlank()) {
+                throw new BadRequestException("Bank account is required");
+            }
+
+            if (user.getNationalIdNumber() == null || user.getNationalIdNumber().isBlank()) {
+                throw new BadRequestException("National ID number is required");
+            }
+
+            if (user.getBankName() == null || user.getBankName().isBlank()) {
+                throw new BadRequestException("Bank name is required");
+            }
         }
-        System.out.println(user.getUserType());
+
         User creatingUser = modelMapper.map(user, User.class);
-        System.out.println(creatingUser.getId());
         creatingUser.setId(null);
         creatingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        creatingUser.setUserType(user.getUserType().toUpperCase());
 
         List<String> fileNames = null;
 
@@ -146,7 +164,7 @@ public class UserService {
 
             UserResponseDTO userResponseDTO = modelMapper.map(user, UserResponseDTO.class);
             userResponseDTO.setUserType(emailVerifyClaim.getRole());
-            userResponseDTO.setIsActive(true);
+            //userResponseDTO.setIsActive(true);
 
             return userResponseDTO;
 
@@ -154,7 +172,7 @@ public class UserService {
         return null;
     }
 
-    public UserProfileResponseDTO getUserProfile()  {
+    public UserProfileResponseDTO getUserProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = (String) authentication.getPrincipal();
         Integer userId = (Integer) authentication.getDetails();
@@ -188,7 +206,7 @@ public class UserService {
     public UserProfileResponseDTO updateUserProfile(Integer id, UpdateUserRequestDto updateUser) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Integer userId = (Integer) authentication.getDetails();
-        if (id == null ||  !id.equals(userId)) {
+        if (id == null || !id.equals(userId)) {
             throw new UnauthorizedException("Invalid token");
         }
 
