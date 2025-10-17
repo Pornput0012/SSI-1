@@ -2,12 +2,16 @@ package ssi.backend.controllers;
 
 import com.nimbusds.jose.JOSEException;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.web.server.ResponseStatusException;
 import ssi.backend.dtos.*;
 import ssi.backend.entities.User;
 import ssi.backend.exceptions.BadRequestException;
@@ -41,6 +45,9 @@ public class UserController {
     @Autowired
     private FileService fileService;
 
+    @Autowired
+    private Validator validator;
+
     public UserController(JwtService jwtService, UserService userService) {
         this.jwtService = jwtService;
         this.userService = userService;
@@ -71,7 +78,17 @@ public class UserController {
     }
 
     @PostMapping("/v2/auth/login")
-    public ResponseEntity<AccessTokenDTO> authenticateUser(@RequestBody LoginRequestDTO dto) throws JOSEException {
+    public ResponseEntity<AccessTokenDTO> authenticateUser(@RequestBody(required = false) LoginRequestDTO dto) throws JOSEException {
+
+        if (dto == null) {
+            throw new BadRequestException("Username or password is missing.");
+        }
+
+        Errors errors = validator.validateObject(dto);
+        if (errors.hasErrors()) {
+            throw new RuntimeException(errors.toString());
+        }
+
         String email = dto.getEmail();
         String rawPassword = dto.getPassword();
         if (!Pattern.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$", email)) {
@@ -124,7 +141,13 @@ public class UserController {
 
 
     @PostMapping("/v2/auth/logout")
-    public ResponseEntity<Object> logoutUser() {
+    public ResponseEntity<Object> logoutUser(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new BadRequestException( "No access token provided or Invalid token");
+        }
+
+
+
         ResponseCookie deleteRefreshToken = ResponseCookie.from("refresh_token", "")
                 .httpOnly(true)
                 .path("/")

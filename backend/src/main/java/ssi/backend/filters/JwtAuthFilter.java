@@ -65,6 +65,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     return;
                 }
 
+
                 JwtClaimDTO accessTokenClaim = jwtService.extractUserClaims(token);
 
 //                if (accessTokenClaim==null || accessTokenClaim.getUserId() == null || accessTokenClaim.getRole() == null || accessTokenClaim.getEmail() == null) {

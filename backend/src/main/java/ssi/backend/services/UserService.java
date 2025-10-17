@@ -63,7 +63,8 @@ public class UserService {
             throw new BadRequestException("Password is required");
         }
 
-        if (user.getUserType().equals("SELLER")) {
+
+        if (user.getUserType().equalsIgnoreCase("SELLER")) {
 
             if (user.getPhoneNumber() == null || user.getPhoneNumber().isBlank()) {
                 throw new BadRequestException("Phone number is required");
@@ -76,6 +77,12 @@ public class UserService {
             if (user.getNationalIdNumber() == null || user.getNationalIdNumber().isBlank()) {
                 throw new BadRequestException("National ID number is required");
             }
+            if (!idCardCheck(user.getNationalIdNumber())) {
+                throw new BadRequestException("National ID number is not valid");
+            }
+            System.out.println(idCardCheck(user.getNationalIdNumber()));
+
+
 
             if (user.getBankName() == null || user.getBankName().isBlank()) {
                 throw new BadRequestException("Bank name is required");
@@ -216,5 +223,35 @@ public class UserService {
         user.setNickname(updateUser.getNickName());
 
         return modelMapper.map(userRepository.save(user), UserProfileResponseDTO.class);
+    }
+
+    public boolean idCardCheck(String idCard) {
+
+        if (idCard == null) {
+            return false;
+        }
+
+        idCard = idCard.trim(); // ตัดช่องว่างหน้า-หลังออก
+
+        // ตรวจสอบว่าเป็นตัวเลขทั้งหมดเท่านั้น
+        if (!idCard.matches("^[0-9]{13}$")) {
+            return false;
+        }
+
+        // ตัวแรกต้องไม่ใช่ 0
+        if (idCard.charAt(0) == '0') {
+            return false;
+        }
+
+        int sum = 0;
+        for (int i = 0; i < 12; i++) {
+            int digit = Character.getNumericValue(idCard.charAt(i));
+            sum += digit * (13 - i);
+        }
+
+        int checkDigit = (11 - (sum % 11)) % 10;
+        int lastDigit = Character.getNumericValue(idCard.charAt(12));
+
+        return checkDigit == lastDigit;
     }
 }
