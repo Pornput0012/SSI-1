@@ -151,6 +151,9 @@ const addToCart = async () => {
     }
 
     cartStore.addToCart(response, cartQuantity.value);
+    quantitySelectedItemInCart.value =
+      cartStore.getQuantityByProductId(saleItemId);
+    cartQuantity.value = 1;
     console.log("Successfully added to cart store");
   } catch (error) {
     console.error("Error adding to cart:", error);
@@ -185,7 +188,8 @@ const decreaseQuantity = () => {
 const increaseQuantity = () => {
   if (
     selectSaleItem.value &&
-    cartQuantity.value < selectSaleItem.value.quantity
+    cartQuantity.value <
+      selectSaleItem.value.quantity - quantitySelectedItemInCart.value
   ) {
     cartQuantity.value++;
   }
@@ -388,6 +392,10 @@ const increaseQuantity = () => {
                 </div>
                 <button
                   @click="addToCart"
+                  :disabled="
+                    cartQuantity >
+                    selectSaleItem.quantity - quantitySelectedItemInCart
+                  "
                   class="itbms-add-to-cart-button btn btn-primary bg-blue-700 hover:bg-blue-800 flex-1 text-white"
                 >
                   Add to Cart
