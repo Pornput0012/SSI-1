@@ -1,7 +1,7 @@
 <script setup>
 import { getProfile, logout } from "@/services/userService";
 import { useUserStore } from "@/stores/UserStore";
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import { computed, onMounted, ref, watchEffect } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import CartIcon from "./CartIcon.vue";
 import { useCartStore } from "@/stores/CartStore";
@@ -99,29 +99,6 @@ const productLength = computed(() => {
   }
   return countItem;
 });
-
-// onMounted(async () => {
-//   console.log(carts.value);
-//   console.log(userStore.getUserId());
-
-//   try {
-//     if (!userStore.getUserId()) {
-//       const userInfo = await getProfile();
-//       if (userInfo.logined) {
-//         userStore.setUserInfo(userInfo?.data);
-//       }
-//     }
-//     const response = await getAllCart(!userStore.getUserId());
-//     console.log(response);
-
-//     if (response?.error) {
-//       throw new Error(response.error);
-//     }
-//     carts.value = response;
-//   } catch (error) {
-//     console.error("Error loading cart:", error);
-//   }
-// });
 </script>
 
 <template>
@@ -150,7 +127,7 @@ const productLength = computed(() => {
               >Login</router-link
             >
           </div>
-          <RouterLink v-if="nickName" class="mr-2" :to="{ name: 'order' }"
+          <RouterLink v-if="nickName" class="itbms-sale-order-button mr-2" :to="{ name: 'order' }"
             >Your orders</RouterLink
           >
           <RouterLink v-if="productLength" :to="{ name: 'cart' }">
@@ -169,13 +146,14 @@ const productLength = computed(() => {
             <router-link
               v-if="userStore.getUserInfo().userType?.toUpperCase() == 'SELLER'"
               :to="{ name: 'sale-orders' }"
-              class="cursor-pointer"
+              class="cursor-pointer itbms-bag-button"
             >
               <Icon
                 icon="flowbite:shopping-bag-outline"
                 width="24"
                 height="24"
               />
+              <!-- ยังไม่มี bag quantity -->
             </router-link>
             <div class="dropdown dropdown-end">
               <!-- Avatar button -->
@@ -253,11 +231,6 @@ const productLength = computed(() => {
       </div>
     </div>
 
-    <!-- <div>
-      <RouterLink :to="{ name: 'home' }" class="btn btn-ghost text-xl">
-        ITB MShop</RouterLink
-      >
-    </div> -->
     <div class="flex gap-2 items-center">
       <RouterLink v-if="productLength" :to="{ name: 'cart' }">
         <CartIcon v-if="nickName" :qty="productLength" />
@@ -326,13 +299,6 @@ const productLength = computed(() => {
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >Products</RouterLink
         >
-        <!-- <RouterLink
-          active-class="border-b-1"
-          :to="{ name: 'signin' }"
-          to="l"
-          class="mb-2 hover:text-purple-600 transition-colors w-fit"
-          >Log in</RouterLink
-        > -->
       </div>
     </div>
   </div>
