@@ -83,7 +83,6 @@ public class UserService {
             System.out.println(idCardCheck(user.getNationalIdNumber()));
 
 
-
             if (user.getBankName() == null || user.getBankName().isBlank()) {
                 throw new BadRequestException("Bank name is required");
             }
@@ -224,6 +223,30 @@ public class UserService {
 
         return modelMapper.map(userRepository.save(user), UserProfileResponseDTO.class);
     }
+
+    public ChangePasswordResponseDto changePasswordById(Integer id, ChangePasswordRequestDto updateUser) throws ParseException, JOSEException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
+        if (id == null || !id.equals(userId)) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        ChangePasswordResponseDto response = new ChangePasswordResponseDto();
+        User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        if (!passwordEncoder.matches(updateUser.getCurrentPassword(), user.getPassword())) {
+            response.setMessage("Wrong password");
+            response.setSuccess(Boolean.FALSE);
+            return response;
+        }
+
+        user.setPassword(passwordEncoder.encode(updateUser.getNewPassword()));
+
+        response.setMessage("New password has been sent");
+        response.setSuccess(Boolean.TRUE);
+
+        return response;
+    }
+
 
     public boolean idCardCheck(String idCard) {
 
