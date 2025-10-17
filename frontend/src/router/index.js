@@ -19,6 +19,7 @@ import OrderView from "@/views/OrderView.vue";
 import OrderDetailView from "@/views/OrderDetailView.vue";
 import SaleOrders from "@/views/SaleOrders.vue";
 import SaleOrdersDetail from "@/views/SaleOrdersDetail.vue";
+import ChangePassword from "@/views/ChangePassword.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -98,6 +99,11 @@ const router = createRouter({
       path: "/profile/edit",
       component: EditProfileView,
       name: "EditProfile",
+    },
+    {
+      path: "/profile/password",
+      component: ChangePassword,
+      name: "changePassword",
     },
     {
       path: "/cart",

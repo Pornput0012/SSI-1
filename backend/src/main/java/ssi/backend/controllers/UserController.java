@@ -196,4 +196,9 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUserProfile(id, update));
     }
 
+    @PatchMapping("/v2/users/{id}/password")
+    public ResponseEntity<ChangePasswordResponseDto> changePasswordById(@PathVariable Integer id, @RequestBody ChangePasswordRequestDto updatePassword) throws ParseException, JOSEException {
+        return ResponseEntity.ok(userService.changePasswordById(id, updatePassword));
+    }
+
 }
