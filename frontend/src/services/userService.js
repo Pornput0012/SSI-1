@@ -65,14 +65,11 @@ const login = async (email, password) => {
       "Content-Type": "application/json",
     };
 
-    if (getAccessToken()) {
-      headers.Authorization = `Bearer ${getAccessToken()}`;
-    }
-
     const response = await fetch(`${AUTH_API_URL}/login`, {
       method: "POST",
       headers,
       body: JSON.stringify({ email, password }),
+      credentials: "include",
     });
     const data = await response.json();
     if (data.access_token) {
