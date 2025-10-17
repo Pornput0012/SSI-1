@@ -1,69 +1,62 @@
 <script setup>
-import { getImageByFileName } from "@/services/SaleItemService";
-import { useNotiStore } from "@/stores/NotiStore";
-import { ref, onMounted, computed } from "vue";
-import noImage from "@/assets/No_image_available.png";
-import router from "@/router";
-import { sellerViewOrder } from "@/services/OrderService";
-import { useUserStore } from "@/stores/UserStore";
-const userStore = useUserStore();
-const userId = computed(() => userStore.getUserId());
+import { getImageByFileName } from '@/services/SaleItemService'
+import { useNotiStore } from '@/stores/NotiStore'
+import { ref, onMounted, computed } from 'vue'
+import noImage from '@/assets/No_image_available.png'
+import router from '@/router'
+import { sellerViewOrder } from '@/services/OrderService'
+import { useUserStore } from '@/stores/UserStore'
+const userStore = useUserStore()
+const userId = computed(() => userStore.getUserId())
 
 const props = defineProps({
   order: { type: Object, required: true },
   newOrder: Boolean,
   saleOrders: Boolean,
-});
+})
 
 const formatDate = (dateString) => {
-  if (!dateString) return "-";
+  if (!dateString) return '-'
 
-  const date = new Date(dateString);
+  const date = new Date(dateString)
 
   // ตัวเลือกการแสดงผล
   const options = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }
 
-  return date.toLocaleDateString("en-US", options);
-};
+  return date.toLocaleDateString('en-US', options)
+}
 
 const calculateTotal = computed(() => {
   return props.order.orderItems.reduce((sum, item) => {
-    return sum + item.price * item.quantity;
-  }, 0);
-});
+    return sum + item.price * item.quantity
+  }, 0)
+})
 
 const handleNewOrder = async () => {
   try {
     if (props.newOrder) {
-      console.log("active handle NewOrder");
-      const res = await sellerViewOrder(userId.value, props.order.id);
+      console.log('active handle NewOrder')
+      const res = await sellerViewOrder(userId.value, props.order.id)
       if (res.error) {
-        throw new Error(res.error);
+        throw new Error(res.error)
       }
       router.push({
-        name: "sale-orders-detail",
+        name: 'sale-orders-detail',
         params: { orderId: props.order.id },
-      });
+      })
     }
   } catch (error) {
-    console.log(error);
+    console.log(error)
   }
-};
+}
 </script>
 
 <template>
-  <RouterLink
-    class="itbms-row"
-    :to="{
-      name: saleOrders ? 'sale-orders-detail' : 'order-detail',
-      params: { orderId: props.order.id },
-    }"
-    @click="handleNewOrder"
-  >
+  <div class="itbms-row">
     <div
       class="itbms-row bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
     >
@@ -130,6 +123,21 @@ const handleNewOrder = async () => {
                 {{ order.orderStatus }}
               </span>
             </div>
+            <RouterLink
+              :to="{
+                name: saleOrders ? 'sale-orders-detail' : 'order-detail',
+                params: { orderId: props.order.id },
+              }" class="itbms-view-button"
+            >
+              <div class="text-right flex items-center justify-end">
+                <button
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm cursor-pointer"
+                  @click="handleNewOrder"
+                >
+                  View
+                </button>
+              </div>
+            </RouterLink>
           </div>
         </div>
 
@@ -148,7 +156,7 @@ const handleNewOrder = async () => {
         >
           <span class="text-sm font-medium text-gray-600">Note:</span>
           <span class="text-sm text-gray-700 itbms-order-note">{{
-            order.orderNote || "-"
+            order.orderNote || '-'
           }}</span>
         </div>
       </div>
@@ -188,7 +196,7 @@ const handleNewOrder = async () => {
         </div>
       </div>
     </div>
-  </RouterLink>
+  </div>
 </template>
 
 <style scoped></style>
