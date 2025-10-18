@@ -7,6 +7,8 @@ import CartIcon from "./CartIcon.vue";
 import { useCartStore } from "@/stores/CartStore";
 import { getAllCart } from "@/services/CartService";
 import { Icon } from "@iconify/vue";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { getOrdersSeller } from "@/services/OrderService";
 
 const props = defineProps({
   qty: {
@@ -24,7 +26,7 @@ const userStore = useUserStore();
 const nickName = computed(() => userStore.getNickName());
 
 const cartStore = useCartStore();
-
+const saleOrderStore = useSaleOrderStore();
 const menu = [
   {
     to: "home",
@@ -45,7 +47,8 @@ const handleLogout = async () => {
   if (res.success) {
     userStore.clearUserInfo();
     cartStore.setCart(null);
-    console.log(cartStore.getCarts());
+    saleOrderStore.setSaleOrderQuanatity(0);
+    sessionStorage.clear()
 
     router.push({ name: "sale-items" });
   } else {
@@ -61,17 +64,14 @@ onMounted(async () => {
 });
 watchEffect(async () => {
   if (userStore.getUserId() && !cartStore.carts) {
-    console.log(cartStore.carts);
     try {
       const userId = userStore.getUserId();
       if (!userId) {
         console.log("No user ID available");
         return;
       }
-      console.log("User Id : ", userId);
 
       const response = await getAllCart(userId);
-      console.log("Cart response:", response);
 
       if (!response) {
         console.log("No response from getAllCart");
@@ -83,6 +83,37 @@ watchEffect(async () => {
       }
 
       cartStore.setCart(response);
+    } catch (error) {
+      console.error("Error loading cart:", error?.message || "Unknown error");
+    }
+  }
+  const userType = userStore.getUserType();
+  if (userType == "SELLER" && userStore.getUserId()) {
+    try {
+      const userId = userStore.getUserId();
+
+      if (!userId) {
+        console.log("No user ID available");
+        return;
+      }
+
+      const response = await getOrdersSeller(userId, {
+        page: 0,
+        size: 10,
+        sortDirection: "DESC",
+      });
+
+      if (!response) {
+        console.log("No response from getOrdersSeller");
+        return;
+      }
+
+      if (response.error) {
+        throw new Error(error);
+      }
+
+      saleOrderStore.setSaleOrderQuanatity(response);
+      console.log(saleOrderStore.getSaleOrderQuanatity());
     } catch (error) {
       console.error("Error loading cart:", error?.message || "Unknown error");
     }
@@ -99,29 +130,6 @@ const productLength = computed(() => {
   }
   return countItem;
 });
-
-// onMounted(async () => {
-//   console.log(carts.value);
-//   console.log(userStore.getUserId());
-
-//   try {
-//     if (!userStore.getUserId()) {
-//       const userInfo = await getProfile();
-//       if (userInfo.logined) {
-//         userStore.setUserInfo(userInfo?.data);
-//       }
-//     }
-//     const response = await getAllCart(!userStore.getUserId());
-//     console.log(response);
-
-//     if (response?.error) {
-//       throw new Error(response.error);
-//     }
-//     carts.value = response;
-//   } catch (error) {
-//     console.error("Error loading cart:", error);
-//   }
-// });
 </script>
 
 <template>
@@ -169,13 +177,19 @@ const productLength = computed(() => {
             <router-link
               v-if="userStore.getUserInfo().userType?.toUpperCase() == 'SELLER'"
               :to="{ name: 'sale-orders' }"
-              class="cursor-pointer"
+              class="cursor-pointer relative"
             >
               <Icon
                 icon="flowbite:shopping-bag-outline"
                 width="24"
                 height="24"
               />
+              <span
+                v-if="saleOrderStore.getSaleOrderQuanatity() > 0"
+                class="itbms-bag-quantity absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+              >
+                {{ saleOrderStore.getSaleOrderQuanatity() }}
+              </span>
             </router-link>
             <div class="dropdown dropdown-end">
               <!-- Avatar button -->

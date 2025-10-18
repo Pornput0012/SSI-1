@@ -5,10 +5,11 @@ import { ref, onMounted, computed, watch } from "vue";
 import OrderGallery from "@/components/OrderGallery.vue";
 import { getOrdersSeller } from "@/services/OrderService";
 import MessageModal from "@/components/MessageModal.vue";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const userStore = useUserStore();
 const orderStore = useOrderStore();
-
+const saleOrderStore = useSaleOrderStore()
 const STORAGE_KEYS = {
   PAGE_INFO: "saleOrdersPageInfo",
 };
@@ -36,7 +37,6 @@ const orders = computed(() => {
       return ordersPage.value.content.filter((order) => {
         return order.orderStatus?.toUpperCase() === "CANCELLED";
       });
-      break;
     case "newOrder":
       return ordersPage.value.content.filter((order) => {
         return (
@@ -130,17 +130,6 @@ const pageInfo = computed(() => {
 
       <div class="flex gap-1 mb-6 border-b-2 border-gray-200">
         <button
-          @click="activeTab = 'allOrder'"
-          :class="[
-            'px-6 py-3 font-medium transition-all cursor-pointer',
-            activeTab === 'allOrder'
-              ? 'text-blue-600 border-b-4 border-blue-600 -mb-0.5'
-              : 'text-gray-500 hover:text-gray-700',
-          ]"
-        >
-          All Orders
-        </button>
-        <button
           @click="activeTab = 'newOrder'"
           :class="[
             'px-6 py-3 font-medium transition-all',
@@ -161,6 +150,17 @@ const pageInfo = computed(() => {
           ]"
         >
           Cancelled Orders
+        </button>
+        <button
+          @click="activeTab = 'allOrder'"
+          :class="[
+            'px-6 py-3 font-medium transition-all cursor-pointer',
+            activeTab === 'allOrder'
+              ? 'text-blue-600 border-b-4 border-blue-600 -mb-0.5'
+              : 'text-gray-500 hover:text-gray-700',
+          ]"
+        >
+          All Orders
         </button>
       </div>
       <!-- Orders Gallery -->

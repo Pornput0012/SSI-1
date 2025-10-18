@@ -6,9 +6,10 @@ import noImage from "@/assets/No_image_available.png";
 import router from "@/router";
 import { sellerViewOrder } from "@/services/OrderService";
 import { useUserStore } from "@/stores/UserStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 const userStore = useUserStore();
 const userId = computed(() => userStore.getUserId());
-
+const saleOrderQuantity = useSaleOrderStore();
 const props = defineProps({
   order: { type: Object, required: true },
   newOrder: Boolean,
@@ -44,6 +45,10 @@ const handleNewOrder = async () => {
       if (res.error) {
         throw new Error(res.error);
       }
+      saleOrderQuantity.setSaleOrderQuanatity(
+        saleOrderQuantity.getSaleOrderQuanatity() - 1
+      );
+
       router.push({
         name: "sale-orders-detail",
         params: { orderId: props.order.id },
