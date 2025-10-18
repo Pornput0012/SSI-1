@@ -17,9 +17,9 @@ import { useUserStore } from "@/stores/UserStore";
 import CartView from "@/views/CartView.vue";
 import OrderView from "@/views/OrderView.vue";
 import OrderDetailView from "@/views/OrderDetailView.vue";
-import SaleOrders from "@/views/SaleOrders.vue";
+import SaleOrders from "@/views/SaleOrdersView.vue";
 import SaleOrdersDetail from "@/views/SaleOrdersDetail.vue";
-import ChangePassword from "@/views/ChangePassword.vue";
+import ChangePassword from "@/views/ChangePasswordView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
