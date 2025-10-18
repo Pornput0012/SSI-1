@@ -120,7 +120,7 @@ const pageInfo = computed(() => {
             activeTab === 'COMPLETED'
               ? 'text-blue-600 border-b-4 border-blue-600 -mb-0.5'
               : 'text-gray-500 hover:text-gray-700',
-          ]"
+          ]" class="itbms-completed-orders-button"
         >
           Completed
         </button>
@@ -131,7 +131,7 @@ const pageInfo = computed(() => {
             activeTab === 'CANCELLED'
               ? 'text-blue-600 border-b-4 border-blue-600 -mb-0.5'
               : 'text-gray-500 hover:text-gray-700',
-          ]"
+          ]" class="itbms-canceled-orders-button"
         >
           Cancelled
         </button>

@@ -95,6 +95,7 @@ onMounted(fetchOrderById);
         : {
             label: 'Sale Orders',
             name: 'sale-orders',
+            class: 'itbms-sale-orders-button',
           }
     "
   />
