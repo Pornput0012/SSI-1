@@ -64,6 +64,35 @@ public class JwtService {
         return signedJWT.serialize();
     }
 
+    public String generateResetPasswordToken(Integer userId, String email) throws JOSEException {
+        if (userId == null || email == null) {
+            throw new IllegalArgumentException("User ID and email cannot be null");
+        }
+
+        Date now = new Date();
+
+        long RESET_EXPIRATION = 15 * 60 * 1000;
+        Date expiryDate = new Date(now.getTime() + RESET_EXPIRATION);
+
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .subject("reset_password")
+                .claim("email", email)
+                .claim("user_id", userId)
+                .issueTime(now)
+                .expirationTime(expiryDate)
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(
+                new JWSHeader(JWSAlgorithm.HS256),
+                claims
+        );
+
+        signedJWT.sign(new MACSigner(jwtProperties.getSecretResetPassword().getBytes(StandardCharsets.UTF_8)));
+
+        return signedJWT.serialize();
+    }
+
+
     public void validateVerifyEmailToken(String token) throws JOSEException, ParseException {
         if (token == null || token.trim().isEmpty()) {
             throw new BadRequestException("Token is required");
@@ -71,6 +100,24 @@ public class JwtService {
 
         SignedJWT signedJWT = SignedJWT.parse(token);
         JWSVerifier verifier = new MACVerifier(jwtProperties.getSecretVerifyEmail().getBytes(StandardCharsets.UTF_8));
+
+        if (!signedJWT.verify(verifier)) {
+            throw new BadRequestException("Invalid verification token");
+        }
+
+        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        if (expirationTime == null || !new Date().before(expirationTime)) {
+            throw new BadRequestException("Invalid verification token");
+        }
+    }
+
+    public void validateVerifyResetPassword(String token) throws JOSEException, ParseException {
+        if (token == null || token.trim().isEmpty()) {
+            throw new BadRequestException("Token is required");
+        }
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        JWSVerifier verifier = new MACVerifier(jwtProperties.getSecretResetPassword().getBytes(StandardCharsets.UTF_8));
 
         if (!signedJWT.verify(verifier)) {
             throw new BadRequestException("Invalid verification token");
