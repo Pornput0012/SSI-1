@@ -143,7 +143,7 @@ const productLength = computed(() => {
           <img src="/logo.png" class="h-14 aspect-square" alt="logo" />
           ITB MShop
         </RouterLink>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 ">
           <div class="flex items-center gap-2" v-if="!nickName">
             <router-link :to="{ name: 'register' }">
               <button
@@ -177,7 +177,7 @@ const productLength = computed(() => {
             <router-link
               v-if="userStore.getUserInfo().userType?.toUpperCase() == 'SELLER'"
               :to="{ name: 'sale-orders' }"
-              class="cursor-pointer"
+              class="cursor-pointer relative"
             >
               <Icon
                 icon="flowbite:shopping-bag-outline"
