@@ -36,7 +36,7 @@ const handleLogin = async () => {
     }
   } catch (error) {
     errorTitle.value = "Failed to log in";
-    errorMessage.value = error.message;
+    errorMessage.value = "Email Address or Password incorrect.";
     showModal.value = true;
   }
 };

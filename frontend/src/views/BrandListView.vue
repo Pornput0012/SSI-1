@@ -304,27 +304,6 @@ onMounted(() => {
     :type-modal="'text-success'"
   />
 
-  <!-- <div v-if="showCreatedModal" class="modal modal-open">
-    <div class="modal-box text-center">
-      <h3
-        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
-      >
-        Successfully!
-      </h3>
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The brand has been added.
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button
-          @click="showCreatedModal = false"
-          class="btn btn-primary bg-purple-700"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div> -->
-
   <MessageModal
     v-if="showUpdatedModal"
     :handle-ok="() => (showUpdatedModal = false)"
@@ -332,27 +311,6 @@ onMounted(() => {
     :message="'The brand has been updated.'"
     :type-modal="'text-success'"
   />
-
-  <!-- <div v-if="showUpdatedModal" class="modal modal-open">
-    <div class="modal-box text-center">
-      <h3
-        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
-      >
-        Successfully!
-      </h3>
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The brand has been updated.
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button
-          @click="showUpdatedModal = false"
-          class="btn btn-primary bg-purple-700"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div> -->
 
   <MessageModal
     v-if="errorMessage"
