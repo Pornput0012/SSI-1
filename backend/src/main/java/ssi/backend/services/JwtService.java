@@ -11,7 +11,11 @@ import com.nimbusds.jwt.SignedJWT;
 import org.springframework.stereotype.Service;
 import ssi.backend.configuration.JwtProperties;
 import ssi.backend.dtos.JwtClaimDTO;
+import ssi.backend.entities.User;
 import ssi.backend.exceptions.BadRequestException;
+import ssi.backend.exceptions.ForbiddenException;
+import ssi.backend.exceptions.UnauthorizedException;
+import ssi.backend.repositories.UserRepository;
 
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -24,10 +28,12 @@ public class JwtService {
 
     private static final long ACCESS_TOKEN_EXP = 30 * 60 * 1000; // 30 นาที
     private static final long REFRESH_TOKEN_EXP = DEFAULT_EXPIRATION;
+    private final UserRepository userRepository;
 
 
-    public JwtService(JwtProperties jwtProperties) {
+    public JwtService(JwtProperties jwtProperties, UserRepository userRepository) {
         this.jwtProperties = jwtProperties;
+        this.userRepository = userRepository;
     }
 
     public String generateVerifyEmailToken(Integer user_id, String username, String email, String userType) throws JOSEException {
@@ -142,6 +148,20 @@ public class JwtService {
         SignedJWT signedJWT = SignedJWT.parse(token);
         JWSVerifier verifier = new MACVerifier(jwtProperties.getSecretRefresh().getBytes(StandardCharsets.UTF_8));
 
+        JwtClaimDTO claim = new JwtClaimDTO();
+        Long user_id = (Long) signedJWT.getJWTClaimsSet().getClaim("id");
+
+        Integer user_id_int = user_id.intValue();
+        claim.setUserId(user_id_int);
+
+
+        User user = userRepository.findById(claim.getUserId())
+                .orElseThrow(() -> new UnauthorizedException("User not found or access denied"));
+
+
+        if ("INACTIVE".equalsIgnoreCase(user.getStatus())) {
+            throw new ForbiddenException("User is inactive");
+        }
         if (!signedJWT.verify(verifier)) {
             throw new BadRequestException("Invalid refresh token");
         }
@@ -178,8 +198,8 @@ public class JwtService {
         SignedJWT signedJWT = SignedJWT.parse(refreshToken);
         Integer userId = ((Long) signedJWT.getJWTClaimsSet().getClaim("id")).intValue();
         String email = signedJWT.getJWTClaimsSet().getSubject();
-        String role = signedJWT.getJWTClaimsSet().getClaim("role").toString();
-        String nickname = signedJWT.getJWTClaimsSet().getClaim("nickName").toString();
+        String role =  (String) signedJWT.getJWTClaimsSet().getClaim("role");
+        String nickname = (String) signedJWT.getJWTClaimsSet().getClaim("nickName");
 
         return generateAccessToken(userId, nickname, email, role);
     }

@@ -65,6 +65,10 @@ public class Order {
     @ColumnDefault("0")
     private Integer totalAmount;
 
+    @Column(name = "view_order", nullable = false)
+    @ColumnDefault("false")
+    private Boolean viewOrder = false;
+
     @OneToMany(mappedBy = "order", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
 }

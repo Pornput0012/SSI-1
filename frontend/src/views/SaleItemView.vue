@@ -282,9 +282,7 @@ const initializeBrands = async () => {
 };
 
 const initializeSaleItems = async (pageInfo) => {
-  try {
-    console.log("initSaleitem");
-    
+  try {    
     const response = await getAllSaleItems_v2({
       filterBrands: getFilterList().brands,
       filterStorages: getFilterList().storages,

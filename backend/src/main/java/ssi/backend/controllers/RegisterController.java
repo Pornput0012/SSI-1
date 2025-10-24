@@ -2,6 +2,7 @@ package ssi.backend.controllers;
 
 import java.util.List;
 
+import jakarta.validation.Validator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,9 @@ public class RegisterController {
     private UserService registerService;
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private Validator validator;
 
     @GetMapping("/buyers")
     public ResponseEntity<List<User>> getAllBuyers() {

@@ -9,23 +9,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.method.P;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.nimbusds.jose.JOSEException;
 
 import jakarta.validation.Valid;
-import ssi.backend.dtos.OrderBuyerPageDTO;
-import ssi.backend.dtos.OrderDetailResponseDTO;
-import ssi.backend.dtos.OrderRequestDTO;
-import ssi.backend.dtos.OrderResponseDTO;
-import ssi.backend.dtos.OrderSellerPageDTO;
+import ssi.backend.dtos.*;
 import ssi.backend.services.OrderService;
 
 @RestController
@@ -58,9 +47,15 @@ public class OrderController {
         return ResponseEntity.ok(orderSellerPage);
     }
 
+    @PreAuthorize("hasRole('SELLER')")
+    @PatchMapping("/v2/sellers/{sid}/orders/{id}")
+    public ResponseEntity<OrderSellerResponseDTO> patchViewOrderSeller(@PathVariable("sid") Integer sellerId,@PathVariable("id") Integer id) throws ParseException, JOSEException {
+        return ResponseEntity.ok(orderService.sellerViewOrder(sellerId,id));
+    }
+
     @GetMapping("/v2/orders/{id}")
     public ResponseEntity<OrderDetailResponseDTO> getOrderById(@PathVariable("id") Integer orderId) throws ParseException, JOSEException {
-        OrderDetailResponseDTO orderDetailResponseDTO = orderService.getOrderById(orderId);
+        OrderDetailResponseDTO orderDetailResponseDTO = orderService.getOrderSellerById(orderId);
         return ResponseEntity.ok(orderDetailResponseDTO);
     }
 

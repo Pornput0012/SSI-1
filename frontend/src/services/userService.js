@@ -65,14 +65,11 @@ const login = async (email, password) => {
       "Content-Type": "application/json",
     };
 
-    if (getAccessToken()) {
-      headers.Authorization = `Bearer ${getAccessToken()}`;
-    }
-
     const response = await fetch(`${AUTH_API_URL}/login`, {
       method: "POST",
       headers,
       body: JSON.stringify({ email, password }),
+      credentials: "include",
     });
     const data = await response.json();
     if (data.access_token) {
@@ -250,6 +247,29 @@ const updateUserById = async (id, updateUser) => {
     return { error };
   }
 };
+const changePassword = async (id, updatePassword) => {
+  try {
+    if (!id) throw new Error("User ID is required.");
+    const response = await fetch(`${USER_API_URL}/${id}/password`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+      },
+      body: JSON.stringify(updatePassword),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(`(${data.status || response.status}) ${data.message}`);
+    }
+
+    return data;
+  } catch (error) {
+    return { error };
+  }
+};
 
 export {
   createUser,
@@ -259,4 +279,5 @@ export {
   getUserById,
   logout,
   updateUserById,
+  changePassword,
 };

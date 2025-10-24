@@ -1,29 +1,20 @@
 <script setup>
-import { getImageByFileName } from '@/services/SaleItemService'
-import { useNotiStore } from '@/stores/NotiStore'
-import { ref, onMounted, computed } from 'vue'
-import noImage from '@/assets/No_image_available.png'
-import router from '@/router'
-
-const imageUrl = ref(null)
-
+import { getImageByFileName } from "@/services/SaleItemService";
+import { useNotiStore } from "@/stores/NotiStore";
+import { ref, onMounted, computed } from "vue";
+import noImage from "@/assets/No_image_available.png";
+import router from "@/router";
+import { sellerViewOrder } from "@/services/OrderService";
+import { useUserStore } from "@/stores/UserStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
+const userStore = useUserStore();
+const userId = computed(() => userStore.getUserId());
+const saleOrderQuantity = useSaleOrderStore();
 const props = defineProps({
   order: { type: Object, required: true },
+  newOrder: Boolean,
+  saleOrders: Boolean,
 })
-
-// const loadImages = async () => {
-//   try {
-//     if (props.fileName?.fileName) {
-//       const image_url = await getImageByFileName(props.fileName.fileName)
-//       imageUrl.value = image_url
-//     } else {
-//       imageUrl.value = noImage
-//     }
-//   } catch (error) {
-//     console.error(`Failed to load image:`, error)
-//     imageUrl.value = noImage
-//   }
-// }
 
 const formatDate = (dateString) => {
   if (!dateString) return '-'
@@ -45,19 +36,43 @@ const calculateTotal = computed(() => {
     return sum + item.price * item.quantity
   }, 0)
 })
+
+const handleNewOrder = async () => {
+  try {
+    if (props.newOrder) {
+      console.log('active handle NewOrder')
+      const res = await sellerViewOrder(userId.value, props.order.id)
+      if (res.error) {
+        throw new Error(res.error)
+      }
+      saleOrderQuantity.setSaleOrderQuanatity(
+        saleOrderQuantity.getSaleOrderQuanatity() - 1
+      );
+
+      router.push({
+        name: 'sale-orders-detail',
+        params: { orderId: props.order.id },
+      })
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
 </script>
 
 <template>
-  <RouterLink
-    class="itbms-row"
-    :to="{ name: 'order-detail', params: { orderId: props.order.id } }"
-  >
+  <div class="itbms-row">
     <div
       class="itbms-row bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
     >
       <!-- Order Header -->
       <div
-        class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b-2 border-blue-100"
+        class="bg-gradient-to-r px-6 py-4 border-b-2 border-blue-100"
+        :class="
+          order.orderStatus === 'COMPLETED'
+            ? 'from-blue-50 to-indigo-50'
+            : 'from-red-400 to-orange-200'
+        "
       >
         <div class="flex items-center justify-between flex-wrap gap-4">
           <div class="flex items-center gap-3 itbms-nickname">
@@ -113,6 +128,21 @@ const calculateTotal = computed(() => {
                 {{ order.orderStatus }}
               </span>
             </div>
+            <RouterLink
+              :to="{
+                name: saleOrders ? 'sale-orders-detail' : 'order-detail',
+                params: { orderId: props.order.id },
+              }" class="itbms-view-button"
+            >
+              <div class="text-right flex items-center justify-end">
+                <button
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm cursor-pointer"
+                  @click="handleNewOrder"
+                >
+                  View
+                </button>
+              </div>
+            </RouterLink>
           </div>
         </div>
 
@@ -171,7 +201,7 @@ const calculateTotal = computed(() => {
         </div>
       </div>
     </div>
-  </RouterLink>
+  </div>
 </template>
 
 <style scoped></style>

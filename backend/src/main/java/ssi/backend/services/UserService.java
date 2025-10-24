@@ -53,6 +53,9 @@ public class UserService {
 
 
     public User createUser(RegisterRequestDTO user, List<MultipartFile> images) {
+        if (user.getUserType() == null) {
+            throw new BadRequestException("Role is required");
+        }
         if (getAllUserEmails().contains(user.getEmail())) {
             throw new BadRequestException("Email already exists: " + user.getEmail());
         }
@@ -60,14 +63,35 @@ public class UserService {
             throw new BadRequestException("Password is required");
         }
 
-        if (user.getUserType() == null) {
-            throw new BadRequestException("Role is required");
+
+        if (user.getUserType().equalsIgnoreCase("SELLER")) {
+
+            if (user.getPhoneNumber() == null || user.getPhoneNumber().isBlank()) {
+                throw new BadRequestException("Phone number is required");
+            }
+
+            if (user.getBankAccount() == null || user.getBankAccount().isBlank()) {
+                throw new BadRequestException("Bank account is required");
+            }
+
+            if (user.getNationalIdNumber() == null || user.getNationalIdNumber().isBlank()) {
+                throw new BadRequestException("National ID number is required");
+            }
+            if (!idCardCheck(user.getNationalIdNumber())) {
+                throw new BadRequestException("National ID number is not valid");
+            }
+            System.out.println(idCardCheck(user.getNationalIdNumber()));
+
+
+            if (user.getBankName() == null || user.getBankName().isBlank()) {
+                throw new BadRequestException("Bank name is required");
+            }
         }
-        System.out.println(user.getUserType());
+
         User creatingUser = modelMapper.map(user, User.class);
-        System.out.println(creatingUser.getId());
         creatingUser.setId(null);
         creatingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        creatingUser.setUserType(user.getUserType().toUpperCase());
 
         List<String> fileNames = null;
 
@@ -146,7 +170,7 @@ public class UserService {
 
             UserResponseDTO userResponseDTO = modelMapper.map(user, UserResponseDTO.class);
             userResponseDTO.setUserType(emailVerifyClaim.getRole());
-            userResponseDTO.setIsActive(true);
+            //userResponseDTO.setIsActive(true);
 
             return userResponseDTO;
 
@@ -154,7 +178,7 @@ public class UserService {
         return null;
     }
 
-    public UserProfileResponseDTO getUserProfile()  {
+    public UserProfileResponseDTO getUserProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = (String) authentication.getPrincipal();
         Integer userId = (Integer) authentication.getDetails();
@@ -188,7 +212,7 @@ public class UserService {
     public UserProfileResponseDTO updateUserProfile(Integer id, UpdateUserRequestDto updateUser) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Integer userId = (Integer) authentication.getDetails();
-        if (id == null ||  !id.equals(userId)) {
+        if (id == null || !id.equals(userId)) {
             throw new UnauthorizedException("Invalid token");
         }
 
@@ -198,5 +222,59 @@ public class UserService {
         user.setNickname(updateUser.getNickName());
 
         return modelMapper.map(userRepository.save(user), UserProfileResponseDTO.class);
+    }
+
+    public ChangePasswordResponseDto changePasswordById(Integer id, ChangePasswordRequestDto updateUser) throws ParseException, JOSEException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
+        if (id == null || !id.equals(userId)) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        ChangePasswordResponseDto response = new ChangePasswordResponseDto();
+        User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        if (!passwordEncoder.matches(updateUser.getCurrentPassword(), user.getPassword())) {
+            response.setMessage("Wrong password");
+            response.setSuccess(Boolean.FALSE);
+            return response;
+        }
+
+        user.setPassword(passwordEncoder.encode(updateUser.getNewPassword()));
+
+        response.setMessage("New password has been sent");
+        response.setSuccess(Boolean.TRUE);
+
+        return response;
+    }
+
+
+    public boolean idCardCheck(String idCard) {
+
+        if (idCard == null) {
+            return false;
+        }
+
+        idCard = idCard.trim(); // ตัดช่องว่างหน้า-หลังออก
+
+        // ตรวจสอบว่าเป็นตัวเลขทั้งหมดเท่านั้น
+        if (!idCard.matches("^[0-9]{13}$")) {
+            return false;
+        }
+
+        // ตัวแรกต้องไม่ใช่ 0
+        if (idCard.charAt(0) == '0') {
+            return false;
+        }
+
+        int sum = 0;
+        for (int i = 0; i < 12; i++) {
+            int digit = Character.getNumericValue(idCard.charAt(i));
+            sum += digit * (13 - i);
+        }
+
+        int checkDigit = (11 - (sum % 11)) % 10;
+        int lastDigit = Character.getNumericValue(idCard.charAt(12));
+
+        return checkDigit == lastDigit;
     }
 }

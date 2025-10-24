@@ -146,9 +146,6 @@ public class OrderService {
         boolean hasSortField = sortField != null && !sortField.isBlank();
         boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
 
-        if (page != null || size != null) {
-            System.out.println("ji");
-        }
         Sort sort;
         if (hasSortField) {
             sort = sortDesc
@@ -181,6 +178,7 @@ public class OrderService {
             dto.setShippingAddress(order.getShippingAddress());
             dto.setOrderNote(order.getOrderNote());
             dto.setOrderStatus(order.getStatus());
+            dto.setViewOrder(order.getViewOrder());
 
             List<OrderItemDTO> itemDTOs = order.getOrderItems().stream()
                     .filter(oi -> oi.getProduct().getSeller().getId().equals(sellerId))
@@ -201,7 +199,7 @@ public class OrderService {
 
         OrderSellerPageDTO response = new OrderSellerPageDTO();
         response.setContent(orderDTOs);
-        System.out.println(orderDTOs);
+
         response.setFirst(orderPage.isFirst());
         response.setLast(orderPage.isLast());
         response.setTotalPages(orderPage.getTotalPages());
@@ -214,7 +212,40 @@ public class OrderService {
         return response;
     }
 
-    public OrderDetailResponseDTO getOrderById(Integer orderId) throws ParseException, JOSEException {
+    public OrderSellerResponseDTO sellerViewOrder(Integer sellerId, Integer id) throws ParseException, JOSEException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Integer userId = (Integer) authentication.getDetails();
+
+        if (!userId.equals(sellerId)) {
+            throw new ForbiddenException("User id in access token not matched with resource id.");
+        }
+
+        Order existingOrder = orderRepository.findById(id).orElse(null);
+        if (existingOrder == null) {
+            throw new ItemNotFoundException("Order not found with id: " + id);
+        }
+
+        existingOrder.setViewOrder(true);
+
+
+        orderRepository.save(existingOrder);
+        OrderSellerResponseDTO dto = new OrderSellerResponseDTO();
+        dto.setId(existingOrder.getId());
+        dto.setSellerId(sellerId);
+        BuyerDTO buyerDTO = new BuyerDTO();
+        buyerDTO.setId(existingOrder.getBuyer().getId());
+        buyerDTO.setUserName(existingOrder.getBuyer().getNickname());
+        dto.setBuyer(buyerDTO);
+        dto.setOrderDate(existingOrder.getOrderDate());
+        dto.setPaymentDate(existingOrder.getPaymentDate());
+        dto.setShippingAddress(existingOrder.getShippingAddress());
+        dto.setOrderNote(existingOrder.getOrderNote());
+        dto.setOrderStatus(existingOrder.getStatus());
+        dto.setViewOrder(existingOrder.getViewOrder());
+        return dto;
+    }
+
+    public OrderDetailResponseDTO getOrderSellerById(Integer orderId) throws ParseException, JOSEException {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ItemNotFoundException("Order not found with id: " + orderId));
 
@@ -232,6 +263,10 @@ public class OrderService {
         OrderDetailResponseDTO dto = new OrderDetailResponseDTO();
         dto.setId(order.getId());
         dto.setBuyerId(order.getBuyer().getId());
+        BuyerDTO buyerDTO = new BuyerDTO();
+        buyerDTO.setId(order.getBuyer().getId());
+        buyerDTO.setUserName(order.getBuyer().getNickname());
+        dto.setBuyer(buyerDTO);
 
         SellerDetailDTO sellerDTO = new SellerDetailDTO();
         sellerDTO.setId(order.getSeller().getId());
