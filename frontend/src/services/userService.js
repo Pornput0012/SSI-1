@@ -137,14 +137,14 @@ const getAccessTokenFromRefreshToken = async () => {
   }
 };
 
-const getProfile = async (token, retryCount = 0) => {
+const getProfile = async ( retryCount = 0) => {
   try {
     const response = await fetch(USER_API_URL, {
       method: "GET",
       headers: {
         Authorization:
-          token || getAccessTokenFromLocalStorage()
-            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+          getAccessTokenFromLocalStorage()
+            ? `Bearer ${ getAccessTokenFromLocalStorage()}`
             : "",
       },
     });
@@ -211,15 +211,15 @@ const getImageByFileName = async (fileName) => {
     return { error: error.message };
   }
 };
-const getUserById = async (id, token) => {
+const getUserById = async (id) => {
   try {
     if (!id) throw new Error("User ID is required.");
     const response = await fetch(`${USER_API_URL}/${id}`, {
       method: "GET",
       headers: {
         Authorization:
-          token || getAccessTokenFromLocalStorage()
-            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+          getAccessTokenFromLocalStorage()
+            ? `Bearer ${ getAccessTokenFromLocalStorage()}`
             : "",
       },
     });
@@ -235,14 +235,14 @@ const getUserById = async (id, token) => {
     return { error };
   }
 };
-const logout = async (token) => {
+const logout = async () => {
   try {
     const response = await fetch(`${AUTH_API_URL}/logout`, {
       method: "POST",
       headers: {
         Authorization:
-          token || getAccessTokenFromLocalStorage()
-            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+          getAccessTokenFromLocalStorage()
+            ? `Bearer ${ getAccessTokenFromLocalStorage()}`
             : "",
       },
       credentials: "include",
@@ -267,7 +267,7 @@ const logout = async (token) => {
   }
 };
 
-const updateUserById = async (id, updateUser, token) => {
+const updateUserById = async (id, updateUser) => {
   try {
     if (!id) throw new Error("User ID is required.");
     const response = await fetch(`${USER_API_URL}/${id}`, {
@@ -275,8 +275,8 @@ const updateUserById = async (id, updateUser, token) => {
       headers: {
         "Content-Type": "application/json",
         Authorization:
-          token || getAccessTokenFromLocalStorage()
-            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+         getAccessTokenFromLocalStorage()
+            ? `Bearer ${getAccessTokenFromLocalStorage()}`
             : "",
       },
       body: JSON.stringify(updateUser),
@@ -293,7 +293,7 @@ const updateUserById = async (id, updateUser, token) => {
     return { error };
   }
 };
-const changePassword = async (id, updatePassword, token) => {
+const changePassword = async (id, updatePassword) => {
   try {
     if (!id) throw new Error("User ID is required.");
     const response = await fetch(`${USER_API_URL}/${id}/password`, {
@@ -301,8 +301,8 @@ const changePassword = async (id, updatePassword, token) => {
       headers: {
         "Content-Type": "application/json",
         Authorization:
-          token || getAccessTokenFromLocalStorage()
-            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+          getAccessTokenFromLocalStorage()
+            ? `Bearer ${ getAccessTokenFromLocalStorage()}`
             : "",
       },
       body: JSON.stringify(updatePassword),
