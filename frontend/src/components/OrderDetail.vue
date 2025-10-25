@@ -1,12 +1,13 @@
 <script setup>
-import { getOrderById, getOrdersBuyer } from "@/services/OrderService";
-import { getImageByFileName } from "@/services/SaleItemService";
+import { getOrderById } from "@/services/OrderService";
 import { useUserStore } from "@/stores/UserStore";
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import MessageModal from "@/components/MessageModal.vue";
 import noImage from "@/assets/No_image_available.png";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const props = defineProps({
   yourOrder: {
@@ -22,6 +23,8 @@ const selectedOrder = ref(null);
 const userStore = useUserStore();
 const route = useRoute();
 const router = useRouter();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 const orderId = Number(props.id);
 const isNotFound = ref(false);
 const errorMessage = ref("");
@@ -33,6 +36,19 @@ const fetchOrderById = async () => {
       throw new Error("Invalid ID");
     }
     const response = await getOrderById(orderId);
+    
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
+    
     if (!response.error) {
       selectedOrder.value = response;
       console.log(response);

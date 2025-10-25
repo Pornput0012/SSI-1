@@ -6,10 +6,14 @@ import OrderGallery from "@/components/OrderGallery.vue";
 import { getOrdersSeller } from "@/services/OrderService";
 import MessageModal from "@/components/MessageModal.vue";
 import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { useRouter } from "vue-router";
+import { useCartStore } from "@/stores/CartStore";
 
 const userStore = useUserStore();
 const orderStore = useOrderStore();
-const saleOrderStore = useSaleOrderStore()
+const saleOrderStore = useSaleOrderStore();
+const router = useRouter();
+const cartStore = useCartStore();
 const STORAGE_KEYS = {
   PAGE_INFO: "saleOrdersPageInfo",
 };
@@ -85,6 +89,20 @@ const fetchOrders = async (pageInfo) => {
       size: 10,
       sortDirection: "DESC",
     });
+
+    
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+       userStore.clearUserInfo()
+        userStore.setAccessToken(null)
+        cartStore.setCart(null)
+        saleOrderQuantity.setSaleOrderQuanatity(0)
+        sessionStorage.clear()
+        localStorage.clear()
+      router.push({ name: "signin" });
+      return;
+    }
+    
     saveToLocalStorage();
     if (response.error) {
       throw new Error(response?.error);

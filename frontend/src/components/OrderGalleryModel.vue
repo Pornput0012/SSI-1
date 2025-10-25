@@ -1,15 +1,15 @@
 <script setup>
-import { getImageByFileName } from "@/services/SaleItemService";
-import { useNotiStore } from "@/stores/NotiStore";
-import { ref, onMounted, computed } from "vue";
+import { computed } from "vue";
 import noImage from "@/assets/No_image_available.png";
 import router from "@/router";
 import { sellerViewOrder } from "@/services/OrderService";
 import { useUserStore } from "@/stores/UserStore";
 import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { useCartStore } from "@/stores/CartStore";
 const userStore = useUserStore();
 const userId = computed(() => userStore.getUserId());
 const saleOrderQuantity = useSaleOrderStore();
+const cartStore = useCartStore();
 const props = defineProps({
   order: { type: Object, required: true },
   newOrder: Boolean,
@@ -42,6 +42,19 @@ const handleNewOrder = async () => {
     if (props.newOrder) {
       console.log('active handle NewOrder')
       const res = await sellerViewOrder(userId.value, props.order.id)
+      
+      // Check for 401 error
+      if (res.error && res.error.status === 401) {
+        userStore.clearUserInfo()
+        userStore.setAccessToken(null)
+        cartStore.setCart(null)
+        saleOrderQuantity.setSaleOrderQuanatity(0)
+        sessionStorage.clear()
+        localStorage.clear()
+        router.push({ name: "signin" })
+        return
+      }
+      
       if (res.error) {
         throw new Error(res.error)
       }

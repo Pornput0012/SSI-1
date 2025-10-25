@@ -1,3 +1,8 @@
+import {
+  fetchWithTokenRetry,
+  getAccessTokenFromLocalStorage,
+} from "@/utils/fetchWithAuth";
+
 const USER_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v2/users`;
@@ -5,19 +10,6 @@ const USER_API_URL = `${
 const AUTH_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v2/auth`;
-
-import { useUserStore } from "@/stores/UserStore";
-
-const getAccessTokenFromLocalStorage = () => {
-  // Keep function name for compatibility, but read token from Pinia user store
-  try {
-    const userStore = useUserStore();
-    return userStore.getAccessToken();
-  } catch (err) {
-    // fallback to localStorage if store isn't available
-    return localStorage.getItem("access_token");
-  }
-};
 
 const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
   try {
@@ -82,13 +74,7 @@ const login = async (email, password) => {
     });
     const data = await response.json();
     if (data.access_token) {
-      try {
-        const userStore = useUserStore();
-        userStore.setAccessToken(data.access_token);
-        localStorage.setItem("access_token", data.access_token);
-      } catch (err) {
-        localStorage.setItem("access_token", data.access_token);
-      }
+      localStorage.setItem("access_token", data.access_token);
     }
 
     if (response.status === 200) {
@@ -119,13 +105,7 @@ const getAccessTokenFromRefreshToken = async () => {
     });
     const data = await response.json();
     if (data.access_token) {
-      try {
-        const userStore = useUserStore();
-        userStore.setAccessToken(data.access_token);
-        localStorage.setItem("access_token", data.access_token);
-      } catch (err) {
-        localStorage.setItem("access_token", data.access_token);
-      }
+      localStorage.setItem("access_token", data.access_token);
     }
 
     if (response.status != 200) {
@@ -137,21 +117,18 @@ const getAccessTokenFromRefreshToken = async () => {
   }
 };
 
-const getProfile = async ( retryCount = 0) => {
+const getProfile = async () => {
   try {
-    const response = await fetch(USER_API_URL, {
+    const response = await fetchWithTokenRetry(USER_API_URL, {
       method: "GET",
-      headers: {
-        Authorization:
-          getAccessTokenFromLocalStorage()
-            ? `Bearer ${ getAccessTokenFromLocalStorage()}`
-            : "",
-      },
+      headers: {},
     });
 
     if (response.status === 403) {
       return { logined: false };
-    } else if (response.status != 200) {
+    }
+
+    if (!response.ok) {
       throw new Error(
         `Failed to get Profile. Server responded with status ${response.status}`
       );
@@ -163,22 +140,6 @@ const getProfile = async ( retryCount = 0) => {
       data,
     };
   } catch (error) {
-    if (retryCount < 1) {
-      console.log("use refresh!");
-
-      try {
-        const userStore = useUserStore();
-        userStore.setAccessToken(null);
-        localStorage.removeItem("access_token");
-      } catch (err) {
-        localStorage.removeItem("access_token");
-      }
-      const res = await getAccessTokenFromRefreshToken();
-      if (res.ok) {
-        return await getProfile(token, retryCount + 1);
-      }
-    }
-
     return {
       success: false,
       error: error.message,
@@ -214,50 +175,43 @@ const getImageByFileName = async (fileName) => {
 const getUserById = async (id) => {
   try {
     if (!id) throw new Error("User ID is required.");
-    const response = await fetch(`${USER_API_URL}/${id}`, {
+    
+    const response = await fetchWithTokenRetry(`${USER_API_URL}/${id}`, {
       method: "GET",
-      headers: {
-        Authorization:
-          getAccessTokenFromLocalStorage()
-            ? `Bearer ${ getAccessTokenFromLocalStorage()}`
-            : "",
-      },
+      headers: {},
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      const data = await response.json();
+      const error = new Error(`(${data.status || response.status}) ${data.message}`);
+      error.status = response.status;
+      throw error;
+    }
 
-    if (!data.id || !response.ok) {
-      throw new Error(`(${data.status || response.status}) ${data.message}`);
+    const data = await response.json();
+    
+    if (!data.id) {
+      throw new Error("Invalid user data received");
     }
 
     return data;
   } catch (error) {
-    return { error };
+    return { error: { message: error.message, status: error.status } };
   }
 };
 const logout = async () => {
   try {
-    const response = await fetch(`${AUTH_API_URL}/logout`, {
+    const response = await fetchWithTokenRetry(`${AUTH_API_URL}/logout`, {
       method: "POST",
-      headers: {
-        Authorization:
-          getAccessTokenFromLocalStorage()
-            ? `Bearer ${ getAccessTokenFromLocalStorage()}`
-            : "",
-      },
+      headers: {},
       credentials: "include",
     });
 
     if (response.ok) {
-      try {
-        const userStore = useUserStore();
-        userStore.setAccessToken(null);
-        localStorage.removeItem("access_token");
-      } catch (err) {
-        localStorage.removeItem("access_token");
-      }
+      localStorage.removeItem("access_token");
       return { success: true };
     }
+    
     throw new Error("logout fail");
   } catch (error) {
     return {
@@ -270,40 +224,41 @@ const logout = async () => {
 const updateUserById = async (id, updateUser) => {
   try {
     if (!id) throw new Error("User ID is required.");
-    const response = await fetch(`${USER_API_URL}/${id}`, {
+    
+    const response = await fetchWithTokenRetry(`${USER_API_URL}/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization:
-         getAccessTokenFromLocalStorage()
-            ? `Bearer ${getAccessTokenFromLocalStorage()}`
-            : "",
       },
       body: JSON.stringify(updateUser),
     });
 
-    const data = await response.json();
+    if (!response.ok) {
+      const data = await response.json();
+      const error = new Error(`(${data.status || response.status}) ${data.message}`);
+      error.status = response.status;
+      throw error;
+    }
 
-    if (!data.id || !response.ok) {
-      throw new Error(`(${data.status || response.status}) ${data.message}`);
+    const data = await response.json();
+    
+    if (!data.id) {
+      throw new Error("Invalid user data received");
     }
 
     return data;
   } catch (error) {
-    return { error };
+    return { error: { message: error.message, status: error.status } };
   }
 };
 const changePassword = async (id, updatePassword) => {
   try {
     if (!id) throw new Error("User ID is required.");
-    const response = await fetch(`${USER_API_URL}/${id}/password`, {
+    
+    const response = await fetchWithTokenRetry(`${USER_API_URL}/${id}/password`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Authorization:
-          getAccessTokenFromLocalStorage()
-            ? `Bearer ${ getAccessTokenFromLocalStorage()}`
-            : "",
       },
       body: JSON.stringify(updatePassword),
     });
@@ -311,12 +266,14 @@ const changePassword = async (id, updatePassword) => {
     const data = await response.json();
 
     if (!data.success) {
-      throw new Error(`(${data.status || response.status}) ${data.message}`);
+      const error = new Error(`(${data.status || response.status}) ${data.message}`);
+      error.status = response.status;
+      throw error;
     }
 
     return data;
   } catch (error) {
-    return { error };
+    return { error: { message: error.message, status: error.status } };
   }
 };
 

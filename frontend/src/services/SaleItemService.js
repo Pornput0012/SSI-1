@@ -1,6 +1,6 @@
 import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useUserStore } from "@/stores/UserStore";
+import { fetchWithTokenRetry } from "@/utils/fetchWithAuth";
 
 const SALE_ITEM_API_URL_V1 = `${
   import.meta.env.VITE_URL_API || "/ssi1"
@@ -9,16 +9,6 @@ const SALE_ITEM_API_URL_V2 = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v2/sale-items`;
 
-const getAccessToken = () => {
-  try {
-    const userStore = useUserStore();
-    return userStore.getAccessToken();
-  } catch (err) {
-    return localStorage.getItem("access_token");
-  }
-};
-
-// GET all sale-items
 const getAllSaleItems = async () => {
   try {
     const response = await fetch(SALE_ITEM_API_URL_V1);
@@ -232,26 +222,26 @@ const createSaleItem_v2 = async (saleItem, images) => {
       });
     }
 
-    const response = await fetch(`${SALE_ITEM_API_URL_V2}`, {
+    const response = await fetchWithTokenRetry(`${SALE_ITEM_API_URL_V2}`, {
       method: "POST",
       body: formData,
-      headers: {
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
-      },
+      headers: {},
     });
 
     console.log(response);
 
     if (!response.ok) {
-      throw new Error(
+      const error = new Error(
         `Failed to create sale item. Server responded with status ${response.status}`
       );
+      error.status = response.status;
+      throw error;
     }
 
     return await response.json();
   } catch (error) {
     return {
-      error: `Error creating sale item: ${error.message}`,
+      error: { message: `Error creating sale item: ${error.message}`, status: error.status },
     };
   }
 };
@@ -418,21 +408,22 @@ const getSaleItemsBySeller = async (
       }
       return requestParameter.join("&");
     };
-    const response = await fetch(
+    const response = await fetchWithTokenRetry(
       `${
         import.meta.env.VITE_URL_API || "/ssi1"
       }/itb-mshop/v2/sellers/${sellerId}/sale-items?${getRequestParameter()}`,
       {
-        headers: {
-          Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
-        },
+        method: "GET",
+        headers: {},
       }
     );
 
     if (!response.ok) {
-      throw new Error(
+      const error = new Error(
         `(${response.status}) Failed to fetch seller's sale items.`
       );
+      error.status = response.status;
+      throw error;
     }
 
     const data = await response.json();
@@ -441,7 +432,7 @@ const getSaleItemsBySeller = async (
     saleItemStore.setSaleItemsPage({ ...data, isSeller: true });
     return data;
   } catch (error) {
-    return { error };
+    return { error: { message: error.message, status: error.status } };
   }
 };
 
