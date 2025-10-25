@@ -32,7 +32,7 @@ public class OrderController {
             @RequestParam Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String sortField,
-            @RequestParam(required = false, defaultValue = "desc") String sortDirection,
+            @RequestParam(defaultValue = "desc") String sortDirection,
             @RequestParam(required = false) List<String> filterBrands,
             @RequestParam(required = false) String searchKeyWord) throws ParseException, JOSEException {
 
