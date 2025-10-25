@@ -268,6 +268,9 @@ public class ProductService {
     @Transactional
     public ProductItemResponseDtoV2 createProductSeller(ProductItemRequestDtoV2 product, List<MultipartFile> images, Integer id) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = id != null ? id : (Integer) authentication.getDetails();
 
         System.out.println("userId = " + userId);
@@ -485,6 +488,9 @@ public class ProductService {
 
         User user = userRepository.findById(sellerId).orElseThrow(() -> new UnauthorizedException("Seller not found"));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if ( !userId.equals(sellerId)) {

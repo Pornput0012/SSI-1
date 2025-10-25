@@ -177,6 +177,9 @@ public class UserService {
 
     public UserProfileResponseDTO getUserProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         String email = (String) authentication.getPrincipal();
         Integer userId = (Integer) authentication.getDetails();
 
@@ -192,6 +195,9 @@ public class UserService {
 
     public UserProfileResponseDTO getUserProfileById(Integer id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (id == null || !id.equals(userId)) {
@@ -208,6 +214,9 @@ public class UserService {
 
     public UserProfileResponseDTO updateUserProfile(Integer id, UpdateUserRequestDto updateUser) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
         if (id == null || !id.equals(userId)) {
             throw new UnauthorizedException("Invalid token");
@@ -223,6 +232,9 @@ public class UserService {
 
     public ChangePasswordResponseDto changePasswordById(Integer id, ChangePasswordRequestDto updateUser) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
         if (id == null || !id.equals(userId)) {
             throw new UnauthorizedException("Invalid token");

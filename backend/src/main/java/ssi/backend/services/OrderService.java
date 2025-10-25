@@ -59,6 +59,9 @@ public class OrderService {
                 .orElseThrow(() -> new ItemNotFoundException("User not found with id: " + buyerId));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(buyerId)) {
@@ -137,6 +140,9 @@ public class OrderService {
         userRepository.findById(sellerId)
                 .orElseThrow(() -> new ItemNotFoundException("User not found with id: " + sellerId));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(sellerId)) {
@@ -214,6 +220,9 @@ public class OrderService {
 
     public OrderSellerResponseDTO sellerViewOrder(Integer sellerId, Integer id) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(sellerId)) {
@@ -250,6 +259,9 @@ public class OrderService {
                 .orElseThrow(() -> new ItemNotFoundException("Order not found with id: " + orderId));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         boolean isBuyer = order.getBuyer().getId().equals(userId);
@@ -301,6 +313,9 @@ public class OrderService {
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(orderRequestDTO.getBuyerId())) {

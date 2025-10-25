@@ -11,9 +11,11 @@ import { useOrderStore } from "@/stores/OrderStore";
 import router from "@/router";
 import { useFilterStore } from "@/stores/FilterStore";
 import { useNotiStore } from "@/stores/NotiStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const userStore = useUserStore();
 const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 const userId = computed(() => userStore.getUserId());
 // Mockup ข้อมูลสินค้า
 const carts = ref([]);
@@ -48,6 +50,18 @@ onMounted(async () => {
       console.log("Fetching cart for user:", userId.value);
 
       const response = await getAllCart(userId.value);
+
+      // Check for 401 error
+      if (response.error && response.error.status === 401) {
+        userStore.clearUserInfo();
+        userStore.setAccessToken(null);
+        cartStore.setCart(null);
+        saleOrderStore.setSaleOrderQuanatity(0);
+        sessionStorage.clear();
+        localStorage.clear();
+        router.push({ name: "signin" });
+        return;
+      }
 
       if (response.error) {
         throw new Error(response.error);
@@ -162,6 +176,19 @@ const callUpdateCart = async (item) => {
     };
 
     const response = await updateCart(item.id, data);
+    
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
+    
     if (response.error) {
       throw new Error(response.error);
     }
@@ -414,6 +441,18 @@ const handlePlaceOrder = async () => {
 
     const response = await createOrder(orderRequestList);
 
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
+
     if (response.error) {
       throw new Error(response.error);
     }
@@ -439,7 +478,8 @@ const handlePlaceOrder = async () => {
 
     orderCreateSuccess();
   } catch (error) {
-    console.error(error);
+    hasError.value = error.message;
+    console.error("Error placing order:", error);
   }
 };
 
