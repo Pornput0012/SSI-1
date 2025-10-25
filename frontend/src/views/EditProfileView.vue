@@ -1,13 +1,11 @@
 <script setup>
 import { ref, computed, watch, onMounted, watchEffect } from "vue";
 import { useUserStore } from "@/stores/UserStore";
-import {
-  getImageByFileName,
-  getUserById,
-  updateUserById,
-} from "@/services/userService";
+import { updateUserById } from "@/services/userService";
 import { useRouter } from "vue-router";
 import { useNotiStore } from "@/stores/NotiStore";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const USER_TYPE = {
   SELLER: "SELLER",
@@ -23,6 +21,8 @@ const userId = computed(() => userStore.getUserInfo().id);
 const userType = computed(() => userStore.getUserInfo().userType);
 
 const router = useRouter();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 
 const userInfo = ref(userStore.getUserInfo());
 const originalFormData = ref(null);
@@ -30,16 +30,15 @@ const originalFormData = ref(null);
 const formatNumber = (data) => {
   if (!data) return "";
 
-  const visibleCount = 3; 
-  const hiddenCount = data.length - visibleCount - 1; 
-  
-  const maskedPart = "x".repeat(hiddenCount); 
-  const visiblePart = data.slice(-visibleCount - 1, -1); 
-  
-  const lastDigit = "x"; 
+  const visibleCount = 3;
+  const hiddenCount = data.length - visibleCount - 1;
+
+  const maskedPart = "x".repeat(hiddenCount);
+  const visiblePart = data.slice(-visibleCount - 1, -1);
+
+  const lastDigit = "x";
   return maskedPart + visiblePart + lastDigit;
 };
-
 
 const formData = ref({
   nickName: userInfo.value?.nickName || "",
@@ -55,8 +54,6 @@ const formData = ref({
 onMounted(() => {
   originalFormData.value = { ...formData.value };
 });
-
-
 
 const notiStore = useNotiStore();
 const updateSuccess = () => {
@@ -74,13 +71,27 @@ const handleSubmit = async () => {
       throw new Error("Invalid ID or form data");
     }
 
-    const response = await updateUserById(userId.value, {
-      nickName: formData.value.nickName,
-      fullName: formData.value.fullName,
-    });
+    const response = await updateUserById(
+      userId.value,
+      {
+        nickName: formData.value.nickName,
+        fullName: formData.value.fullName,
+      }    );
 
     console.log(response);
-    
+
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
+
     if (!response.error) {
       isSaving.value = false;
       userStore.setUserInfo(response);
@@ -95,8 +106,6 @@ const handleSubmit = async () => {
     showModal.value = true;
   }
 };
-
-
 
 const isSaving = ref(false);
 const enableSaveBtn = ref(false);
@@ -132,7 +141,6 @@ watchEffect(() => {
   }
 
   enableSaveBtn.value = isValid && hasChanges;
-
 });
 </script>
 
@@ -316,13 +324,21 @@ watchEffect(() => {
           <!-- Form Actions (Bottom) -->
           <div class="mt-8 pt-6 border-t border-base-300">
             <div class="flex gap-3 justify-end">
-              <button @click="cancelEdit" :disabled="isSaving" class="btn w-30 itbms-cancel-button">
+              <button
+                @click="cancelEdit"
+                :disabled="isSaving"
+                class="btn w-30 itbms-cancel-button"
+              >
                 cancel
               </button>
               <button
                 @click="handleSubmit"
                 :disabled="!enableSaveBtn || isSaving"
-                :class="['btn btn-primary w-30',{isSaving : 'cursor-not-allowed'},'itbms-save-button']"
+                :class="[
+                  'btn btn-primary w-30',
+                  { isSaving: 'cursor-not-allowed' },
+                  'itbms-save-button',
+                ]"
               >
                 <svg
                   v-if="isSaving"

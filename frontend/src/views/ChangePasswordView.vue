@@ -2,12 +2,16 @@
 import { ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/UserStore";
-import { changePassword, updateUserById } from "@/services/userService";
+import { changePassword } from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const router = useRouter();
 const userStore = useUserStore();
 const notiStore = useNotiStore();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 
 const userId = userStore.getUserInfo().id;
 
@@ -104,10 +108,25 @@ const handleSubmit = async () => {
       throw new Error("Invalid user or form data");
     }
 
-    const response = await changePassword(userId, {
-      newPassword: formData.value.newPassword,
-      currentPassword: formData.value.currentPassword,
-    });
+    const response = await changePassword(
+      userId,
+      {
+        newPassword: formData.value.newPassword,
+        currentPassword: formData.value.currentPassword,
+      },
+    );
+
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
 
     if (!response.error) {
       isSaving.value = false;

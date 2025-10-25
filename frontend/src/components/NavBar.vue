@@ -62,9 +62,11 @@ const handleLogout = async () => {
   const res = await logout();
   if (res.success) {
     userStore.clearUserInfo();
+    userStore.setAccessToken(null);
     cartStore.setCart(null);
     saleOrderStore.setSaleOrderQuanatity(0);
     sessionStorage.clear();
+    localStorage.clear()
 
     router.push({ name: "sale-items" });
   } else {
@@ -196,7 +198,7 @@ const productLength = computed(() => {
             <router-link
               v-if="userStore.getUserInfo().userType?.toUpperCase() == 'SELLER'"
               :to="{ name: 'sale-orders' }"
-              class="cursor-pointer"
+              class="cursor-pointer relative"
             >
               <Icon
                 icon="flowbite:shopping-bag-outline"

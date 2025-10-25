@@ -26,7 +26,9 @@ CREATE TABLE users (
   nationalIdPhotoBack VARCHAR(255),
 
   createdOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updatedOn DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  address VARCHAR(255) ,
+  note VARCHAR(255)
 );
 
 create table if not exists brands(
@@ -103,6 +105,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   description TEXT,
   
   -- เก็บข้อมูล product ณ ขณะที่สั่งซื้อ
+  brandName varchar(30) not null,
   model varchar(60) not null,
   ramGb integer,
   screenSizeInch decimal(4, 2),
@@ -134,11 +137,11 @@ INSERT INTO brands (name, countryOfOrigin, websiteUrl, isActive) VALUES
 ('Honor', 'China', 'https://www.hihonor.com', 1),
 ('Nothing', 'United Kingdom', 'https://nothing.tech', 1);
 
-INSERT INTO users VALUES (1,'BUYER','Somchai','itbkk.somchai@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somchai Jaidee','ACTIVE',NULL,NULL,NULL,NULL,NULL,NULL,'2025-09-16 13:16:16','2025-09-16 13:16:16');
-INSERT INTO users VALUES (2,'BUYER','Somkiat','itbkk.somkiat@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somkiat Luckchart','ACTIVE',NULL,NULL,NULL,NULL,NULL,NULL,'2025-09-16 13:31:58','2025-09-16 13:31:58');
-INSERT INTO users VALUES (3,'SELLER','Somsuan','itbkk.somsuan@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somsuan Hundee','ACTIVE','0834567890','0371234567','Bangkok Bank','1000111100222','1000111100222_front_fs_.png','1000111100222_back_bs_.png','2025-09-16 13:28:55','2025-09-16 13:28:55');
-INSERT INTO users VALUES (4,'SELLER','Somsuk','itbkk.somsuk@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somsuk Fundee','ACTIVE','0845678901', '2371234567','Siam Commercial Bank','1000111100333','1000111100333_front_fs_.png','1000111100333_back_bs_.png','2025-09-16 13:41:59','2025-09-16 13:41:59');
-INSERT INTO users VALUES (5,'SELLER','Somsak','itbkk.somsak@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somsak Saksit','ACTIVE','0856789012','0373456789','Bangkok Bank','1000111100444','1000111100444_front_fs_.png','1000111100444_back_bs_.png','2025-09-16 13:41:59','2025-09-16 13:41:59');
+INSERT INTO users VALUES (1,'BUYER','Somchai','itbkk.somchai@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somchai Jaidee','ACTIVE',NULL,NULL,NULL,NULL,NULL,NULL,'2025-09-16 13:16:16','2025-09-16 13:16:16',null,null);
+INSERT INTO users VALUES (2,'BUYER','Somkiat','itbkk.somkiat@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somkiat Luckchart','ACTIVE',NULL,NULL,NULL,NULL,NULL,NULL,'2025-09-16 13:31:58','2025-09-16 13:31:58',null,null);
+INSERT INTO users VALUES (3,'SELLER','Somsuan','itbkk.somsuan@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somsuan Hundee','ACTIVE','0834567890','0371234567','Bangkok Bank','1000111100222','1000111100222_front_fs_.png','1000111100222_back_bs_.png','2025-09-16 13:28:55','2025-09-16 13:28:55',null,null);
+INSERT INTO users VALUES (4,'SELLER','Somsuk','itbkk.somsuk@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somsuk Fundee','ACTIVE','0845678901', '2371234567','Siam Commercial Bank','1000111100333','1000111100333_front_fs_.png','1000111100333_back_bs_.png','2025-09-16 13:41:59','2025-09-16 13:41:59',null,null);
+INSERT INTO users VALUES (5,'SELLER','Somsak','itbkk.somsak@ad.sit.kmutt.ac.th','$argon2id$v=19$m=131072,t=2,p=8$fD4hCC1r2DOZNCZ8eWUuvQ$u0K/tOaoH/h95fmJ1z9D/jES8OFzbM8MayWFGUQi0TY','Somsak Saksit','ACTIVE','0856789012','0373456789','Bangkok Bank','1000111100444','1000111100444_front_fs_.png','1000111100444_back_bs_.png','2025-09-16 13:41:59','2025-09-16 13:41:59',null,null);
 INSERT INTO products (product_id, brand_id, seller_id, model, description, price, ramGb, screenSizeInch, storageGb, color, quantity) VALUES
 (1, 2, 3, 'iPhone 14 Pro Max', 'ไอโฟนเรือธงรุ่นล่าสุด มาพร้อม Dynamic Island จอใหญ่สุดในตระกูล กล้องระดับโปร', 42900, 6, 6.70, 512, 'Space Black', 5),
 (2, 2, 4, 'iPhone 14', 'ไอโฟนรุ่นใหม่ล่าสุด รองรับ 5G เร็วแรง ถ่ายภาพสวยทุกสภาพแสง', 29700, 6, 6.10, 256, 'Midnight', 8),

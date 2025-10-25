@@ -53,12 +53,15 @@ public class OrderService {
     private CartRepository cartRepository;
 
     public OrderBuyerPageDTO getOrderBuyer(Integer buyerId, Integer page, Integer size, String sortField,
-                                           String sortDirection) throws ParseException, JOSEException {
+                                           String sortDirection, List<String> filterBrands, String searchKeyWord) throws ParseException, JOSEException {
 
         User user = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ItemNotFoundException("User not found with id: " + buyerId));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(buyerId)) {
@@ -85,7 +88,12 @@ public class OrderService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Order> orderPage = orderRepository.findAllBuyerOrder(user, pageable);
+        Page<Order> orderPage = orderRepository.findFilteredBuyerOrders(
+                user,
+                (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
+                searchKeyWord,
+                pageable
+        );
 
         List<OrderResponseDTO> orderDTOs = orderPage.getContent().stream().map(order -> {
             OrderResponseDTO dto = new OrderResponseDTO();
@@ -137,6 +145,9 @@ public class OrderService {
         userRepository.findById(sellerId)
                 .orElseThrow(() -> new ItemNotFoundException("User not found with id: " + sellerId));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(sellerId)) {
@@ -214,6 +225,9 @@ public class OrderService {
 
     public OrderSellerResponseDTO sellerViewOrder(Integer sellerId, Integer id) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(sellerId)) {
@@ -250,6 +264,9 @@ public class OrderService {
                 .orElseThrow(() -> new ItemNotFoundException("Order not found with id: " + orderId));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         boolean isBuyer = order.getBuyer().getId().equals(userId);
@@ -301,6 +318,9 @@ public class OrderService {
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(orderRequestDTO.getBuyerId())) {
@@ -375,6 +395,7 @@ public class OrderService {
             orderItem.setDescription(itemDTO.getDescription());
 
             // คัดลอกข้อมูลจาก Product เพื่อป้องกันการเปลี่ยนแปลงในอนาคต
+            orderItem.setBrandName(product.getBrand().getName());
             orderItem.setModel(product.getModel());
             orderItem.setRamGb(product.getRamGb());
             orderItem.setScreenSizeInch(product.getScreenSizeInch());
