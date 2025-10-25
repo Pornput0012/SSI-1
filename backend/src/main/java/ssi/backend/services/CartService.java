@@ -49,6 +49,8 @@ public class CartService {
         // if () {
         // throw new IllegalArgumentException("userId is null");
         // }
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("User not found"));
         List<Cart> currentCart = cartRepository.findAllByUserId(userId);
         List<CartResponseDto> cartResponseDtos = new ArrayList<>();
 
@@ -64,13 +66,13 @@ public class CartService {
                     .filter((cart) -> sellerName.equals(cart.getProduct().getSeller().getNickname())).toList();
 
             if (cartBySeller.isEmpty())
-                return; // กัน error
+                return;
 
-            // ✅ ดึง sellerId จากสินค้าชิ้นแรก (เพราะทุกสินค้าของร้านเดียวกันมี seller
-            // เดียวกัน)
             Integer sellerId = cartBySeller.get(0).getProduct().getSeller().getId();
 
             CartResponseDto cartResponseDto = new CartResponseDto();
+            cartResponseDto.setAddress(user.getAddress());
+            cartResponseDto.setNote(user.getNote());
             cartResponseDto.setProductSellerId(sellerId);
             cartResponseDto.setProductSellerNickname(sellerName);
             List<CartResponseSubDto> cartResponseSubDtos = listMapper.mapList(cartBySeller, CartResponseSubDto.class,
@@ -80,6 +82,7 @@ public class CartService {
 
             cartResponseDtos.add(cartResponseDto);
         });
+
         return cartResponseDtos;
     }
 
