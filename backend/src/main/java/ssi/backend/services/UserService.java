@@ -304,6 +304,12 @@ public class UserService {
         return response;
     }
 
+    public void updateAddressAndNote (Integer id,String address, String note) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        user.setAddress(address);
+        user.setNote(note);
+        userRepository.save(user);
+    }
     public boolean idCardCheck(String idCard) {
 
         if (idCard == null) {

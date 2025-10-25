@@ -8,7 +8,6 @@ import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
 import { useUserStore } from "@/stores/UserStore";
-import { getProfile } from "@/services/userService";
 import MessageModal from "@/components/MessageModal.vue";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];

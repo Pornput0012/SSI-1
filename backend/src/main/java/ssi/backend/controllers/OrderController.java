@@ -16,6 +16,7 @@ import com.nimbusds.jose.JOSEException;
 import jakarta.validation.Valid;
 import ssi.backend.dtos.*;
 import ssi.backend.services.OrderService;
+import ssi.backend.services.UserService;
 
 @RestController
 @RequestMapping("/itb-mshop")
@@ -23,6 +24,8 @@ import ssi.backend.services.OrderService;
 public class OrderController {
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/v2/users/{id}/orders")
     public ResponseEntity<OrderBuyerPageDTO> getOrderBuyer(@PathVariable("id") Integer buyerId,

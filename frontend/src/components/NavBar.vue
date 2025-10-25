@@ -46,9 +46,11 @@ const handleLogout = async () => {
   const res = await logout();
   if (res.success) {
     userStore.clearUserInfo();
+    userStore.setAccessToken(null);
     cartStore.setCart(null);
     saleOrderStore.setSaleOrderQuanatity(0);
-    sessionStorage.clear()
+    sessionStorage.clear();
+    localStorage.clear()
 
     router.push({ name: "sale-items" });
   } else {
@@ -143,7 +145,7 @@ const productLength = computed(() => {
           <img src="/logo.png" class="h-14 aspect-square" alt="logo" />
           ITB MShop
         </RouterLink>
-        <div class="flex items-center gap-3 ">
+        <div class="flex items-center gap-3">
           <div class="flex items-center gap-2" v-if="!nickName">
             <router-link :to="{ name: 'register' }">
               <button
@@ -158,7 +160,10 @@ const productLength = computed(() => {
               >Login</router-link
             >
           </div>
-          <RouterLink v-if="nickName" class="itbms-sale-order-button mr-2" :to="{ name: 'order' }"
+          <RouterLink
+            v-if="nickName"
+            class="itbms-sale-order-button mr-2"
+            :to="{ name: 'order' }"
             >Your orders</RouterLink
           >
           <RouterLink v-if="productLength" :to="{ name: 'cart' }">
