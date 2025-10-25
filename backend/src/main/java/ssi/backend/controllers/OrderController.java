@@ -32,9 +32,12 @@ public class OrderController {
             @RequestParam Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String sortField,
-            @RequestParam(required = false, defaultValue = "asc") String sortDirection) throws ParseException, JOSEException {
+            @RequestParam(required = false, defaultValue = "desc") String sortDirection,
+            @RequestParam(required = false) List<String> filterBrands,
+            @RequestParam(required = false) String searchKeyWord) throws ParseException, JOSEException {
 
-        OrderBuyerPageDTO orderBuyerPage = orderService.getOrderBuyer(buyerId, page, size, sortField, sortDirection);
+        OrderBuyerPageDTO orderBuyerPage = orderService.getOrderBuyer(buyerId, page, size, sortField, sortDirection,
+                filterBrands, searchKeyWord);
         return ResponseEntity.ok(orderBuyerPage);
     }
 
@@ -44,33 +47,39 @@ public class OrderController {
             @RequestParam Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String sortField,
-            @RequestParam(required = false, defaultValue = "asc") String sortDirection) throws ParseException, JOSEException {
+            @RequestParam(required = false, defaultValue = "asc") String sortDirection)
+            throws ParseException, JOSEException {
 
-        OrderSellerPageDTO orderSellerPage = orderService.getOrderSeller(sellerId, page, size, sortField, sortDirection);
+        OrderSellerPageDTO orderSellerPage = orderService.getOrderSeller(sellerId, page, size, sortField,
+                sortDirection);
         return ResponseEntity.ok(orderSellerPage);
     }
 
     @PreAuthorize("hasRole('SELLER')")
     @PatchMapping("/v2/sellers/{sid}/orders/{id}")
-    public ResponseEntity<OrderSellerResponseDTO> patchViewOrderSeller(@PathVariable("sid") Integer sellerId,@PathVariable("id") Integer id) throws ParseException, JOSEException {
-        return ResponseEntity.ok(orderService.sellerViewOrder(sellerId,id));
+    public ResponseEntity<OrderSellerResponseDTO> patchViewOrderSeller(@PathVariable("sid") Integer sellerId,
+            @PathVariable("id") Integer id) throws ParseException, JOSEException {
+        return ResponseEntity.ok(orderService.sellerViewOrder(sellerId, id));
     }
 
     @GetMapping("/v2/orders/{id}")
-    public ResponseEntity<OrderDetailResponseDTO> getOrderById(@PathVariable("id") Integer orderId) throws ParseException, JOSEException {
+    public ResponseEntity<OrderDetailResponseDTO> getOrderById(@PathVariable("id") Integer orderId)
+            throws ParseException, JOSEException {
         OrderDetailResponseDTO orderDetailResponseDTO = orderService.getOrderSellerById(orderId);
         return ResponseEntity.ok(orderDetailResponseDTO);
     }
 
     @PostMapping("/v2/orders")
-    public ResponseEntity<List<OrderResponseDTO>> createOrders(@Valid @RequestBody List<OrderRequestDTO> orderRequestDTOs) throws ParseException, JOSEException {
-        userService.updateAddressAndNote(orderRequestDTOs.getFirst().getBuyerId(),orderRequestDTOs.getFirst().getShippingAddress(),orderRequestDTOs.getFirst().getOrderNote());
+    public ResponseEntity<List<OrderResponseDTO>> createOrders(
+            @Valid @RequestBody List<OrderRequestDTO> orderRequestDTOs) throws ParseException, JOSEException {
+        userService.updateAddressAndNote(orderRequestDTOs.getFirst().getBuyerId(),
+                orderRequestDTOs.getFirst().getShippingAddress(), orderRequestDTOs.getFirst().getOrderNote());
         List<OrderResponseDTO> responses = new ArrayList<>();
-    for (OrderRequestDTO orderRequestDTO : orderRequestDTOs) {
-        OrderResponseDTO response = orderService.createOrder(orderRequestDTO);
-        responses.add(response);
-        System.out.println("sellerMiss:" + response.getSeller().getId());
+        for (OrderRequestDTO orderRequestDTO : orderRequestDTOs) {
+            OrderResponseDTO response = orderService.createOrder(orderRequestDTO);
+            responses.add(response);
+            System.out.println("sellerMiss:" + response.getSeller().getId());
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(responses);
     }
-    return ResponseEntity.status(HttpStatus.CREATED).body(responses);
-}
 }
