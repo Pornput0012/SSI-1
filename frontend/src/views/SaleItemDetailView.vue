@@ -19,6 +19,7 @@ import { useUserStore } from '@/stores/UserStore'
 import { addItemToCart } from '@/services/CartService'
 import { useCartStore } from '@/stores/CartStore'
 import { useSaleOrderStore } from '@/stores/saleOrderStore'
+import { useToastStore } from '@/stores/ToastStore'
 
 const userStore = useUserStore()
 const cartStore = useCartStore()
@@ -90,34 +91,8 @@ const fetchSaleItemById = async () => {
     isNotFound.value = true
   }
 }
-const showDeleteModal = ref(false)
 
-const deleteSuccess = ref(false)
-
-// const handleDelete = async (id) => {
-//   try {
-//     if (selectSaleItem.value && selectSaleItem.value.id) {
-//       const response = await deleteSaleItemById(selectSaleItem.value.id);
-//       showDeleteModal.value = false;
-//       if (response.success) {
-//         deleteSuccess.value = true;
-//         selectSaleItem.value = null;
-//       } else {
-//         throw new Error("The requested sale item does not exist.");
-//       }
-//     }
-//   } catch (e) {
-//     errorMessage.value = e.message;
-//     isNotFound.value = true;
-//   }
-// };
-
-// const successOk = () => {
-//   deleteSuccess.value = false;
-//   router.push({ name: "sale-items" });
-// };
-
-const showSuccessToast = ref(false)
+const toastStore = useToastStore()
 
 const addToCart = async () => {
   if (!userNickname.value) {
@@ -167,19 +142,17 @@ const addToCart = async () => {
     }
 
     cartStore.addToCart(response, cartQuantity.value)
-    showSuccessToast.value = true
-    setTimeout(() => {
-      showSuccessToast.value = false
-    }, 2000)
+    toastStore.showToast('✓ Added to cart!', 'success')
     quantitySelectedItemInCart.value =
       cartStore.getQuantityByProductId(saleItemId)
     cartQuantity.value = 1
     console.log('Successfully added to cart store')
   } catch (error) {
     console.error('Error adding to cart:', error)
-    // hasError.value = error.message || "Failed to add item to cart";
+    toastStore.showToast('✗ Failed to add to cart', 'error')
   }
 }
+
 onMounted(fetchSaleItemById)
 
 onBeforeUnmount(() => {
@@ -189,13 +162,6 @@ onBeforeUnmount(() => {
     }
   })
 })
-const showUpdatedModal = ref(false)
-// onMounted(() => {
-//   if (notiStore.updateSuccess) {
-//     showUpdatedModal.value = true;
-//     notiStore.updateSuccess = false;
-//   }
-// });
 
 const cartQuantity = ref(1)
 
@@ -482,34 +448,7 @@ const increaseQuantity = () => {
     :title="'Add to cart fail'"
     :message="'Can not add your own sale item'"
   />
-
-  <!-- ✅ Toast Notification -->
-  <div v-if="showSuccessToast" class="toast toast-bottom toast-end z-50">
-    <div class="alert alert-success">
-      <span>✓ Added to cart!</span>
-    </div>
-  </div>
-
-  <!-- <div v-if="deleteSuccess" class="modal modal-open">
-    <div class="modal-box text-center">
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The sale item has been deleted.
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button @click="successOk" class="btn btn-primary bg-purple-700">
-          OK
-        </button>
-      </div>
-    </div>
-  </div> -->
-
-  <!-- <MessageModal
-    v-if="showUpdatedModal"
-    :handle-ok="() => (showUpdatedModal = false)"
-    :title="'Successfully!'"
-    :message="'The sale item has been updated.'"
-    :type-modal="'text-success'"
-  /> -->
 </template>
 
-<style scoped></style>
+<style scoped>
+</style>

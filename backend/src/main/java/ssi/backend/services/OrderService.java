@@ -53,7 +53,7 @@ public class OrderService {
     private CartRepository cartRepository;
 
     public OrderBuyerPageDTO getOrderBuyer(Integer buyerId, Integer page, Integer size, String sortField,
-                                           String sortDirection) throws ParseException, JOSEException {
+                                           String sortDirection, List<String> filterBrands, String searchKeyWord) throws ParseException, JOSEException {
 
         User user = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ItemNotFoundException("User not found with id: " + buyerId));
@@ -88,7 +88,12 @@ public class OrderService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Order> orderPage = orderRepository.findAllBuyerOrder(user, pageable);
+        Page<Order> orderPage = orderRepository.findFilteredBuyerOrders(
+                user,
+                (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
+                searchKeyWord,
+                pageable
+        );
 
         List<OrderResponseDTO> orderDTOs = orderPage.getContent().stream().map(order -> {
             OrderResponseDTO dto = new OrderResponseDTO();
@@ -390,6 +395,7 @@ public class OrderService {
             orderItem.setDescription(itemDTO.getDescription());
 
             // คัดลอกข้อมูลจาก Product เพื่อป้องกันการเปลี่ยนแปลงในอนาคต
+            orderItem.setBrandName(product.getBrand().getName());
             orderItem.setModel(product.getModel());
             orderItem.setRamGb(product.getRamGb());
             orderItem.setScreenSizeInch(product.getScreenSizeInch());

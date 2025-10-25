@@ -169,7 +169,7 @@ const checkEmail = (email, userType) => {
   const emailConstraint = formConstraints.Buyer[1].constraint;
 
   const validate =
-    userType === "Seller" ? sellerValidate.value : buyerValidate.value;
+    userType === "seller" ? sellerValidate.value : buyerValidate.value;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -187,6 +187,30 @@ const checkEmail = (email, userType) => {
 
   validate.email.invalid = false;
   validate.email.msg = ``;
+};
+
+const checkFullname = (fullName, userType) => {
+
+  
+  const fullNameConstraint = formConstraints.Buyer[3].constraint;
+
+  const validate =
+    userType === "Seller" ? sellerValidate.value : buyerValidate.value;
+
+  if (!fullName) {
+    validate.fullName.invalid = true;
+    validate.fullName.msg = `Fullname must be filled`;
+    return;
+  }
+
+  if (fullName.length > fullNameConstraint.maxLength || fullName.length < fullNameConstraint.minLength) {
+    validate.fullName.invalid = true;
+    validate.fullName.msg = `Fullname must be 4-40 Characters`;
+    return;
+  }
+
+  validate.fullName.invalid = false;
+  validate.fullName.msg = ``;
 };
 
 const frontImage = ref(null);
@@ -314,6 +338,13 @@ watch(
     checkPassword(newSellerPassword, "Seller");
     checkPassword(newBuyerPassword, "Buyer");
   }
+);
+
+watch(
+  [() => formDataSeller.value.fullName, () => formDataBuyer.value.fullName],
+  ([newSellerFullName, newBuyerFullName]) => {
+    checkFullname(newSellerFullName, "Seller");
+    checkFullname(newBuyerFullName, "Buyer");}
 );
 
 watch(

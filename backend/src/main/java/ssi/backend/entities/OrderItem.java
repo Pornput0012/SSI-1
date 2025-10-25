@@ -52,6 +52,11 @@ public class OrderItem {
     @Column(name = "description")
     private String description;
 
+    @Size(max = 30)
+    @NotNull
+    @Column(name = "brandName", nullable = false, length = 30)
+    private String brandName;
+
     @Size(max = 60)
     @NotNull
     @Column(name = "model", nullable = false, length = 60)

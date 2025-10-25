@@ -8,6 +8,7 @@ import { useSaleOrderStore } from '@/stores/saleOrderStore'
 import { computed, onMounted, ref } from 'vue'
 import { addItemToCart } from '@/services/CartService'
 import { useNotiStore } from '@/stores/NotiStore'
+import { useToastStore } from '@/stores/ToastStore'
 const notiStore = useNotiStore()
 const cartStore = useCartStore()
 const userStore = useUserStore()
@@ -67,7 +68,7 @@ onMounted(async () => {
   await loadImages()
 })
 
-const showSuccessToast = ref(false)
+const toastStore = useToastStore()
 
 const addToCart = async () => {
   if (!userNickname.value) {
@@ -110,14 +111,12 @@ const addToCart = async () => {
     }
 
     cartStore.addToCart(response)
-    showSuccessToast.value = true
-    setTimeout(() => {
-      showSuccessToast.value = false
-    }, 2000)
+    toastStore.showToast('✓ Added to cart!', 'success')
     console.log('Successfully added to cart store')
     console.log(cartStore.getCarts())
   } catch (error) {
     console.error('Error adding to cart:', error)
+    toastStore.showToast('✗ Failed to add to cart', 'error')
     hasError.value = error.message || 'Failed to add item to cart'
   }
 }
@@ -203,13 +202,7 @@ const addToCart = async () => {
       </div>
     </div>
   </RouterLink>
-
-  <!-- ✅ Toast Notification -->
-  <div v-if="showSuccessToast" class="toast toast-bottom toast-end z-50">
-    <div class="alert alert-success">
-      <span>✓ Added to cart!</span>
-    </div>
-  </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+</style>
