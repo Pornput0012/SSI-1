@@ -103,6 +103,7 @@ CREATE TABLE IF NOT EXISTS order_items (
   description TEXT,
   
   -- เก็บข้อมูล product ณ ขณะที่สั่งซื้อ
+  brandName varchar(30) not null,
   model varchar(60) not null,
   ramGb integer,
   screenSizeInch decimal(4, 2),

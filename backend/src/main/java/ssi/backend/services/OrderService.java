@@ -375,6 +375,7 @@ public class OrderService {
             orderItem.setDescription(itemDTO.getDescription());
 
             // คัดลอกข้อมูลจาก Product เพื่อป้องกันการเปลี่ยนแปลงในอนาคต
+            orderItem.setBrandName(product.getBrand().getName());
             orderItem.setModel(product.getModel());
             orderItem.setRamGb(product.getRamGb());
             orderItem.setScreenSizeInch(product.getScreenSizeInch());

@@ -1,5 +1,6 @@
 package ssi.backend.repositories;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -22,4 +23,42 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
                 WHERE p.seller.id = :sellerId
             """)
     Page<Order> findAllSellerOrder(Integer sellerId, Pageable pageable);
+
+    @Query("""
+            SELECT DISTINCT o FROM Order o
+            JOIN o.orderItems oi
+            LEFT JOIN oi.product p
+            LEFT JOIN p.brand b
+            WHERE o.buyer.id = :buyerId
+            AND (:brandNames IS NULL OR b.name IN :brandNames)
+            AND (:searchKeyword IS NULL OR 
+                 LOWER(oi.model) LIKE LOWER(CONCAT('%', :searchKeyword, '%')) OR
+                 LOWER(o.seller.nickname) LIKE LOWER(CONCAT('%', :searchKeyword, '%')))
+            """)
+    Page<Order> findFilteredBuyerOrders(
+            Integer buyerId,
+            List<String> brandNames,
+            String searchKeyword,
+            Pageable pageable
+    );
+
+    @Query("""
+            SELECT DISTINCT o FROM Order o
+            JOIN o.orderItems oi
+            LEFT JOIN oi.product p
+            LEFT JOIN p.brand b
+            WHERE p.seller.id = :sellerId
+            AND (:brandNames IS NULL OR b.name IN :brandNames)
+            AND (:searchKeyword IS NULL OR 
+                 LOWER(oi.model) LIKE LOWER(CONCAT('%', :searchKeyword, '%')) OR
+                 LOWER(o.buyer.nickname) LIKE LOWER(CONCAT('%', :searchKeyword, '%')))
+            AND (:viewOrder IS NULL OR o.viewOrder = :viewOrder)
+            """)
+    Page<Order> findFilteredSellerOrders(
+            Integer sellerId,
+            List<String> brandNames,
+            String searchKeyword,
+            Boolean viewOrder,
+            Pageable pageable
+    );
 }
