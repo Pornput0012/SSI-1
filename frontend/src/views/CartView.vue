@@ -309,6 +309,19 @@ const removeCart = async (id, pid) => {
 
     if (id) {
       const response = await deleteCartById(id);
+
+      // Check for 401 error
+      if (response.error && response.error.status === 401) {
+        userStore.clearUserInfo();
+        userStore.setAccessToken(null);
+        cartStore.setCart(null);
+        saleOrderStore.setSaleOrderQuanatity(0);
+        sessionStorage.clear();
+        localStorage.clear();
+        router.push({ name: "signin" });
+        return;
+      }
+
       if (response.success) {
         const hasSaleItem = cartStore.findProductById(pid);
         if (hasSaleItem.found) {

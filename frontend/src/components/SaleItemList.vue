@@ -1,10 +1,11 @@
 <script setup>
-import {
-  deleteSaleItemById,
-} from '@/services/SaleItemService'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { deleteSaleItemByIdV2 } from "@/services/SaleItemService";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useUserStore } from "@/stores/UserStore";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { ref, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
 
 const props = defineProps({
   saleItems: {
@@ -13,7 +14,7 @@ const props = defineProps({
   },
   pageInfo: Object,
   hasError: String,
-})
+});
 
 // === Pagination ===
 const emit = defineEmits(["pageChanged"]);
@@ -125,42 +126,59 @@ watch(
   { deep: true }
 );
 
-
 // ==== Delete Item ====
-const router = useRouter()
-const showDeleteModal = ref(false)
-const deleteSuccess = ref(false)
-const deleteTargetId = ref(null)
-const errorMessage = ref('')
-const isNotFound = ref(false)
-const saleItemStore = useSaleItemStore()
+const router = useRouter();
+const showDeleteModal = ref(false);
+const deleteSuccess = ref(false);
+const deleteTargetId = ref(null);
+const errorMessage = ref("");
+const isNotFound = ref(false);
+const saleItemStore = useSaleItemStore();
+const userStore = useUserStore();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 
 const confirmDelete = (id) => {
-  deleteTargetId.value = id
-  showDeleteModal.value = true
-}
+  deleteTargetId.value = id;
+  showDeleteModal.value = true;
+};
 
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-      const response = await deleteSaleItemById(deleteTargetId.value)
-      showDeleteModal.value = false
+      const response = await deleteSaleItemByIdV2(deleteTargetId.value);
+      showDeleteModal.value = false;
+
+      // Check for 401 error
+      if (response.error && response.error.status === 401) {
+        userStore.clearUserInfo();
+        userStore.setAccessToken(null);
+        cartStore.setCart(null);
+        saleOrderStore.setSaleOrderQuanatity(0);
+        sessionStorage.clear();
+        localStorage.clear();
+        router.push({ name: "signin" });
+        return;
+      }
+
       if (response.success) {
-        deleteSuccess.value = true
+        deleteSuccess.value = true;
+        currentPage.value = 0;
+        emit("pageChanged", 0);
       } else {
-        throw new Error('The requested sale item does not exist.')
+        throw new Error("The requested sale item does not exist.");
       }
     }
   } catch (error) {
-    errorMessage.value = error.message
-    isNotFound.value = true
+    errorMessage.value = error.message;
+    isNotFound.value = true;
   }
-}
+};
 
 const successOk = () => {
-  deleteSuccess.value = false
-  router.push({ name: 'sale-items-list' })
-}
+  deleteSuccess.value = false;
+  router.push({ name: "sale-items-list" });
+};
 </script>
 
 <template>
@@ -227,26 +245,26 @@ const successOk = () => {
                 <td
                   class="itbms-id p-3 font-bold text-blue-500 hover:underline cursor-pointer whitespace-nowrap"
                 >
-                  {{ itemInList.id || '-' }}
+                  {{ itemInList.id || "-" }}
                 </td>
               </RouterLink>
               <td class="itbms-brand p-3 text-sm whitespace-nowrap">
-                {{ itemInList.brandName || '-' }}
+                {{ itemInList.brandName || "-" }}
               </td>
               <td class="itbms-model p-3 text-sm text-left whitespace-nowrap">
-                {{ itemInList.model || '-' }}
+                {{ itemInList.model || "-" }}
               </td>
               <td class="itbms-ramGb p-3 text-sm whitespace-nowrap">
-                {{ itemInList.ramGb || '-' }}
+                {{ itemInList.ramGb || "-" }}
               </td>
               <td class="itbms-storageGb p-3 text-sm whitespace-nowrap">
-                {{ itemInList.storageGb || '-' }}
+                {{ itemInList.storageGb || "-" }}
               </td>
               <td class="itbms-color p-3 text-sm whitespace-nowrap">
-                {{ itemInList.color || '-' }}
+                {{ itemInList.color || "-" }}
               </td>
               <td class="itbms-price p-3 text-sm whitespace-nowrap">
-                {{ itemInList.price.toLocaleString() || '-' }}
+                {{ itemInList.price.toLocaleString() || "-" }}
               </td>
               <td class="p-4 whitespace-nowrap">
                 <div class="flex gap-2 justify-center">
