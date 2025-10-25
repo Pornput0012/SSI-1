@@ -74,6 +74,14 @@ public class User {
     @Column(name = "nationalIdPhotoBack")
     private String nationalIdPhotoBack;
 
+    @Size(max = 255)
+    @Column(name = "address")
+    private String address;
+
+    @Size(max = 255)
+    @Column(name = "note")
+    private String note;
+
     @JsonIgnore
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Generated(GenerationTime.INSERT)

@@ -135,7 +135,7 @@ public class UserController {
                 throw new UnauthorizedException("Email or Password is incorrect.");
             }
         }
-
+        System.out.println("User not found");
             throw new UnauthorizedException("Email or Password is incorrect.");
     }
 
