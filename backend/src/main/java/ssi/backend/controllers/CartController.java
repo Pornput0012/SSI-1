@@ -31,7 +31,7 @@ public class CartController {
     public ResponseEntity<List<CartResponseDto>> getCartById(@PathVariable int userId) {
         return ResponseEntity.ok(cartService.getAllCartById(userId));
     }
-
+    
 
     @PostMapping("")
     public ResponseEntity<CartResponseSubDto> addToCart( @RequestBody CartRequestDto cartRequestDto) {

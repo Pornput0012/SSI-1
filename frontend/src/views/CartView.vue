@@ -344,9 +344,14 @@ const loadSavedData = () => {
 
 // บันทึก address และ note ลง sessionStorage
 const saveFormData = () => {
-  // keep the backing vars in sync with visible shipTo before saving
-  shippingAddress.value = shipTo.value.address;
-  orderNote.value = shipTo.value.note;
+  // keep the visible form (`shipTo`) in sync with the backing refs
+  // and save the backing refs to sessionStorage. Do NOT overwrite
+  // the backing refs from `shipTo` here — that caused typed input
+  // to be reverted.
+  shipTo.value.address = shippingAddress.value
+    ? shippingAddress.value.trim()
+    : "";
+  shipTo.value.note = orderNote.value ? orderNote.value.trim() : "";
 
   sessionStorage.setItem(
     STORAGE_KEYS.SHIPPING_ADDRESS,
