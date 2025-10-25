@@ -29,16 +29,16 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             JOIN o.orderItems oi
             LEFT JOIN oi.product p
             LEFT JOIN p.brand b
-            WHERE o.buyer.id = :buyerId
+            WHERE o.buyer = :buyerId
             AND (:brandNames IS NULL OR b.name IN :brandNames)
-            AND (:searchKeyword IS NULL OR 
-                 LOWER(oi.model) LIKE LOWER(CONCAT('%', :searchKeyword, '%')) OR
-                 LOWER(o.seller.nickname) LIKE LOWER(CONCAT('%', :searchKeyword, '%')))
+            AND (:searchKeyWord IS NULL OR 
+                 LOWER(oi.model) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')) OR
+                 LOWER(o.seller.nickname) LIKE LOWER(CONCAT('%', :searchKeyWord, '%')))
             """)
     Page<Order> findFilteredBuyerOrders(
-            Integer buyerId,
+            User buyerId,
             List<String> brandNames,
-            String searchKeyword,
+            String searchKeyWord,
             Pageable pageable
     );
 
