@@ -66,7 +66,6 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
 
 const login = async (email, password) => {
   try {
-    
     if (!email || !password) {
       throw new Error("Please enter your email and password!");
     }
@@ -86,8 +85,8 @@ const login = async (email, password) => {
       try {
         const userStore = useUserStore();
         userStore.setAccessToken(data.access_token);
+        localStorage.setItem("access_token", data.access_token);
       } catch (err) {
-        // fallback: still write to localStorage if store not available
         localStorage.setItem("access_token", data.access_token);
       }
     }
@@ -97,7 +96,7 @@ const login = async (email, password) => {
     } else if (response.status === 401 || response.status === 403) {
       // response body already parsed into `data` above; reuse it instead of
       // calling response.json() again which would fail with "body stream already read"
-      const message = data && data.message ? data.message : 'Unauthorized';
+      const message = data && data.message ? data.message : "Unauthorized";
       throw new Error(message);
     } else {
       throw new Error(
@@ -123,6 +122,7 @@ const getAccessTokenFromRefreshToken = async () => {
       try {
         const userStore = useUserStore();
         userStore.setAccessToken(data.access_token);
+        localStorage.setItem("access_token", data.access_token);
       } catch (err) {
         localStorage.setItem("access_token", data.access_token);
       }
@@ -169,6 +169,7 @@ const getProfile = async (token, retryCount = 0) => {
       try {
         const userStore = useUserStore();
         userStore.setAccessToken(null);
+        localStorage.removeItem("access_token");
       } catch (err) {
         localStorage.removeItem("access_token");
       }
@@ -251,6 +252,7 @@ const logout = async (token) => {
       try {
         const userStore = useUserStore();
         userStore.setAccessToken(null);
+        localStorage.removeItem("access_token");
       } catch (err) {
         localStorage.removeItem("access_token");
       }
