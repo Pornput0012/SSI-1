@@ -610,7 +610,7 @@ const isPlaceOrderDisabled = computed(() => {
                 >
               </label>
               <textarea
-                v-model.trim="shipTo.address"
+                v-model.trim="shippingAddress"
                 class="itbms-shipping-address textarea textarea-bordered w-full h-24 text-sm"
                 placeholder="123/45 Moo 6, T. Bangna, A. Bangna, Bangkok 10260"
                 ></textarea
@@ -621,7 +621,7 @@ const isPlaceOrderDisabled = computed(() => {
             <div class="mb-4">
               <p class="font-bold text-sm mb-2">Note</p>
               <textarea
-                v-model.trim="shipTo.note"
+                v-model.trim="orderNote"
                 class="itbms-order-note textarea textarea-bordered w-full h-20 text-sm"
                 placeholder="Additional instructions or requests"
               ></textarea>
