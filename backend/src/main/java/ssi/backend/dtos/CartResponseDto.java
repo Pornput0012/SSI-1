@@ -13,5 +13,6 @@ public class CartResponseDto {
     private Integer productSellerId;
     private String productSellerNickname;
     private List<CartResponseSubDto> cart;
-
+    private String address;
+    private String note;
 }

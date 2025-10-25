@@ -2,7 +2,7 @@
 import { ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/UserStore";
-import { changePassword, updateUserById } from "@/services/userService";
+import { changePassword } from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
 
 const router = useRouter();
@@ -104,10 +104,13 @@ const handleSubmit = async () => {
       throw new Error("Invalid user or form data");
     }
 
-    const response = await changePassword(userId, {
-      newPassword: formData.value.newPassword,
-      currentPassword: formData.value.currentPassword,
-    });
+    const response = await changePassword(
+      userId,
+      {
+        newPassword: formData.value.newPassword,
+        currentPassword: formData.value.currentPassword,
+      },
+    );
 
     if (!response.error) {
       isSaving.value = false;

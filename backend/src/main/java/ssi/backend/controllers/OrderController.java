@@ -16,6 +16,7 @@ import com.nimbusds.jose.JOSEException;
 import jakarta.validation.Valid;
 import ssi.backend.dtos.*;
 import ssi.backend.services.OrderService;
+import ssi.backend.services.UserService;
 
 @RestController
 @RequestMapping("/itb-mshop")
@@ -23,6 +24,8 @@ import ssi.backend.services.OrderService;
 public class OrderController {
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/v2/users/{id}/orders")
     public ResponseEntity<OrderBuyerPageDTO> getOrderBuyer(@PathVariable("id") Integer buyerId,
@@ -61,7 +64,8 @@ public class OrderController {
 
     @PostMapping("/v2/orders")
     public ResponseEntity<List<OrderResponseDTO>> createOrders(@Valid @RequestBody List<OrderRequestDTO> orderRequestDTOs) throws ParseException, JOSEException {
-    List<OrderResponseDTO> responses = new ArrayList<>();
+        userService.updateAddressAndNote(orderRequestDTOs.getFirst().getBuyerId(),orderRequestDTOs.getFirst().getShippingAddress(),orderRequestDTOs.getFirst().getOrderNote());
+        List<OrderResponseDTO> responses = new ArrayList<>();
     for (OrderRequestDTO orderRequestDTO : orderRequestDTOs) {
         OrderResponseDTO response = orderService.createOrder(orderRequestDTO);
         responses.add(response);

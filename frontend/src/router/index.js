@@ -156,7 +156,6 @@ router.beforeEach(async (to, from, next) => {
     await userStore.waitForUser();
   } catch (error) {
     console.log(error);
-    
   } finally {
     if (to.meta.requiresAuth) {
       const isLoggedIn = userStore.hasInfo();
@@ -166,15 +165,18 @@ router.beforeEach(async (to, from, next) => {
 
       if (!isLoggedIn) {
         next({ name: "signin" });
+        return;
       } else if (
         to.meta.role?.toUpperCase() === "SELLER" &&
         userType !== "SELLER"
       ) {
         next({ name: "sale-items" });
+        return;
       }
     }
 
     next();
+    return;
   }
 });
 
