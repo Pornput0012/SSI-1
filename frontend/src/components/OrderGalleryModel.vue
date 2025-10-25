@@ -70,7 +70,7 @@ const handleNewOrder = async () => {
         class="bg-gradient-to-r px-6 py-4 border-b-2 border-blue-100"
         :class="
           order.orderStatus === 'COMPLETED'
-            ? 'from-blue-50 to-indigo-50'
+            ? 'from-green-300 to-blue-200'
             : 'from-red-400 to-orange-200'
         "
       >

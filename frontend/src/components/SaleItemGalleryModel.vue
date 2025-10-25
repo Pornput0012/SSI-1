@@ -1,15 +1,15 @@
 <script setup>
-import noImage from "@/assets/No_image_available.png";
-import router from "@/router";
-import { getImageByFileName } from "@/services/SaleItemService";
-import { useCartStore } from "@/stores/CartStore";
-import { useUserStore } from "@/stores/UserStore";
-import { computed, onMounted, ref } from "vue";
-import { addItemToCart } from "@/services/CartService";
-import { useNotiStore } from "@/stores/NotiStore";
+import noImage from '@/assets/No_image_available.png'
+import router from '@/router'
+import { getImageByFileName } from '@/services/SaleItemService'
+import { useCartStore } from '@/stores/CartStore'
+import { useUserStore } from '@/stores/UserStore'
+import { computed, onMounted, ref } from 'vue'
+import { addItemToCart } from '@/services/CartService'
+import { useNotiStore } from '@/stores/NotiStore'
 const notiStore = useNotiStore()
-const cartStore = useCartStore();
-const userStore = useUserStore();
+const cartStore = useCartStore()
+const userStore = useUserStore()
 const props = defineProps({
   id: {
     type: Number,
@@ -35,74 +35,78 @@ const props = defineProps({
     required: false,
   },
 
-  sellerId :{
+  sellerId: {
     type: Number,
     required: true,
-  }
-});
+  },
+})
 
-const hasError = ref("");
-const userNickname = computed(() => userStore.getNickName());
-const userId = computed(() => userStore.getUserId());
+const hasError = ref('')
+const userNickname = computed(() => userStore.getNickName())
+const userId = computed(() => userStore.getUserId())
 
-const imageUrl = ref(null);
+const imageUrl = ref(null)
 
 const loadImages = async () => {
   try {
     if (props.fileName?.fileName) {
-      const image_url = await getImageByFileName(props.fileName.fileName);
-      imageUrl.value = image_url;
+      const image_url = await getImageByFileName(props.fileName.fileName)
+      imageUrl.value = image_url
     } else {
-      imageUrl.value = noImage;
+      imageUrl.value = noImage
     }
   } catch (error) {
-    console.error(`Failed to load image:`, error);
-    imageUrl.value = noImage;
+    console.error(`Failed to load image:`, error)
+    imageUrl.value = noImage
   }
-};
+}
 
 onMounted(async () => {
-  await loadImages();
-});
+  await loadImages()
+})
+
+const showSuccessToast = ref(false)
 
 const addToCart = async () => {
   if (!userNickname.value) {
-    router.push({ name: "signin" });
-    return;
+    router.push({ name: 'signin' })
+    return
   }
 
   if (userId.value === props.sellerId) {
     notiStore.addToCartFail = true
-    return ;
+    return
   }
-  
-  try {
-    
 
+  try {
     const data = {
       userId: userId.value,
       productId: props.id,
       imageFileName: props.fileName?.fileName || '',
       quantity: 1,
-    };
+    }
 
-    console.log("Adding to cart:", data);
-    const response = await addItemToCart(data);
-    console.log("Add to cart response:", response);
+    console.log('Adding to cart:', data)
+    const response = await addItemToCart(data)
+    console.log('Add to cart response:', response)
 
     if (response.error) {
       notiStore.addToCartFail = true
-      throw new Error(response.error);
+      throw new Error(response.error)
     }
 
-    cartStore.addToCart(response);
-    console.log("Successfully added to cart store");
-    console.log( cartStore.getCarts());
+    cartStore.addToCart(response)
+    showSuccessToast.value = true
+    setTimeout(() => {
+      showSuccessToast.value = false
+    }, 2000)
+    console.log('Successfully added to cart store')
+    console.log(cartStore.getCarts())
   } catch (error) {
-    console.error("Error adding to cart:", error);
-    hasError.value = error.message || "Failed to add item to cart";
+    console.error('Error adding to cart:', error)
+    hasError.value = error.message || 'Failed to add item to cart'
   }
-};
+}
 </script>
 
 <template>
@@ -185,6 +189,13 @@ const addToCart = async () => {
       </div>
     </div>
   </RouterLink>
+
+  <!-- ✅ Toast Notification -->
+  <div v-if="showSuccessToast" class="toast toast-bottom toast-end z-50">
+    <div class="alert alert-success">
+      <span>✓ Added to cart!</span>
+    </div>
+  </div>
 </template>
 
 <style scoped></style>

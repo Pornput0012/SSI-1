@@ -20,6 +20,8 @@ import OrderDetailView from "@/views/OrderDetailView.vue";
 import SaleOrders from "@/views/SaleOrdersView.vue";
 import SaleOrdersDetail from "@/views/SaleOrdersDetail.vue";
 import ChangePassword from "@/views/ChangePasswordView.vue";
+import ForgotPasswordView from "@/views/ForgotPasswordView.vue";
+import ResetPasswordView from "@/views/ResetPasswordView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -106,6 +108,16 @@ const router = createRouter({
       name: "changePassword",
     },
     {
+      path: "/forgot-password",
+      component: ForgotPasswordView,
+      name: "forgotPassword",
+    },
+    {
+      path: "/reset-password",
+      component: ResetPasswordView,
+      name: "resetPassword",
+    },
+    {
       path: "/cart",
       component: CartView,
       name: "cart",
@@ -144,7 +156,6 @@ router.beforeEach(async (to, from, next) => {
     await userStore.waitForUser();
   } catch (error) {
     console.log(error);
-    
   } finally {
     if (to.meta.requiresAuth) {
       const isLoggedIn = userStore.hasInfo();
@@ -154,15 +165,18 @@ router.beforeEach(async (to, from, next) => {
 
       if (!isLoggedIn) {
         next({ name: "signin" });
+        return;
       } else if (
         to.meta.role?.toUpperCase() === "SELLER" &&
         userType !== "SELLER"
       ) {
         next({ name: "sale-items" });
+        return;
       }
     }
 
     next();
+    return;
   }
 });
 

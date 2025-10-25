@@ -1,10 +1,14 @@
 import { useOrderStore } from "@/stores/OrderStore";
+import { useUserStore } from "@/stores/UserStore";
 
-const ORDER_API_URL_V2 = `${
-  import.meta.env.VITE_URL_API || "/ssi1"
-}/itb-mshop/v2/orders`;
+const ORDER_API_URL_V2 = `${import.meta.env.VITE_URL_API || "/ssi1"}/itb-mshop/v2/orders`;
 const getAccessToken = () => {
-  return localStorage.getItem("access_token");
+  try {
+    const userStore = useUserStore();
+    return userStore.getAccessToken();
+  } catch (err) {
+    return localStorage.getItem("access_token");
+  }
 };
 
 const getOrdersBuyer = async (buyerId, pageInfo = { page: 0, size: 10 }) => {

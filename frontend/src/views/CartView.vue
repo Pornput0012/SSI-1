@@ -1,131 +1,156 @@
 <script setup>
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import { deleteCartById, getAllCart, updateCart } from '@/services/CartService'
-import { useCartStore } from '@/stores/CartStore'
-import { useUserStore } from '@/stores/UserStore'
-import noImage from '@/assets/No_image_available.png'
-import { computed, onMounted, ref, watch, watchEffect } from 'vue'
-import { getImageByFileName } from '@/services/SaleItemService'
-import { createOrder } from '@/services/OrderService'
-import { useOrderStore } from '@/stores/OrderStore'
-import router from '@/router'
-import { useFilterStore } from '@/stores/FilterStore'
-import { useNotiStore } from '@/stores/NotiStore'
+import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { deleteCartById, getAllCart, updateCart } from "@/services/CartService";
+import { useCartStore } from "@/stores/CartStore";
+import { useUserStore } from "@/stores/UserStore";
+import noImage from "@/assets/No_image_available.png";
+import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import { getImageByFileName } from "@/services/SaleItemService";
+import { createOrder } from "@/services/OrderService";
+import { useOrderStore } from "@/stores/OrderStore";
+import router from "@/router";
+import { useFilterStore } from "@/stores/FilterStore";
+import { useNotiStore } from "@/stores/NotiStore";
 
-const userStore = useUserStore()
-const cartStore = useCartStore()
-const userId = computed(() => userStore.getUserId())
+const userStore = useUserStore();
+const cartStore = useCartStore();
+const userId = computed(() => userStore.getUserId());
 // Mockup ข้อมูลสินค้า
-const carts = ref([])
-
-const hasError = ref('')
+const carts = ref([]);
+const shipTo = ref({
+  address: "",
+  note: "",
+});
+const hasError = ref("");
 
 onMounted(async () => {
-  loadSavedData()
+  loadSavedData();
   try {
     if (cartStore.carts) {
       carts.value = cartStore.carts.map((ele) => {
         return {
           ...ele,
           checkAll: false,
+        };
+      });
+      // initialize shipTo from store if available
+      if (cartStore.carts && cartStore.carts.length > 0) {
+        const first = cartStore.carts[0];
+        if (first) {
+          shipTo.value.address = first.address || shipTo.value.address;
+          shipTo.value.note = first.note || shipTo.value.note;
+          // keep persistent vars in sync
+          shippingAddress.value = shipTo.value.address;
+          orderNote.value = shipTo.value.note;
         }
-      })
+      }
     } else {
-      console.log('Fetching cart for user:', userId.value)
+      console.log("Fetching cart for user:", userId.value);
 
-      const response = await getAllCart(userId.value)
+      const response = await getAllCart(userId.value);
 
       if (response.error) {
-        throw new Error(response.error)
+        throw new Error(response.error);
+      }
+      // response is the fetched cart list; set shipTo from the first seller entry if present
+      const first = response && response.length ? response[0] : null;
+      if (first) {
+        shipTo.value.address = first.address || shipTo.value.address;
+        shipTo.value.note = first.note || shipTo.value.note;
+        // keep persistent vars in sync
+        shippingAddress.value = shipTo.value.address;
+        orderNote.value = shipTo.value.note;
       }
 
       carts.value = response?.map((ele) => {
         return {
           ...ele,
           cart: ele?.cart.map((ele) => {
-            return { ...ele, checked: false }
+            return { ...ele, checked: false };
           }),
           checkAll: false,
-        }
-      })
+        };
+      });
     }
-    console.log('Cart data loaded:', carts.value)
+    console.log("Cart data loaded:", carts.value);
     // โหลดรูปภาพหลังจากได้ข้อมูล cart
-    await loadImages()
+    await loadImages();
   } catch (error) {
-    hasError.value = error.message
-    console.error('Error loading cart:', error)
+    hasError.value = error.message;
+    console.error("Error loading cart:", error);
   }
 
-  console.log(cartStore.carts)
-})
+  console.log(cartStore.carts);
+});
 
-const selectAll = ref(false)
+const selectAll = ref(false);
 
 const itemSelected = computed(() => {
-  return carts.value.flatMap((cart) => cart.cart.filter((item) => item.checked))
-})
+  return carts.value.flatMap((cart) =>
+    cart.cart.filter((item) => item.checked)
+  );
+});
 
 const selectSellerState = computed(() => {
   return carts.value.every((item) => {
-    return item.checkAll === true
-  })
-})
+    return item.checkAll === true;
+  });
+});
 
 const loadImages = async () => {
-  console.log('hi')
+  console.log("hi");
 
   try {
     for (const ele of carts.value) {
-      console.log('hi2')
-      console.log(ele.cart)
+      console.log("hi2");
+      console.log(ele.cart);
 
       for (const item of ele.cart) {
         if (item.imageName) {
-          console.log('Loading image for:', item.imageName)
-          const image_url = await getImageByFileName(item.imageName)
-          item.image = image_url
-          console.log('Loaded image:', item.image)
+          console.log("Loading image for:", item.imageName);
+          const image_url = await getImageByFileName(item.imageName);
+          item.image = image_url;
+          console.log("Loaded image:", item.image);
         } else {
-          console.log('No image name, using default')
-          item.image = noImage
+          console.log("No image name, using default");
+          item.image = noImage;
         }
       }
     }
   } catch (error) {
-    console.error(`Failed to load images:`, error)
+    console.error(`Failed to load images:`, error);
   }
-}
+};
 
 onMounted(async () => {
-  await loadImages()
-})
+  await loadImages();
+});
 
 watchEffect(() => {
   carts.value.forEach((cart) => {
     // ถ้าสินค้าทุกตัวในร้านถูกเลือก
     cart.checkAll =
-      cart.cart.length > 0 && cart.cart.every((item) => item.checked)
-  })
+      cart.cart.length > 0 && cart.cart.every((item) => item.checked);
+  });
 
   // sync selectAll ด้วย (ยังใช้ได้เหมือนเดิม)
   selectAll.value =
-    carts.value.length > 0 && carts.value.every((cart) => cart.checkAll)
-})
+    carts.value.length > 0 && carts.value.every((cart) => cart.checkAll);
+});
 
 const totalPrice = computed(() => {
   return itemSelected.value.reduce(
     (sum, item) => sum + item.productPrice * item.quantity,
     0
-  )
-})
+  );
+});
 
-const queque = ref([])
+const queque = ref([]);
 // เพิ่ม/ลดจำนวน
 const updateQuantity = (item, newQuantity) => {
   // ป้องกันไม่ให้ quantity น้อยกว่า 1
-  item.quantity = Math.max(0, newQuantity)
-}
+  item.quantity = Math.max(0, newQuantity);
+};
 
 const callUpdateCart = async (item) => {
   try {
@@ -134,39 +159,39 @@ const callUpdateCart = async (item) => {
       productId: item.id,
       imageFileName: item.fileName,
       quantity: item.quantity,
-    }
+    };
 
-    const response = await updateCart(item.id, data)
+    const response = await updateCart(item.id, data);
     if (response.error) {
-      throw new Error(response.error)
+      throw new Error(response.error);
     }
 
-    cartStore.updateProductCartById(item)
+    cartStore.updateProductCartById(item);
   } catch (error) {
-    hasError.value = error.message
-    console.error('Error update cart:', error)
+    hasError.value = error.message;
+    console.error("Error update cart:", error);
   }
-}
+};
 
 const itemExist = (item, arr) => {
-  let changeQuantity
+  let changeQuantity;
   return {
     index: arr.findIndex((ele) => {
       if (ele.id === item.id) {
-        changeQuantity = ele
+        changeQuantity = ele;
       }
-      return ele.id === item.id
+      return ele.id === item.id;
     }),
     changeQuantity,
-  }
-}
-const deleteTargetId = ref(null)
-const deleteTargetPid = ref(null)
+  };
+};
+const deleteTargetId = ref(null);
+const deleteTargetPid = ref(null);
 
 const increaseQty = (item) => {
   if (item.quantity <= item.productQuantity) {
-    updateQuantity(item, item.quantity + 1)
-    callUpdateCart(item)
+    updateQuantity(item, item.quantity + 1);
+    callUpdateCart(item);
   }
   // const itemWait = itemExist(item, queque.value);
   // if (itemWait.index == -1) {
@@ -175,112 +200,112 @@ const increaseQty = (item) => {
   //   console.log("else");
   //   itemWait.changeQuantity.quantity++;
   // }
-}
+};
 
-const showWarningModal = ref(false)
-const showDeleteModal = ref(false)
+const showWarningModal = ref(false);
+const showDeleteModal = ref(false);
 
 const confirmDelete = () => {
-  console.log('confirm')
+  console.log("confirm");
 
-  showDeleteModal.value = true
-}
+  showDeleteModal.value = true;
+};
 
 const decreaseQty = (item) => {
   // const itemWait = itemExist(item, queque.value);
   // if (itemWait.index == -1) {
-  console.log('0')
+  console.log("0");
   if (item.quantity === 1) {
-    console.log('before set')
+    console.log("before set");
 
-    console.log('id' + item.id)
-    console.log('pid' + item.productId)
-    deleteTargetId.value = item.id
-    console.log(deleteTargetId.value)
+    console.log("id" + item.id);
+    console.log("pid" + item.productId);
+    deleteTargetId.value = item.id;
+    console.log(deleteTargetId.value);
 
-    deleteTargetPid.value = item.productId
-    console.log('after set')
-    confirmDelete()
-    return
+    deleteTargetPid.value = item.productId;
+    console.log("after set");
+    confirmDelete();
+    return;
   }
 
-  updateQuantity(item, item.quantity - 1)
+  updateQuantity(item, item.quantity - 1);
   if (item.quantity !== 0) {
-    callUpdateCart(item)
+    callUpdateCart(item);
   }
   //   queque.value.push(item);
   // } else {
   //   console.log("else");
   //   itemWait.changeQuantity.quantity--;
   // }
-}
+};
 
 const checkAllItem = (i) => {
   const isAllTrue = carts.value[i].cart.every((item) => {
-    return item.checked
-  })
+    return item.checked;
+  });
   const isAllFalse = carts.value[i].cart.every((item) => {
-    return !item.checked
-  })
+    return !item.checked;
+  });
   if (isAllTrue || isAllFalse) {
     carts.value[i].cart.forEach((item) => {
-      item.checked = !item.checked
-      return
-    })
+      item.checked = !item.checked;
+      return;
+    });
   } else {
     carts.value[i].cart.forEach((item) => {
       if (item.checked === true) {
-        item.checked = false
+        item.checked = false;
       }
-      item.checked = !item.checked
-      return
-    })
+      item.checked = !item.checked;
+      return;
+    });
   }
-}
+};
 
 const productLength = computed(() => {
-  let countItem = 0
+  let countItem = 0;
   if (carts.value) {
     carts.value.forEach((sellerCart) => {
       sellerCart.cart.forEach((item) => {
-        countItem++
-      })
-    })
+        countItem++;
+      });
+    });
   }
-  return countItem
-})
+  return countItem;
+});
 
 const removeCart = async (id, pid) => {
   try {
-    showDeleteModal.value = false
-    console.log(id)
+    showDeleteModal.value = false;
+    console.log(id);
 
     if (id) {
-      const response = await deleteCartById(id)
+      const response = await deleteCartById(id);
       if (response.success) {
-        const hasSaleItem = cartStore.findProductById(pid)
+        const hasSaleItem = cartStore.findProductById(pid);
         if (hasSaleItem.found) {
-          cartStore.deleteProductById(pid)
-          deleteTargetId.value = null
-          deleteTargetPid.value = null
-          return
+          cartStore.deleteProductById(pid);
+          deleteTargetId.value = null;
+          deleteTargetPid.value = null;
+          return;
         } else {
-          showWarningModal.value = true
-          deleteTargetId.value = null
-          deleteTargetPid.value = null
-          return
+          showWarningModal.value = true;
+          deleteTargetId.value = null;
+          deleteTargetPid.value = null;
+          return;
         }
       } else {
-        throw new Error('An error has occurred, the cart does not exist.')
+        throw new Error("An error has occurred, the cart does not exist.");
       }
     }
   } catch (error) {
-    console.error(error)
+    console.error(error);
 
     // errorMessage.value = error.message;
     // isNotFound.value = true;
   }
-}
+};
 // const hasUpdateQueue = ref(false);
 // watchEffect(() => {
 //   if (!hasUpdateQueue.value) {
@@ -295,41 +320,54 @@ const removeCart = async (id, pid) => {
 //   }
 // });
 const STORAGE_KEYS = {
-  SHIPPING_ADDRESS: 'shippingAddress',
-  ORDER_NOTE: 'orderNote',
-}
-const shippingAddress = ref('')
-const orderNote = ref('')
-const orderStore = useOrderStore()
+  SHIPPING_ADDRESS: "shippingAddress",
+  ORDER_NOTE: "orderNote",
+};
+const shippingAddress = ref("");
+const orderNote = ref("");
+const orderStore = useOrderStore();
 
 const loadSavedData = () => {
-  const savedAddress = sessionStorage.getItem(STORAGE_KEYS.SHIPPING_ADDRESS)
-  const savedNote = sessionStorage.getItem(STORAGE_KEYS.ORDER_NOTE)
+  const savedAddress = sessionStorage.getItem(STORAGE_KEYS.SHIPPING_ADDRESS);
+  const savedNote = sessionStorage.getItem(STORAGE_KEYS.ORDER_NOTE);
 
   if (savedAddress) {
-    shippingAddress.value = savedAddress
+    // restore into both the visible form (shipTo) and the backing var (shippingAddress)
+    shippingAddress.value = savedAddress;
+    shipTo.value.address = savedAddress;
   }
   if (savedNote) {
-    orderNote.value = savedNote
+    orderNote.value = savedNote;
+    shipTo.value.note = savedNote;
   }
-}
+};
 
 // บันทึก address และ note ลง sessionStorage
 const saveFormData = () => {
-  sessionStorage.setItem(STORAGE_KEYS.SHIPPING_ADDRESS, shippingAddress.value.trim())
-  sessionStorage.setItem(STORAGE_KEYS.ORDER_NOTE, orderNote.value.trim())
-}
+  // keep the backing vars in sync with visible shipTo before saving
+  shippingAddress.value = shipTo.value.address;
+  orderNote.value = shipTo.value.note;
+
+  sessionStorage.setItem(
+    STORAGE_KEYS.SHIPPING_ADDRESS,
+    shippingAddress.value ? shippingAddress.value.trim() : ""
+  );
+  sessionStorage.setItem(
+    STORAGE_KEYS.ORDER_NOTE,
+    orderNote.value ? orderNote.value.trim() : ""
+  );
+};
 
 const handlePlaceOrder = async () => {
   try {
-    const orderRequestList = []
+    const orderRequestList = [];
 
     carts.value.forEach((sellerCart) => {
       console.log(sellerCart);
-      
-      const selectedItems = sellerCart.cart.filter((item) => item.checked)
+
+      const selectedItems = sellerCart.cart.filter((item) => item.checked);
       if (selectedItems.length === 0) {
-        return
+        return;
       }
       const orderItems = selectedItems.map((item) => ({
         saleItemId: item.productId,
@@ -337,73 +375,74 @@ const handlePlaceOrder = async () => {
         quantity: item.quantity,
         description:
           item.productBrandName +
-          ' ' +
+          " " +
           item.productModel +
-          ' (' +
+          " (" +
           item.productStorageGb +
-          'GB,' +
+          "GB," +
           item.productColor +
-          ')',
-      }))
+          ")",
+      }));
 
       console.log(sellerCart.productSellerId);
 
-      const isSellerSelect = sellerCart.cart.some((item) => item.checked)
-     console.log(isSellerSelect);
-     
-      
+      const isSellerSelect = sellerCart.cart.some((item) => item.checked);
+      console.log(isSellerSelect);
+
       if (isSellerSelect) {
         orderRequestList.push({
           buyerId: userId.value,
-          sellerId : sellerCart.productSellerId,
+          sellerId: sellerCart.productSellerId,
           shippingAddress: shippingAddress.value,
           orderNote: orderNote.value,
           orderItems,
-          orderStatus: 'COMPLETED',
-        })
+          orderStatus: "COMPLETED",
+        });
       }
-    })
+    });
 
     if (orderRequestList.length === 0) {
-      return
+      return;
     }
 
-    console.log('📦 Order Payload:', JSON.stringify(orderRequestList, null, 2))
+    console.log("📦 Order Payload:", JSON.stringify(orderRequestList, null, 2));
 
-    const response = await createOrder(orderRequestList)
+    const response = await createOrder(orderRequestList);
 
     if (response.error) {
-      throw new Error(response.error)
+      throw new Error(response.error);
     }
 
-    saveFormData()
+    saveFormData();
 
-    orderStore.addOrder(response)
+    orderStore.addOrder(response);
 
     carts.value.forEach((sellerCart, i) => {
-      sellerCart.cart = sellerCart.cart.filter((item) => !item.checked)
-    })
+      sellerCart.cart = sellerCart.cart.filter((item) => !item.checked);
+    });
 
-    carts.value = carts.value.filter((sellerCart) => sellerCart.cart.length > 0)
+    carts.value = carts.value.filter(
+      (sellerCart) => sellerCart.cart.length > 0
+    );
 
-    cartStore.setCart(carts.value)
+    cartStore.setCart(carts.value);
 
     // shippingAddress.value = ''
     // orderNote.value = ''
 
-    sessionStorage.removeItem('pageInfo')
+    sessionStorage.removeItem("pageInfo");
 
-    orderCreateSuccess()
+    orderCreateSuccess();
   } catch (error) {
-    console.error(error)
+    console.error(error);
   }
-}
+};
 
 watch([shippingAddress, orderNote], () => {
   if (shippingAddress.value || orderNote.value) {
-    saveFormData()
+    saveFormData();
   }
-})
+});
 
 const notiStore = useNotiStore();
 const orderCreateSuccess = () => {
@@ -412,10 +451,11 @@ const orderCreateSuccess = () => {
 };
 
 const isPlaceOrderDisabled = computed(() => {
-  const hasNoItems = itemSelected.value.length === 0
-  const hasNoAddress = !shippingAddress.value || shippingAddress.value.trim() === ''
-  return hasNoItems || hasNoAddress
-})
+  const hasNoItems = itemSelected.value.length === 0;
+  const hasNoAddress =
+    !shippingAddress.value || shippingAddress.value.trim() === "";
+  return hasNoItems || hasNoAddress;
+});
 </script>
 
 <template>
@@ -443,8 +483,8 @@ const isPlaceOrderDisabled = computed(() => {
               v-model="selectAll"
               @change="
                 carts.forEach((cart) => {
-                  cart.checkAll = selectAll
-                  cart.cart.forEach((item) => (item.checked = selectAll))
+                  cart.checkAll = selectAll;
+                  cart.cart.forEach((item) => (item.checked = selectAll));
                 })
               "
               class="checkbox checkbox-primary itbms-select-all"
@@ -503,13 +543,13 @@ const isPlaceOrderDisabled = computed(() => {
                   </div>
                   <span class="itbms-item-description text-sm lg:text-lg">{{
                     item.productBrandName +
-                    ' ' +
+                    " " +
                     item.productModel +
-                    ' (' +
+                    " (" +
                     item.productStorageGb +
-                    'GB,' +
+                    "GB," +
                     item.productColor +
-                    ')'
+                    ")"
                   }}</span>
                 </div>
                 <div class="flex gap-6 items-center">
@@ -550,12 +590,14 @@ const isPlaceOrderDisabled = computed(() => {
         </div>
 
         <!-- Summary -->
-        <div class="flex flex-col h-fit bg-white w-full lg:w-80 mx-auto p-4 rounded-xl">
+        <div
+          class="flex flex-col h-fit bg-white w-full lg:w-80 mx-auto p-4 rounded-xl"
+        >
           <div>
             <p class="font-bold text-2xl mb-4 sm:mb-6 md:mb-10 lg:mb-0">
               Cart Summary
             </p>
-             <hr class="my-3 text-base-300" />
+            <hr class="my-3 text-base-300" />
 
             <!-- Ship To Section -->
             <div class="mt-4 mb-4">
@@ -568,23 +610,24 @@ const isPlaceOrderDisabled = computed(() => {
                 >
               </label>
               <textarea
-                v-model.trim="shippingAddress"
+                v-model.trim="shipTo.address"
                 class="itbms-shipping-address textarea textarea-bordered w-full h-24 text-sm"
                 placeholder="123/45 Moo 6, T. Bangna, A. Bangna, Bangkok 10260"
-              ></textarea>
+                ></textarea
+              >
             </div>
 
             <!-- Note Section -->
             <div class="mb-4">
               <p class="font-bold text-sm mb-2">Note</p>
               <textarea
-                v-model.trim="orderNote"
+                v-model.trim="shipTo.note"
                 class="itbms-order-note textarea textarea-bordered w-full h-20 text-sm"
                 placeholder="Additional instructions or requests"
               ></textarea>
             </div>
 
-             <hr class="my-3 text-base-300" />
+            <hr class="my-3 text-base-300" />
 
             <div class="mt-3">
               <div class="flex justify-between itbms-total-orders-items">

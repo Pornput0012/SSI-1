@@ -1,12 +1,9 @@
 package ssi.backend.services;
 
 import com.nimbusds.jose.JOSEException;
-import org.eclipse.angus.mail.imap.protocol.Item;
-import org.hibernate.annotations.NotFound;
+import com.nimbusds.jwt.SignedJWT;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.bouncycastle.crypto.params.Argon2Parameters;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -247,7 +244,72 @@ public class UserService {
         return response;
     }
 
+    public ChangePasswordResponseDto sendUrlResetPassword(EmailRequestDTO emailRequestDTO) throws ParseException, JOSEException {
+        User user = userRepository.findByEmail(emailRequestDTO.getEmail());
+        if (user == null) {
+            throw new BadRequestException("Email not found");
+        }
 
+        String token = jwtService.generateResetPasswordToken(user.getId(), user.getEmail());
+
+        String resetUrl = hostProperties.getUrl() + "/reset-password?token=" + token;
+
+        String to = user.getEmail();
+        String subject = "Reset your password | ITB-MSHOP";
+        String body = """
+                Hello %s,
+                
+                We received a request to reset your password.
+                You can reset it by clicking the link below:
+                
+                %s
+                
+                If you didn’t request a password reset, please ignore this email.
+                This link will expire in 15 minutes.
+                
+                Best regards,
+                ITB-MSHOP Team
+                """.formatted(user.getFullname(), resetUrl);
+
+
+        emailService.sendEmail(to, subject, body);
+        ChangePasswordResponseDto response = new ChangePasswordResponseDto();
+        response.setMessage("Send your password reset link");
+        response.setSuccess(Boolean.TRUE);
+        return response;
+
+    }
+
+    public ChangePasswordResponseDto resetPassword(String token, ResetPasswordDTO resetPassword) throws ParseException, JOSEException {
+        jwtService.validateVerifyResetPassword(token);
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        String email = signedJWT.getJWTClaimsSet().getClaim("email").toString();
+
+        ChangePasswordResponseDto response = new ChangePasswordResponseDto();
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new BadRequestException("Email not found");
+        }
+
+        if(!resetPassword.getNewPassword().equals(resetPassword.getConfirmPassword())) {
+            throw new BadRequestException("Passwords do not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(resetPassword.getNewPassword()));
+        userRepository.save(user);
+        response.setMessage("New password has been sent");
+        response.setSuccess(Boolean.TRUE);
+
+        return response;
+    }
+
+    public void updateAddressAndNote (Integer id,String address, String note) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        user.setAddress(address);
+        user.setNote(note);
+        userRepository.save(user);
+    }
     public boolean idCardCheck(String idCard) {
 
         if (idCard == null) {

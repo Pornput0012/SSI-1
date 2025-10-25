@@ -1,5 +1,6 @@
 import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useUserStore } from "@/stores/UserStore";
 
 const SALE_ITEM_API_URL_V1 = `${
   import.meta.env.VITE_URL_API || "/ssi1"
@@ -9,7 +10,12 @@ const SALE_ITEM_API_URL_V2 = `${
 }/itb-mshop/v2/sale-items`;
 
 const getAccessToken = () => {
-  return localStorage.getItem("access_token");
+  try {
+    const userStore = useUserStore();
+    return userStore.getAccessToken();
+  } catch (err) {
+    return localStorage.getItem("access_token");
+  }
 };
 
 // GET all sale-items
@@ -225,8 +231,6 @@ const createSaleItem_v2 = async (saleItem, images) => {
         formData.append("images", img.file, fileName);
       });
     }
-
-    const token = localStorage.getItem("access_token");
 
     const response = await fetch(`${SALE_ITEM_API_URL_V2}`, {
       method: "POST",

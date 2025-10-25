@@ -6,8 +6,17 @@ const AUTH_API_URL = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v2/auth`;
 
-const getAccessToken = () => {
-  return localStorage.getItem("access_token");
+import { useUserStore } from "@/stores/UserStore";
+
+const getAccessTokenFromLocalStorage = () => {
+  // Keep function name for compatibility, but read token from Pinia user store
+  try {
+    const userStore = useUserStore();
+    return userStore.getAccessToken();
+  } catch (err) {
+    // fallback to localStorage if store isn't available
+    return localStorage.getItem("access_token");
+  }
 };
 
 const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
@@ -57,6 +66,7 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
 
 const login = async (email, password) => {
   try {
+    
     if (!email || !password) {
       throw new Error("Please enter your email and password!");
     }
@@ -73,13 +83,21 @@ const login = async (email, password) => {
     });
     const data = await response.json();
     if (data.access_token) {
-      localStorage.setItem("access_token", data.access_token);
+      try {
+        const userStore = useUserStore();
+        userStore.setAccessToken(data.access_token);
+      } catch (err) {
+        // fallback: still write to localStorage if store not available
+        localStorage.setItem("access_token", data.access_token);
+      }
     }
 
     if (response.status === 200) {
-      return { success: true };
+      return { success: true, token: data.access_token };
     } else if (response.status === 401 || response.status === 403) {
-      const { message } = await response.json();
+      // response body already parsed into `data` above; reuse it instead of
+      // calling response.json() again which would fail with "body stream already read"
+      const message = data && data.message ? data.message : 'Unauthorized';
       throw new Error(message);
     } else {
       throw new Error(
@@ -102,7 +120,12 @@ const getAccessTokenFromRefreshToken = async () => {
     });
     const data = await response.json();
     if (data.access_token) {
-      localStorage.setItem("access_token", data.access_token);
+      try {
+        const userStore = useUserStore();
+        userStore.setAccessToken(data.access_token);
+      } catch (err) {
+        localStorage.setItem("access_token", data.access_token);
+      }
     }
 
     if (response.status != 200) {
@@ -114,12 +137,15 @@ const getAccessTokenFromRefreshToken = async () => {
   }
 };
 
-const getProfile = async (retryCount = 0) => {
+const getProfile = async (token, retryCount = 0) => {
   try {
     const response = await fetch(USER_API_URL, {
       method: "GET",
       headers: {
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+        Authorization:
+          token || getAccessTokenFromLocalStorage()
+            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+            : "",
       },
     });
 
@@ -140,10 +166,15 @@ const getProfile = async (retryCount = 0) => {
     if (retryCount < 1) {
       console.log("use refresh!");
 
-      localStorage.removeItem("access_token");
+      try {
+        const userStore = useUserStore();
+        userStore.setAccessToken(null);
+      } catch (err) {
+        localStorage.removeItem("access_token");
+      }
       const res = await getAccessTokenFromRefreshToken();
       if (res.ok) {
-        return await getProfile(retryCount + 1);
+        return await getProfile(token, retryCount + 1);
       }
     }
 
@@ -179,13 +210,16 @@ const getImageByFileName = async (fileName) => {
     return { error: error.message };
   }
 };
-const getUserById = async (id) => {
+const getUserById = async (id, token) => {
   try {
     if (!id) throw new Error("User ID is required.");
     const response = await fetch(`${USER_API_URL}/${id}`, {
       method: "GET",
       headers: {
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+        Authorization:
+          token || getAccessTokenFromLocalStorage()
+            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+            : "",
       },
     });
 
@@ -200,19 +234,26 @@ const getUserById = async (id) => {
     return { error };
   }
 };
-const logout = async () => {
+const logout = async (token) => {
   try {
     const response = await fetch(`${AUTH_API_URL}/logout`, {
       method: "POST",
       headers: {
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+        Authorization:
+          token || getAccessTokenFromLocalStorage()
+            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+            : "",
       },
       credentials: "include",
     });
 
     if (response.ok) {
-      console.log("Success");
-      localStorage.removeItem("access_token");
+      try {
+        const userStore = useUserStore();
+        userStore.setAccessToken(null);
+      } catch (err) {
+        localStorage.removeItem("access_token");
+      }
       return { success: true };
     }
     throw new Error("logout fail");
@@ -224,14 +265,17 @@ const logout = async () => {
   }
 };
 
-const updateUserById = async (id, updateUser) => {
+const updateUserById = async (id, updateUser, token) => {
   try {
     if (!id) throw new Error("User ID is required.");
     const response = await fetch(`${USER_API_URL}/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+        Authorization:
+          token || getAccessTokenFromLocalStorage()
+            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+            : "",
       },
       body: JSON.stringify(updateUser),
     });
@@ -247,14 +291,17 @@ const updateUserById = async (id, updateUser) => {
     return { error };
   }
 };
-const changePassword = async (id, updatePassword) => {
+const changePassword = async (id, updatePassword, token) => {
   try {
     if (!id) throw new Error("User ID is required.");
     const response = await fetch(`${USER_API_URL}/${id}/password`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
+        Authorization:
+          token || getAccessTokenFromLocalStorage()
+            ? `Bearer ${token || getAccessTokenFromLocalStorage()}`
+            : "",
       },
       body: JSON.stringify(updatePassword),
     });
@@ -271,6 +318,76 @@ const changePassword = async (id, updatePassword) => {
   }
 };
 
+const forgotPassword = async (email) => {
+  try {
+    if (!email) throw new Error("Email is required.");
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    const response = await fetch(`${AUTH_API_URL}/forgot-password`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, data };
+    }
+
+    const message =
+      data && data.message
+        ? data.message
+        : `Server responded with status ${response.status}`;
+    throw new Error(message);
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+const resetPassword = async (token, resetPassword) => {
+  try {
+    if (!resetPassword)
+      throw new Error("Password and Confirm Password is required.");
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    const response = await fetch(
+      `${AUTH_API_URL}/reset-password?token=${token}`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(resetPassword),
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, data };
+    }
+
+    const message =
+      data && data.message
+        ? data.message
+        : `Server responded with status ${response.status}`;
+    throw new Error(message);
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
 export {
   createUser,
   login,
@@ -280,4 +397,7 @@ export {
   logout,
   updateUserById,
   changePassword,
+  forgotPassword,
+  resetPassword,
+  getAccessTokenFromLocalStorage,
 };
