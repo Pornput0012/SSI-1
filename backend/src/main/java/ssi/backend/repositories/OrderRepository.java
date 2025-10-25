@@ -41,24 +41,4 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
             String searchKeyWord,
             Pageable pageable
     );
-
-    @Query("""
-            SELECT DISTINCT o FROM Order o
-            JOIN o.orderItems oi
-            LEFT JOIN oi.product p
-            LEFT JOIN p.brand b
-            WHERE p.seller.id = :sellerId
-            AND (:brandNames IS NULL OR b.name IN :brandNames)
-            AND (:searchKeyword IS NULL OR 
-                 LOWER(oi.model) LIKE LOWER(CONCAT('%', :searchKeyword, '%')) OR
-                 LOWER(o.buyer.nickname) LIKE LOWER(CONCAT('%', :searchKeyword, '%')))
-            AND (:viewOrder IS NULL OR o.viewOrder = :viewOrder)
-            """)
-    Page<Order> findFilteredSellerOrders(
-            Integer sellerId,
-            List<String> brandNames,
-            String searchKeyword,
-            Boolean viewOrder,
-            Pageable pageable
-    );
 }
