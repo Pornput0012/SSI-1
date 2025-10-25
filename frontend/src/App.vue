@@ -2,6 +2,7 @@
 import { useRoute } from "vue-router";
 import NavBar from "./components/NavBar.vue";
 import { computed } from "vue";
+import GlobalToast from "./components/GlobalToast.vue";
 
 const route = useRoute();
 
@@ -15,6 +16,7 @@ const hasNav = computed(()=>!authenFormPath.includes(route.path))
 <template>
   <NavBar />
   <RouterView />
+  <GlobalToast />
 </template>
 
 <style scoped></style>

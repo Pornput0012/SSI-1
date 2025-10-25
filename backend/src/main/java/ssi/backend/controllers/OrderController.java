@@ -36,7 +36,8 @@ public class OrderController {
             @RequestParam(required = false) List<String> filterBrands,
             @RequestParam(required = false) String searchKeyWord) throws ParseException, JOSEException {
 
-        OrderBuyerPageDTO orderBuyerPage = orderService.getOrderBuyer(buyerId, page, size, sortField, sortDirection, filterBrands, searchKeyWord);
+        OrderBuyerPageDTO orderBuyerPage = orderService.getOrderBuyer(buyerId, page, size, sortField, sortDirection,
+                filterBrands, searchKeyWord);
         return ResponseEntity.ok(orderBuyerPage);
     }
 
@@ -71,6 +72,8 @@ public class OrderController {
     @PostMapping("/v2/orders")
     public ResponseEntity<List<OrderResponseDTO>> createOrders(
             @Valid @RequestBody List<OrderRequestDTO> orderRequestDTOs) throws ParseException, JOSEException {
+        userService.updateAddressAndNote(orderRequestDTOs.getFirst().getBuyerId(),
+                orderRequestDTOs.getFirst().getShippingAddress(), orderRequestDTOs.getFirst().getOrderNote());
         List<OrderResponseDTO> responses = new ArrayList<>();
         for (OrderRequestDTO orderRequestDTO : orderRequestDTOs) {
             OrderResponseDTO response = orderService.createOrder(orderRequestDTO);
