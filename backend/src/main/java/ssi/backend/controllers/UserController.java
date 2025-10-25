@@ -63,6 +63,18 @@ public class UserController {
         return ResponseEntity.ok("Successfully verified");
     }
 
+    @PostMapping("/v2/auth/forgot-password")
+    public ResponseEntity<ChangePasswordResponseDto> forgotPassword(@Valid @RequestBody EmailRequestDTO email) throws ParseException, JOSEException {
+
+        return ResponseEntity.ok(userService.sendUrlResetPassword(email));
+    }
+
+    @PostMapping("/v2/auth/reset-password")
+    public ResponseEntity<ChangePasswordResponseDto> resetPassword(@RequestParam String token,@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) throws ParseException, JOSEException {
+        return ResponseEntity.ok(userService.resetPassword(token, resetPasswordDTO));
+    }
+
+
     @PostMapping("/v2/auth/verify-email")
     public ResponseEntity<UserResponseDTO> verifyEmail(@RequestParam String jwtToken)
             throws ParseException, JOSEException {

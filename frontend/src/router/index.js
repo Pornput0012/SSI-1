@@ -20,6 +20,8 @@ import OrderDetailView from "@/views/OrderDetailView.vue";
 import SaleOrders from "@/views/SaleOrdersView.vue";
 import SaleOrdersDetail from "@/views/SaleOrdersDetail.vue";
 import ChangePassword from "@/views/ChangePasswordView.vue";
+import ForgotPasswordView from "@/views/ForgotPasswordView.vue";
+import ResetPasswordView from "@/views/ResetPasswordView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -104,6 +106,16 @@ const router = createRouter({
       path: "/profile/password",
       component: ChangePassword,
       name: "changePassword",
+    },
+    {
+      path: "/forgot-password",
+      component: ForgotPasswordView,
+      name: "forgotPassword",
+    },
+    {
+      path: "/reset-password",
+      component: ResetPasswordView,
+      name: "resetPassword",
     },
     {
       path: "/cart",
