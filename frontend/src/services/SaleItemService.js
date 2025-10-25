@@ -162,6 +162,31 @@ const deleteSaleItemById = async (id) => {
   }
 };
 
+const deleteSaleItemByIdV2 = async (id) => {
+  try {
+    const { resetCurrentPage } = useFilterStore();
+
+    if (!id) throw new Error(`Sale Item ID is required for deletion.`);
+
+    const response = await fetchWithTokenRetry(`${SALE_ITEM_API_URL_V2}/${id}`, {
+      method: "DELETE",
+      headers: {},
+    });
+
+    if (response.status !== 204) {
+      throw new Error(
+        `Failed to delete Sale Item with ID ${id}. Server responded with status ${response.status}`
+      );
+    }
+    resetCurrentPage();
+    return { success: true };
+  } catch (error) {
+    return {
+      error: `Error deleting Sale Item: ${error.message}`,
+    };
+  }
+};
+
 const createSaleItem = async (saleItem) => {
   try {
     const { resetCurrentPage } = useFilterStore();
@@ -319,9 +344,10 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
       formData.append("orderImages", orderImage);
     }
 
-    const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}`, {
+    const response = await fetchWithTokenRetry(`${SALE_ITEM_API_URL_V2}/${id}`, {
       method: "PUT",
       body: formData,
+      headers: {},
     });
 
     if (!response.ok) {
@@ -367,9 +393,10 @@ const updateSaleItemImageById = async (id, images) => {
       formData.append("orderImages", orderImage);
     }
 
-    const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}/images`, {
+    const response = await fetchWithTokenRetry(`${SALE_ITEM_API_URL_V2}/${id}/images`, {
       method: "PUT",
       body: formData,
+      headers: {},
     });
 
     if (!response.ok) {
@@ -449,4 +476,5 @@ export {
   updateSaleItemById_v2,
   updateSaleItemImageById,
   getSaleItemsBySeller,
+  deleteSaleItemByIdV2,
 };

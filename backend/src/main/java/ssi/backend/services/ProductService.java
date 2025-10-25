@@ -190,8 +190,19 @@ public class ProductService {
     }
 
     public ProductItemResponseDTO updateProduct(Integer id, ProductItemRequestDTO productItemRequestDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId = (Integer) authentication.getDetails();
+
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!existingProduct.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to modify this product.");
+        }
+
         Brand existingBrand = brandRepository.findById(productItemRequestDTO.getBrand().getId())
                 .orElseThrow(() -> new ItemNotFoundException(
                         "Brand id " + productItemRequestDTO.getBrand().getId() + " does not exist"));
@@ -211,24 +222,48 @@ public class ProductService {
 
     @Transactional
     public void deleteProductById(Integer id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId =  (Integer) authentication.getDetails();
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!product.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to Delete this product.");
+        }
+
         productRepository.delete(product);
     }
 
     public void deleteProductByIdV2(Integer id) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId =  (Integer) authentication.getDetails();
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!product.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to Delete this product.");
+        }
+
         saleItemImageService.findAllByProduct(id).forEach(saleItemImage -> {
             saleItemImageService.deleteImage(saleItemImage.getId());
-            fileService.removeFile(product, saleItemImage.getFileName());
+            if(saleItemImage.getFileName() != null && !saleItemImage.getFileName().isEmpty()) {
+                fileService.removeFile(product, saleItemImage.getFileName());
+            }
         });
 
         productRepository.delete(product);
     }
 
     public ProductItemResponseDTO createProduct(ProductItemRequestDTO product) {
-
         Brand existingBrand = brandRepository.findById(product.getBrand().getId())
                 .orElseThrow(
                         () -> new ItemNotFoundException("Brand id " + product.getBrand().getId() + " does not exist"));
@@ -301,8 +336,19 @@ public class ProductService {
     @Transactional
     public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product, String removeImage,
             String orderImages, List<MultipartFile> newImages) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId = (Integer) authentication.getDetails();
+
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!existingProduct.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to modify this product.");
+        }
+
         Brand existingBrand = brandRepository.findById(product.getBrandId())
                 .orElseThrow(() -> new ItemNotFoundException(
                         "Brand id " + product.getBrandId() + " does not exist"));
@@ -392,8 +438,18 @@ public class ProductService {
     @Transactional
     public ProductItemRequestDtoV2 updateProductV2(Integer id, String removeImage, String orderImages,
             List<MultipartFile> newImages) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId =  (Integer) authentication.getDetails();
+
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!existingProduct.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to modify this product.");
+        }
 
         // ลบรูปภาพที่ระบุ
         if (removeImage != null && !removeImage.trim().isEmpty()) {

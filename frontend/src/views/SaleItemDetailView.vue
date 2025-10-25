@@ -18,9 +18,11 @@ import noImage from '@/assets/No_image_available.png'
 import { useUserStore } from '@/stores/UserStore'
 import { addItemToCart } from '@/services/CartService'
 import { useCartStore } from '@/stores/CartStore'
+import { useSaleOrderStore } from '@/stores/saleOrderStore'
 
 const userStore = useUserStore()
 const cartStore = useCartStore()
+const saleOrderStore = useSaleOrderStore()
 const route = useRoute()
 const router = useRouter()
 const saleItemStore = useSaleItemStore()
@@ -146,6 +148,18 @@ const addToCart = async () => {
     console.log('Adding to cart:', data)
     const response = await addItemToCart(data)
     console.log('Add to cart response:', response)
+
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo()
+      userStore.setAccessToken(null)
+      cartStore.setCart(null)
+      saleOrderStore.setSaleOrderQuanatity(0)
+      sessionStorage.clear()
+      localStorage.clear()
+      router.push({ name: "signin" })
+      return
+    }
 
     if (response.error) {
       notiStore.addToCartFail = true

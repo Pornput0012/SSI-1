@@ -4,12 +4,14 @@ import router from '@/router'
 import { getImageByFileName } from '@/services/SaleItemService'
 import { useCartStore } from '@/stores/CartStore'
 import { useUserStore } from '@/stores/UserStore'
+import { useSaleOrderStore } from '@/stores/saleOrderStore'
 import { computed, onMounted, ref } from 'vue'
 import { addItemToCart } from '@/services/CartService'
 import { useNotiStore } from '@/stores/NotiStore'
 const notiStore = useNotiStore()
 const cartStore = useCartStore()
 const userStore = useUserStore()
+const saleOrderStore = useSaleOrderStore()
 const props = defineProps({
   id: {
     type: Number,
@@ -89,6 +91,18 @@ const addToCart = async () => {
     console.log('Adding to cart:', data)
     const response = await addItemToCart(data)
     console.log('Add to cart response:', response)
+
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo()
+      userStore.setAccessToken(null)
+      cartStore.setCart(null)
+      saleOrderStore.setSaleOrderQuanatity(0)
+      sessionStorage.clear()
+      localStorage.clear()
+      router.push({ name: "signin" })
+      return
+    }
 
     if (response.error) {
       notiStore.addToCartFail = true

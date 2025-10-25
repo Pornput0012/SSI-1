@@ -1,4 +1,5 @@
 import { useCartStore } from "@/stores/CartStore";
+import { fetchWithTokenRetry } from "@/utils/fetchWithAuth";
 
 
 const CART_API_URL_V1 = `${import.meta.env.VITE_URL_API || '/ssi1'}/itb-mshop/v1/carts`
@@ -8,7 +9,10 @@ const getAllCart = async (userId) => {
 if (userId) {
     
     try {
-      const response = await fetch(CART_API_URL_V1 + "/" + userId);
+      const response = await fetchWithTokenRetry(CART_API_URL_V1 + "/" + userId, {
+        method: "GET",
+        headers: {},
+      });
   
       if (!response.ok) {
         throw new Error(`(${response.status}) Failed to fetch cart list.`);
@@ -29,7 +33,10 @@ if (userId) {
 // GET cart by id
 const getCartById = async (id) => {
   try {
-    const response = await fetch(`${CART_API_URL_V1}/${id}`);
+    const response = await fetchWithTokenRetry(`${CART_API_URL_V1}/${id}`, {
+      method: "GET",
+      headers: {},
+    });
     const data = await response.json();
 
     if (!data.id || !response.ok) {
@@ -46,7 +53,7 @@ const getCartById = async (id) => {
 const addItemToCart = async (cart) => {
   try {
     
-    const response = await fetch(`${CART_API_URL_V1}`, {
+    const response = await fetchWithTokenRetry(`${CART_API_URL_V1}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(cart),
@@ -69,7 +76,7 @@ const updateCart = async (id, cart) => {
   try {
     if (!id) throw new Error("Cart Id is required for updating.");
 
-    const response = await fetch(`${CART_API_URL_V1}/${id}`, {
+    const response = await fetchWithTokenRetry(`${CART_API_URL_V1}/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(cart),
@@ -91,8 +98,9 @@ const deleteCartById = async (id) => {
   try {
     if (!id) throw new Error(`Cart ID is required for deletion.`);
 
-    const response = await fetch(`${CART_API_URL_V1}/${id}`, {
+    const response = await fetchWithTokenRetry(`${CART_API_URL_V1}/${id}`, {
       method: "DELETE",
+      headers: {},
     });
 
     if (!response.ok) {

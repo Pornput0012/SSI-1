@@ -1,6 +1,10 @@
 <script setup>
-import { ref, watch, watchEffect } from "vue";
-import { getProfile, login } from "@/services/userService";
+import { onMounted, ref, watch, watchEffect } from "vue";
+import {
+  getAccessTokenFromLocalStorage,
+  getProfile,
+  login,
+} from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
 import MessageModal from "@/components/MessageModal.vue";
 import router from "@/router";
@@ -32,7 +36,7 @@ const handleLogin = async () => {
     } else {
       disableSaveBtn.value = false;
       console.log(response);
-      
+
       throw new Error(response.error);
     }
   } catch (error) {
@@ -138,6 +142,12 @@ const loginSuccess = async () => {
   }
   router.push({ name: "sale-items-list" });
 };
+
+onMounted(() => {
+  if (getAccessTokenFromLocalStorage()) {
+    router.push({ name: "sale-items" });
+  }
+});
 </script>
 
 <template>
