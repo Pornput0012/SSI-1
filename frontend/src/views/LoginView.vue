@@ -290,7 +290,7 @@ const loginSuccess = async () => {
           </label>
           <button
             type="button"
-            class="text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
+            class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
           >
             Forgot password?
           </button>
@@ -303,7 +303,7 @@ const loginSuccess = async () => {
           :class="[
             disableSaveBtn || onSubmit
               ? 'flex items-center justify-center gap-2 w-full text-white py-3 px-4 rounded-lg font-medium  cursor-not-allowed bg-gray-300 '
-              : 'w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform hover:scale-105',
+              : 'cursor-pointer w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform hover:scale-105',
           ]"
         >
           <svg
