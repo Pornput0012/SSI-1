@@ -64,9 +64,14 @@ public class UserController {
     }
 
     @PostMapping("/v2/auth/forgot-password")
-    public ResponseEntity<String> forgotPassword(@Valid @RequestBody EmailRequestDTO email) throws ParseException, JOSEException {
-        userService.sendUrlResetPassword(email);
-        return ResponseEntity.ok("Send Url to Reset Password Successfully!");
+    public ResponseEntity<ChangePasswordResponseDto> forgotPassword(@Valid @RequestBody EmailRequestDTO email) throws ParseException, JOSEException {
+
+        return ResponseEntity.ok(userService.sendUrlResetPassword(email));
+    }
+
+    @PostMapping("/v2/auth/reset-password")
+    public ResponseEntity<ChangePasswordResponseDto> resetPassword(@RequestParam String token,@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) throws ParseException, JOSEException {
+        return ResponseEntity.ok(userService.resetPassword(token, resetPasswordDTO));
     }
 
 

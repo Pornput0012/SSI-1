@@ -284,16 +284,17 @@ const loginSuccess = async () => {
           <label class="flex items-center">
             <input
               type="checkbox"
+              checked
               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
             <span class="ml-2 text-sm text-gray-600">Remember me</span>
           </label>
-          <button
-            type="button"
+          <router-link
+            :to="{ name: 'forgotPassword' }"
             class="text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
           >
             Forgot password?
-          </button>
+          </router-link>
         </div>
 
         <button

@@ -271,6 +271,69 @@ const changePassword = async (id, updatePassword) => {
   }
 };
 
+const forgotPassword = async (email) => {
+  try {
+    if (!email) throw new Error("Email is required.");
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    const response = await fetch(`${AUTH_API_URL}/forgot-password`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, data };
+    }
+
+    const message = data && data.message ? data.message : `Server responded with status ${response.status}`;
+    throw new Error(message);
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
+const resetPassword = async (token,resetPassword) => {
+  try {
+    if (!resetPassword) throw new Error("Password and Confirm Password is required.");
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    const response = await fetch(`${AUTH_API_URL}/reset-password?token=${token}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(resetPassword),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      return { success: true, data };
+    }
+
+    const message =
+      data && data.message
+        ? data.message
+        : `Server responded with status ${response.status}`;
+    throw new Error(message);
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+};
+
 export {
   createUser,
   login,
@@ -280,4 +343,6 @@ export {
   logout,
   updateUserById,
   changePassword,
+  forgotPassword,
+  resetPassword,
 };

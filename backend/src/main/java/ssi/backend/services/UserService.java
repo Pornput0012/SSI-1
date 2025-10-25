@@ -1,6 +1,7 @@
 package ssi.backend.services;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jwt.SignedJWT;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -243,10 +244,10 @@ public class UserService {
         return response;
     }
 
-    public void sendUrlResetPassword(EmailRequestDTO emailRequestDTO) throws ParseException, JOSEException {
+    public ChangePasswordResponseDto sendUrlResetPassword(EmailRequestDTO emailRequestDTO) throws ParseException, JOSEException {
         User user = userRepository.findByEmail(emailRequestDTO.getEmail());
         if (user == null) {
-            throw new BadRequestException("Invalid email");
+            throw new BadRequestException("Email not found");
         }
 
         String token = jwtService.generateResetPasswordToken(user.getId(), user.getEmail());
@@ -272,7 +273,35 @@ public class UserService {
 
 
         emailService.sendEmail(to, subject, body);
+        ChangePasswordResponseDto response = new ChangePasswordResponseDto();
+        response.setMessage("Send your password reset link");
+        response.setSuccess(Boolean.TRUE);
+        return response;
 
+    }
+
+    public ChangePasswordResponseDto resetPassword(String token, ResetPasswordDTO resetPassword) throws ParseException, JOSEException {
+        jwtService.validateVerifyResetPassword(token);
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        String email = signedJWT.getJWTClaimsSet().getClaim("email").toString();
+
+        ChangePasswordResponseDto response = new ChangePasswordResponseDto();
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new BadRequestException("Email not found");
+        }
+
+        if(!resetPassword.getNewPassword().equals(resetPassword.getConfirmPassword())) {
+            throw new BadRequestException("Passwords do not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(resetPassword.getNewPassword()));
+        userRepository.save(user);
+        response.setMessage("New password has been sent");
+        response.setSuccess(Boolean.TRUE);
+
+        return response;
     }
 
     public boolean idCardCheck(String idCard) {
