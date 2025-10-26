@@ -49,7 +49,7 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
         error: true,
         status: response.status,
         message: data.message || `Server error ${response.status}`,
-        errors: data.errors || [] // ✅ รับ errors array จาก backend
+        errors: data.errors || []
       };
       
     }
@@ -57,7 +57,10 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
     return data
   } catch (error) {
     return {
-      error: `Error creating user: ${error.message}`,
+      error: true,
+    status: 500,
+    message: `Error creating user: ${error.message}`,
+    errors: []
     };
   }
 };

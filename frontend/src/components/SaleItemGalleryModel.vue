@@ -42,6 +42,10 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  quantity: {
+    type: Number,
+    required: true,
+  },
 })
 
 const hasError = ref('')
@@ -49,6 +53,22 @@ const userNickname = computed(() => userStore.getNickName())
 const userId = computed(() => userStore.getUserId())
 
 const imageUrl = ref(null)
+
+const quantityInCart = computed(() => {
+  return cartStore.getQuantityByProductId(props.id) || 0
+})
+
+const availableQuantity = computed(() => {
+  return props.quantity - quantityInCart.value
+})
+
+const isAddToCartDisabled = computed(() => {
+  return availableQuantity.value <= 0
+})
+
+const isSoldOut = computed(() => {
+  return props.quantity <= 0
+})
 
 const loadImages = async () => {
   try {
@@ -98,7 +118,7 @@ const addToCart = async () => {
       saleOrderStore.setSaleOrderQuanatity(0)
       sessionStorage.clear()
       localStorage.clear()
-      router.push({ name: "signin" })
+      router.push({ name: 'signin' })
       return
     }
 
@@ -124,24 +144,39 @@ const addToCart = async () => {
   >
     <div
       class="card w-full h-72 bg-base-100 shadow-md rounded-xl flex flex-col md:h-80 lg:h-[350px] xl:h-[360px] hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+      :class="{ 'opacity-75': isSoldOut }"
     >
-      <div
-        class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
-      >
-        <img
-          v-if="imageUrl"
-          :src="imageUrl"
-          alt="Product image"
-          class="w-full h-full object-center"
-          :class="'object-cover'"
-        />
-        <img
-          v-else
-          :src="noImage"
-          alt="Product image"
-          class="w-full h-full object-center"
-          :class="'object-contain'"
-        />
+      <div class="relative">
+        <div
+          class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
+        >
+          <img
+            v-if="imageUrl"
+            :src="imageUrl"
+            alt="Product image"
+            class="w-full h-full object-center"
+            :class="'object-cover'"
+          />
+          <img
+            v-else
+            :src="noImage"
+            alt="Product image"
+            class="w-full h-full object-center"
+            :class="'object-contain'"
+          />
+        </div>
+
+        <!-- ✅ Sold Out Overlay -->
+        <div
+          v-if="isSoldOut"
+          class="absolute inset-0 flex items-center justify-center rounded-t-xl"
+        >
+          <div
+            class="bg-red-500 text-white font-bold px-6 py-2 rounded-lg shadow-lg text-lg md:text-xl"
+          >
+            SOLD OUT
+          </div>
+        </div>
       </div>
 
       <div class="h-px bg-gray-200 shadow-sm"></div>
@@ -167,6 +202,24 @@ const addToCart = async () => {
           <p v-if="color" class="itbms-color text-gray-600">
             color : {{ color }}
           </p>
+
+          <!-- ✅ แสดง Available Quantity แบบมีสี -->
+          <p class="itbms-quantity-status text-xs mt-1">
+            <span v-if="!isSoldOut" class="text-gray-500">
+              Available:
+              <span
+                class="font-semibold"
+                :class="{
+                  'text-green-600': availableQuantity > 5,
+                  'text-orange-500':
+                    availableQuantity > 0 && availableQuantity <= 5,
+                }"
+              >
+                {{ availableQuantity }}
+              </span>
+            </span>
+            <span v-else class="text-red-500 font-semibold"> Sold Out </span>
+          </p>
         </div>
         <div class="pt-1 flex justify-between items-center">
           <p
@@ -177,7 +230,11 @@ const addToCart = async () => {
           </p>
           <button
             @click.prevent="addToCart"
+            :disabled="isAddToCartDisabled"
             class="itbms-add-to-cart-button ml-1 btn btn-sm btn-primary text-xs hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+            :class="{
+              'opacity-50 cursor-not-allowed': isAddToCartDisabled,
+            }"
           >
             <svg
               class=""
@@ -199,5 +256,4 @@ const addToCart = async () => {
   </RouterLink>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

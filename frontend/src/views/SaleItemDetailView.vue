@@ -41,6 +41,16 @@ const notiStore = useNotiStore();
 const currentImageIndex = ref(0);
 const imageUrls = ref([]);
 
+const availableQuantity = computed(() => {
+  if (!selectSaleItem.value) return 0;
+  return selectSaleItem.value.quantity - quantitySelectedItemInCart.value;
+});
+
+const isSoldOut = computed(() => {
+  if (!selectSaleItem.value) return false;
+  return selectSaleItem.value.quantity <= 0;
+});
+
 // ฟังก์ชันสำหรับโหลดรูปภาพ
 const loadImages = async (imageFileNames) => {
   if (!imageFileNames || imageFileNames.length === 0) {
@@ -197,12 +207,22 @@ const increaseQuantity = () => {
 
         <div class="itbms-picture w-full md:w-[50%]">
           <!-- รูปหลัก -->
-          <div class="w-full mb-4 aspect-square max-w-md mx-auto">
+          <div class="w-full mb-4 aspect-square max-w-md mx-auto relative">
             <img
               :src="imageUrls[currentImageIndex] || noImage"
               class="w-full h-full object-cover rounded-lg border border-gray-200"
+              :class="{ 'opacity-50': isSoldOut }"
               :alt="selectSaleItem.model"
             />
+
+            <div
+              v-if="isSoldOut"
+              class="absolute inset-0 flex items-center justify-center rounded-lg"
+            >
+              <div class="bg-red-500 text-white font-bold px-8 py-3 rounded-lg shadow-lg text-2xl">
+                SOLD OUT
+              </div>
+            </div>
           </div>
 
           <!-- รูปย่อ (แสดงทั้งหมด 4 รูป) -->
@@ -211,11 +231,12 @@ const increaseQuantity = () => {
               v-for="(imageUrl, index) in imageUrls"
               :key="index"
               class="flex-1 aspect-square cursor-pointer rounded-lg overflow-hidden border-2 transition-all max-w-[80px]"
-              :class="
+              :class="[
                 currentImageIndex === index
                   ? 'border-purple-700'
-                  : 'border-gray-300 hover:border-gray-400'
-              "
+                  : 'border-gray-300 hover:border-gray-400',
+                  { 'opacity-50': isSoldOut }
+          ]"
               @click="changeMainImage(index)"
             >
               <img
@@ -323,13 +344,30 @@ const increaseQuantity = () => {
             </div>
             <div>
               <span class="font-semibold">Quantity: </span>
-              <span class="itbms-quantity">
+              <span v-if="!isSoldOut" class="itbms-quantity">
                 {{ selectSaleItem.quantity }}
+              </span>
+              <span v-else class="text-red-500 font-semibold">
+                Sold Out
+              </span>
+            </div>
+
+            
+            <div v-if="!isSoldOut">
+              <span class="font-semibold">Available: </span>
+              <span 
+                class="itbms-available-quantity font-semibold"
+                :class="{
+                  'text-green-600': availableQuantity > 5,
+                  'text-orange-500': availableQuantity > 0 && availableQuantity <= 5,
+                }"
+              >
+                {{ availableQuantity }}
               </span>
             </div>
             <div class="flex gap-4 mt-4">
               <!-- Quantity Selector and Add to Cart Button -->
-              <div class="flex gap-3 items-center">
+              <div class="flex gap-3 items-center" v-if="!isSoldOut">
                 <div class="flex items-center bg-gray-200 rounded-lg px-2 py-1">
                   <!-- ปุ่ม - -->
                   <button
@@ -354,13 +392,9 @@ const increaseQuantity = () => {
                   <button
                     @click="increaseQuantity"
                     class="itbms-inc-qty-button text-md text-gray-600 font-bold hover:text-gray-800 px-2 cursor-pointer"
-                    :disabled="
-                      cartQuantity >=
-                      selectSaleItem.quantity - quantitySelectedItemInCart
-                    "
+                    :disabled="cartQuantity >= availableQuantity"
                     :class="{
-                      'opacity-50 cursor-not-allowed':
-                        cartQuantity >= selectSaleItem.quantity,
+                      'opacity-50 cursor-not-allowed': cartQuantity >= availableQuantity,
                     }"
                   >
                     +
@@ -368,13 +402,19 @@ const increaseQuantity = () => {
                 </div>
                 <button
                   @click="addToCart"
-                  :disabled="
-                    cartQuantity >
-                    selectSaleItem.quantity - quantitySelectedItemInCart
-                  "
+                  :disabled="cartQuantity > availableQuantity"
                   class="itbms-add-to-cart-button btn btn-primary bg-blue-700 hover:bg-blue-800 flex-1 text-white"
                 >
                   Add to Cart
+                </button>
+              </div>
+
+              <div v-else>
+                <button
+                  disabled
+                  class="btn btn-error w-full opacity-75 cursor-not-allowed"
+                >
+                  Sold Out
                 </button>
               </div>
 
