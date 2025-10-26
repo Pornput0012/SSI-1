@@ -57,11 +57,9 @@ function isValidUrl() {
 
   if (!pattern.test(url)) {
     validate.value.websiteUrl.msg = `Brand URL must be a valid URL or not specified.`;
-  
 
     return;
   }
-
 
   validate.value.websiteUrl.msg = "";
 }
@@ -282,7 +280,10 @@ watchEffect(() => {
         >
           Save
         </button>
-        <button @click="$router.back()" class="itbms-cancel-button btn">
+        <button
+          @click="$router.push({ name: 'brands' })"
+          class="itbms-cancel-button btn"
+        >
           Cancel
         </button>
       </div>
