@@ -491,7 +491,6 @@ public class ProductService {
                             fileNameForDb);
                     if (existingImage != null) {
                         if (!existingImage.getFileName().equals(newFileName)) {
-                                    "[DEBUG] Rename file " + existingImage.getFileName() + " -> " + newFileName);
                             fileService.renameFile(existingProduct, existingImage.getFileName(), newFileName);
                             saleItemImageService.updateFileName(existingImage.getId(), newFileName);
                         }
