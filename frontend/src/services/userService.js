@@ -42,13 +42,19 @@ const createUser = async (userDetail, userType, nationalIdPhoto = null) => {
       body: formData,
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      throw new Error(
-        `Failed to create user. Server responded with status ${response.status}`
-      );
+      return { 
+        error: true,
+        status: response.status,
+        message: data.message || `Server error ${response.status}`,
+        errors: data.errors || [] // ✅ รับ errors array จาก backend
+      };
+      
     }
 
-    return await response.json();
+    return data
   } catch (error) {
     return {
       error: `Error creating user: ${error.message}`,
