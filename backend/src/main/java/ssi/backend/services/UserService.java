@@ -1,16 +1,16 @@
 package ssi.backend.services;
 
 import com.nimbusds.jose.JOSEException;
-import org.eclipse.angus.mail.imap.protocol.Item;
-import org.hibernate.annotations.NotFound;
+import com.nimbusds.jwt.SignedJWT;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.bouncycastle.crypto.params.Argon2Parameters;
-import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.configuration.HostProperties;
 import ssi.backend.dtos.*;
@@ -19,6 +19,7 @@ import ssi.backend.exceptions.*;
 import ssi.backend.repositories.UserRepository;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -52,22 +53,79 @@ public class UserService {
     }
 
 
-    public User createUser(RegisterRequestDTO user, List<MultipartFile> images) {
-        if (getAllUserEmails().contains(user.getEmail())) {
-            throw new BadRequestException("Email already exists: " + user.getEmail());
+    public Object createUser(RegisterRequestDTO user, List<MultipartFile> images) {
+        ErrorResponseDTO errors = new ErrorResponseDTO(
+                400,
+                "Validation failed",
+                "/itb-mshop/v2/auth/register"
+        );
+        if (user.getUserType() == null) {
+            errors.addValidationError("userType","Role is required");
         }
-        if (user.getPassword() == null || user.getPassword().isBlank()) {
-            throw new BadRequestException("Password is required");
+        if (!("BUYER".equalsIgnoreCase(user.getUserType()) || "SELLER".equalsIgnoreCase(user.getUserType()))) {
+
+            errors.addValidationError("userType","Invalid accountType. Must be BUYER or SELLER");
         }
 
-        if (user.getUserType() == null) {
-            throw new BadRequestException("Role is required");
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            errors.addValidationError("password","Password is required");
+        } else {
+            String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$";
+            if (!user.getPassword().matches(passwordRegex)) {
+                errors.addValidationError("password","Password must be at least 8 characters and contain uppercase, lowercase, number, and special character");
+            }
         }
-        System.out.println(user.getUserType());
+
+        if (user.getNickName() == null || user.getNickName().isBlank()) {
+            errors.addValidationError("nickname","Nickname is required");
+        }
+
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            errors.addValidationError("email","Email is required");
+        } else {
+            String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+            if (!user.getEmail().matches(emailRegex)) {
+                errors.addValidationError("email","Invalid email format");
+            }
+            if (getAllUserEmails().contains(user.getEmail())) {
+                errors.addValidationError("email","Email already exists: " + user.getEmail());
+            }
+        }
+
+        if (user.getFullName() == null || user.getFullName().isBlank()) {
+            errors.addValidationError("fullname","Full name is required");
+        } else if (user.getFullName().length() < 4 || user.getFullName().length() > 40) {
+            errors.addValidationError("fullname","Full name must be between 4 and 40 characters");
+        }
+
+        if ("SELLER".equalsIgnoreCase(user.getUserType())) {
+            if (user.getPhoneNumber() == null || user.getPhoneNumber().isBlank()) {
+                errors.addValidationError("phoneNumber","Phone number is required");
+            }
+
+            if (user.getBankAccount() == null || user.getBankAccount().isBlank()) {
+                errors.addValidationError("bankAccount","Bank account is required");
+            }
+
+            if (user.getNationalIdNumber() == null || user.getNationalIdNumber().isBlank()) {
+                errors.addValidationError("nationalId","National ID number is required");
+            } else if (!idCardCheck(user.getNationalIdNumber())) {
+                errors.addValidationError("nationalId","National ID number is not valid");
+            }
+
+            if (user.getBankName() == null || user.getBankName().isBlank()) {
+                errors.addValidationError("bankName","Bank name is required");
+            }
+        }
+
+        if (errors.getErrors() != null && !errors.getErrors().isEmpty()) {
+            throw new BadRequestException(errors);
+        }
+
         User creatingUser = modelMapper.map(user, User.class);
-        System.out.println(creatingUser.getId());
         creatingUser.setId(null);
         creatingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        creatingUser.setUserType(user.getUserType().toUpperCase());
 
         List<String> fileNames = null;
 
@@ -146,7 +204,7 @@ public class UserService {
 
             UserResponseDTO userResponseDTO = modelMapper.map(user, UserResponseDTO.class);
             userResponseDTO.setUserType(emailVerifyClaim.getRole());
-            userResponseDTO.setIsActive(true);
+            //userResponseDTO.setIsActive(true);
 
             return userResponseDTO;
 
@@ -154,8 +212,11 @@ public class UserService {
         return null;
     }
 
-    public UserProfileResponseDTO getUserProfile()  {
+    public UserProfileResponseDTO getUserProfile() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         String email = (String) authentication.getPrincipal();
         Integer userId = (Integer) authentication.getDetails();
 
@@ -171,6 +232,9 @@ public class UserService {
 
     public UserProfileResponseDTO getUserProfileById(Integer id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (id == null || !id.equals(userId)) {
@@ -187,8 +251,11 @@ public class UserService {
 
     public UserProfileResponseDTO updateUserProfile(Integer id, UpdateUserRequestDto updateUser) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
-        if (id == null ||  !id.equals(userId)) {
+        if (id == null || !id.equals(userId)) {
             throw new UnauthorizedException("Invalid token");
         }
 
@@ -198,5 +265,128 @@ public class UserService {
         user.setNickname(updateUser.getNickName());
 
         return modelMapper.map(userRepository.save(user), UserProfileResponseDTO.class);
+    }
+
+    public ChangePasswordResponseDto changePasswordById(Integer id, ChangePasswordRequestDto updateUser) throws ParseException, JOSEException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId = (Integer) authentication.getDetails();
+        if (id == null || !id.equals(userId)) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        ChangePasswordResponseDto response = new ChangePasswordResponseDto();
+        User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        if (!passwordEncoder.matches(updateUser.getCurrentPassword(), user.getPassword())) {
+            response.setMessage("Wrong password");
+            response.setSuccess(Boolean.FALSE);
+            return response;
+        }
+
+        user.setPassword(passwordEncoder.encode(updateUser.getNewPassword()));
+        userRepository.save(user);
+        response.setMessage("New password has been sent");
+        response.setSuccess(Boolean.TRUE);
+
+        return response;
+    }
+
+    public ChangePasswordResponseDto sendUrlResetPassword(EmailRequestDTO emailRequestDTO) throws ParseException, JOSEException {
+        User user = userRepository.findByEmail(emailRequestDTO.getEmail());
+        if (user == null) {
+            throw new BadRequestException("Email not found");
+        }
+
+        String token = jwtService.generateResetPasswordToken(user.getId(), user.getEmail());
+
+        String resetUrl = hostProperties.getUrl() + "/reset-password?token=" + token;
+
+        String to = user.getEmail();
+        String subject = "Reset your password | ITB-MSHOP";
+        String body = """
+                Hello %s,
+                
+                We received a request to reset your password.
+                You can reset it by clicking the link below:
+                
+                %s
+                
+                If you didn’t request a password reset, please ignore this email.
+                This link will expire in 15 minutes.
+                
+                Best regards,
+                ITB-MSHOP Team
+                """.formatted(user.getFullname(), resetUrl);
+
+
+        emailService.sendEmail(to, subject, body);
+        ChangePasswordResponseDto response = new ChangePasswordResponseDto();
+        response.setMessage("Send your password reset link");
+        response.setSuccess(Boolean.TRUE);
+        return response;
+
+    }
+
+    public ChangePasswordResponseDto resetPassword(String token, ResetPasswordDTO resetPassword) throws ParseException, JOSEException {
+        jwtService.validateVerifyResetPassword(token);
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        String email = signedJWT.getJWTClaimsSet().getClaim("email").toString();
+
+        ChangePasswordResponseDto response = new ChangePasswordResponseDto();
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new BadRequestException("Email not found");
+        }
+
+        if (!resetPassword.getNewPassword().equals(resetPassword.getConfirmPassword())) {
+            throw new BadRequestException("Passwords do not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(resetPassword.getNewPassword()));
+        userRepository.save(user);
+        response.setMessage("New password has been sent");
+        response.setSuccess(Boolean.TRUE);
+
+        return response;
+    }
+
+    public void updateAddressAndNote(Integer id, String address, String note) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        user.setAddress(address);
+        user.setNote(note);
+        userRepository.save(user);
+    }
+
+    public boolean idCardCheck(String idCard) {
+
+        if (idCard == null) {
+            return false;
+        }
+
+        idCard = idCard.trim(); // ตัดช่องว่างหน้า-หลังออก
+
+        // ตรวจสอบว่าเป็นตัวเลขทั้งหมดเท่านั้น
+        if (!idCard.matches("^[0-9]{13}$")) {
+            return false;
+        }
+
+        // ตัวแรกต้องไม่ใช่ 0
+        if (idCard.charAt(0) == '0') {
+            return false;
+        }
+
+        int sum = 0;
+        for (int i = 0; i < 12; i++) {
+            int digit = Character.getNumericValue(idCard.charAt(i));
+            sum += digit * (13 - i);
+        }
+
+        int checkDigit = (11 - (sum % 11)) % 10;
+        int lastDigit = Character.getNumericValue(idCard.charAt(12));
+
+        return checkDigit == lastDigit;
     }
 }

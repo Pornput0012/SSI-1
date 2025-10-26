@@ -4,12 +4,15 @@ import router from "@/router";
 import { getImageByFileName } from "@/services/SaleItemService";
 import { useCartStore } from "@/stores/CartStore";
 import { useUserStore } from "@/stores/UserStore";
-import { computed, onMounted, ref } from "vue";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { computed, onMounted, ref, watch } from "vue";
 import { addItemToCart } from "@/services/CartService";
 import { useNotiStore } from "@/stores/NotiStore";
-const notiStore = useNotiStore()
+import { useToastStore } from "@/stores/ToastStore";
+const notiStore = useNotiStore();
 const cartStore = useCartStore();
 const userStore = useUserStore();
+const saleOrderStore = useSaleOrderStore();
 const props = defineProps({
   id: {
     type: Number,
@@ -35,10 +38,14 @@ const props = defineProps({
     required: false,
   },
 
-  sellerId :{
+  sellerId: {
     type: Number,
     required: true,
-  }
+  },
+  quantity: {
+    type: Number,
+    required: true,
+  },
 });
 
 const hasError = ref("");
@@ -46,6 +53,22 @@ const userNickname = computed(() => userStore.getNickName());
 const userId = computed(() => userStore.getUserId());
 
 const imageUrl = ref(null);
+
+const quantityInCart = computed(() => {
+  return cartStore.getQuantityByProductId(props.id) || 0;
+});
+
+const availableQuantity = computed(() => {
+  return props.quantity - quantityInCart.value;
+});
+
+const isAvailableBuy = computed(() => {
+  return availableQuantity.value <= 0;
+});
+
+const isSoldOut = computed(() => {
+  return props.quantity <= 0;
+});
 
 const loadImages = async () => {
   try {
@@ -65,6 +88,16 @@ onMounted(async () => {
   await loadImages();
 });
 
+watch(
+  () => [props.fileName, props.id],
+  async () => {
+    await loadImages();
+  },
+  { deep: true }
+);
+
+const toastStore = useToastStore();
+
 const addToCart = async () => {
   if (!userNickname.value) {
     router.push({ name: "signin" });
@@ -72,34 +105,41 @@ const addToCart = async () => {
   }
 
   if (userId.value === props.sellerId) {
-    notiStore.addToCartFail = true
-    return ;
+    notiStore.addToCartFail = true;
+    return;
   }
-  
-  try {
-    
 
+  try {
     const data = {
       userId: userId.value,
       productId: props.id,
-      imageFileName: props.fileName?.fileName || '',
+      imageFileName: props.fileName?.fileName || "",
       quantity: 1,
     };
 
-    console.log("Adding to cart:", data);
     const response = await addItemToCart(data);
-    console.log("Add to cart response:", response);
+
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
 
     if (response.error) {
-      notiStore.addToCartFail = true
+      notiStore.addToCartFail = true;
       throw new Error(response.error);
     }
 
     cartStore.addToCart(response);
-    console.log("Successfully added to cart store");
-    console.log( cartStore.getCarts());
+    toastStore.showToast("✓ Added to cart!", "success");
   } catch (error) {
     console.error("Error adding to cart:", error);
+    toastStore.showToast("✗ Failed to add to cart", "error");
     hasError.value = error.message || "Failed to add item to cart";
   }
 };
@@ -112,24 +152,39 @@ const addToCart = async () => {
   >
     <div
       class="card w-full h-72 bg-base-100 shadow-md rounded-xl flex flex-col md:h-80 lg:h-[350px] xl:h-[360px] hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+      :class="{ 'opacity-75': isSoldOut }"
     >
-      <div
-        class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
-      >
-        <img
-          v-if="imageUrl"
-          :src="imageUrl"
-          alt="Product image"
-          class="w-full h-full object-center"
-          :class="'object-cover'"
-        />
-        <img
-          v-else
-          :src="noImage"
-          alt="Product image"
-          class="w-full h-full object-center"
-          :class="'object-contain'"
-        />
+      <div class="relative">
+        <div
+          class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
+        >
+          <img
+            v-if="imageUrl"
+            :src="imageUrl"
+            alt="Product image"
+            class="w-full h-full object-center"
+            :class="'object-cover'"
+          />
+          <img
+            v-else
+            :src="noImage"
+            alt="Product image"
+            class="w-full h-full object-center"
+            :class="'object-contain'"
+          />
+        </div>
+
+        <!-- ✅ Sold Out Overlay -->
+        <div
+          v-if="isSoldOut"
+          class="absolute inset-0 flex items-center justify-center rounded-t-xl"
+        >
+          <div
+            class="bg-red-500 text-white font-bold px-6 py-2 rounded-lg shadow-lg text-lg md:text-xl"
+          >
+            SOLD OUT
+          </div>
+        </div>
       </div>
 
       <div class="h-px bg-gray-200 shadow-sm"></div>
@@ -155,6 +210,24 @@ const addToCart = async () => {
           <p v-if="color" class="itbms-color text-gray-600">
             color : {{ color }}
           </p>
+
+          <!-- ✅ แสดง Available Quantity แบบมีสี -->
+          <p class="itbms-quantity-status text-xs mt-1">
+            <span v-if="!isSoldOut" class="text-gray-500">
+              Available:
+              <span
+                class="font-semibold"
+                :class="{
+                  'text-green-600': availableQuantity > 5,
+                  'text-orange-500':
+                    availableQuantity > 0 && availableQuantity <= 5,
+                }"
+              >
+                {{ Math.max(0, availableQuantity) }}
+              </span>
+            </span>
+            <span v-else class="text-red-500 font-semibold"> Sold Out </span>
+          </p>
         </div>
         <div class="pt-1 flex justify-between items-center">
           <p
@@ -165,7 +238,11 @@ const addToCart = async () => {
           </p>
           <button
             @click.prevent="addToCart"
+            :disabled="isAvailableBuy"
             class="itbms-add-to-cart-button ml-1 btn btn-sm btn-primary text-xs hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+            :class="{
+              'opacity-50 cursor-not-allowed': isAvailableBuy,
+            }"
           >
             <svg
               class=""

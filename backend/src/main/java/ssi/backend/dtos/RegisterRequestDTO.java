@@ -1,27 +1,27 @@
 package ssi.backend.dtos;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 @Getter
 @Setter
 public class RegisterRequestDTO {
     private Integer id = null;
 
-    @NotNull
     private String nickName;
 
-    @NotNull
+
     private String email;
 
-    @NotNull
     private String password;
 
-    @NotNull
     private String fullName;
 
-    @NotNull
+
     private String userType;
 
 

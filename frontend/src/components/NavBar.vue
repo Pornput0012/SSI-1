@@ -1,12 +1,14 @@
 <script setup>
 import { getProfile, logout } from "@/services/userService";
 import { useUserStore } from "@/stores/UserStore";
-import { computed, onMounted, ref, watch, watchEffect } from "vue";
+import { computed, onMounted, ref, watchEffect } from "vue";
 import { RouterLink, useRouter } from "vue-router";
 import CartIcon from "./CartIcon.vue";
 import { useCartStore } from "@/stores/CartStore";
 import { getAllCart } from "@/services/CartService";
 import { Icon } from "@iconify/vue";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { getOrdersSeller } from "@/services/OrderService";
 
 const props = defineProps({
   qty: {
@@ -24,7 +26,7 @@ const userStore = useUserStore();
 const nickName = computed(() => userStore.getNickName());
 
 const cartStore = useCartStore();
-
+const saleOrderStore = useSaleOrderStore();
 const menu = [
   {
     to: "home",
@@ -37,6 +39,12 @@ const menu = [
   {
     to: "brands",
     text: "Manage Brand",
+    seller: true,
+  },
+  {
+    to: "sale-items-list",
+    text: "My Sale Items",
+    seller: true,
   },
 ];
 
@@ -44,11 +52,12 @@ const handleLogout = async () => {
   const res = await logout();
   if (res.success) {
     userStore.clearUserInfo();
+    userStore.setAccessToken(null);
     cartStore.setCart(null);
-    console.log(cartStore.getCarts());
+    saleOrderStore.setSaleOrderQuanatity(0);
+    sessionStorage.clear();
+    localStorage.clear();
 
-    
-    
     router.push({ name: "sale-items" });
   } else {
     alert("Logout Not Successful...");
@@ -63,17 +72,14 @@ onMounted(async () => {
 });
 watchEffect(async () => {
   if (userStore.getUserId() && !cartStore.carts) {
-    console.log(cartStore.carts);
     try {
       const userId = userStore.getUserId();
       if (!userId) {
         console.log("No user ID available");
         return;
       }
-      console.log("User Id : ",userId);
-      
+
       const response = await getAllCart(userId);
-      console.log("Cart response:", response);
 
       if (!response) {
         console.log("No response from getAllCart");
@@ -85,6 +91,36 @@ watchEffect(async () => {
       }
 
       cartStore.setCart(response);
+    } catch (error) {
+      console.error("Error loading cart:", error?.message || "Unknown error");
+    }
+  }
+  const userType = userStore.getUserType();
+  if (userType == "SELLER" && userStore.getUserId()) {
+    try {
+      const userId = userStore.getUserId();
+
+      if (!userId) {
+        console.log("No user ID available");
+        return;
+      }
+
+      const response = await getOrdersSeller(userId, {
+        page: 0,
+        size: 10,
+        sortDirection: "DESC",
+      });
+
+      if (!response) {
+        console.log("No response from getOrdersSeller");
+        return;
+      }
+
+      if (response.error) {
+        throw new Error(error);
+      }
+
+      saleOrderStore.setSaleOrderQuanatity(response);
     } catch (error) {
       console.error("Error loading cart:", error?.message || "Unknown error");
     }
@@ -101,29 +137,6 @@ const productLength = computed(() => {
   }
   return countItem;
 });
-
-// onMounted(async () => {
-//   console.log(carts.value);
-//   console.log(userStore.getUserId());
-
-//   try {
-//     if (!userStore.getUserId()) {
-//       const userInfo = await getProfile();
-//       if (userInfo.logined) {
-//         userStore.setUserInfo(userInfo?.data);
-//       }
-//     }
-//     const response = await getAllCart(!userStore.getUserId());
-//     console.log(response);
-
-//     if (response?.error) {
-//       throw new Error(response.error);
-//     }
-//     carts.value = response;
-//   } catch (error) {
-//     console.error("Error loading cart:", error);
-//   }
-// });
 </script>
 
 <template>
@@ -152,7 +165,10 @@ const productLength = computed(() => {
               >Login</router-link
             >
           </div>
-          <RouterLink v-if="nickName" class="mr-2" :to="{ name: 'order' }"
+          <RouterLink
+            v-if="nickName"
+            class="itbms-sale-order-button mr-2"
+            :to="{ name: 'order' }"
             >Your orders</RouterLink
           >
           <RouterLink v-if="productLength" :to="{ name: 'cart' }">
@@ -168,6 +184,23 @@ const productLength = computed(() => {
             <p>
               Hello, <span class="itbms-nickname">{{ nickName }}</span>
             </p>
+            <router-link
+              v-if="userStore.getUserInfo().userType?.toUpperCase() == 'SELLER'"
+              :to="{ name: 'sale-orders' }"
+              class="cursor-pointer relative"
+            >
+              <Icon
+                icon="flowbite:shopping-bag-outline"
+                width="24"
+                height="24"
+              />
+              <span
+                v-if="saleOrderStore.getSaleOrderQuanatity() > 0"
+                class="itbms-bag-quantity absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"
+              >
+                {{ saleOrderStore.getSaleOrderQuanatity() }}
+              </span>
+            </router-link>
             <div class="dropdown dropdown-end">
               <!-- Avatar button -->
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">
@@ -207,8 +240,17 @@ const productLength = computed(() => {
       class="bg-base-100 border-t-1 border-base-300 shadow-sm px-6 py-2 flex gap-10"
     >
       <RouterLink
+        v-if="userStore.getUserType() === 'SELLER'"
         active-class="border-b-1"
         v-for="(m, i) in menu"
+        :to="{ name: m.to }"
+        class="font-light hover:text-purple-700 transition-colors"
+        >{{ m.text }}</RouterLink
+      >
+      <RouterLink
+        v-else
+        active-class="border-b-1"
+        v-for="(m, i) in menu.filter((m) => m.seller !== true)"
         :to="{ name: m.to }"
         class="font-light hover:text-purple-700 transition-colors"
         >{{ m.text }}</RouterLink
@@ -244,11 +286,6 @@ const productLength = computed(() => {
       </div>
     </div>
 
-    <!-- <div>
-      <RouterLink :to="{ name: 'home' }" class="btn btn-ghost text-xl">
-        ITB MShop</RouterLink
-      >
-    </div> -->
     <div class="flex gap-2 items-center">
       <RouterLink v-if="productLength" :to="{ name: 'cart' }">
         <CartIcon v-if="nickName" :qty="productLength" />
@@ -280,7 +317,7 @@ const productLength = computed(() => {
           class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
         >
           <RouterLink
-            :to="{ name: userStore.getUserId ? 'profile' : 'register' }"
+            :to="{ name: userStore.getUserId() ? 'profile' : 'register' }"
             ><li>
               <a>{{ userStore.getUserId() ? "Profile" : "Register" }} </a>
             </li></RouterLink
@@ -306,24 +343,35 @@ const productLength = computed(() => {
       </button>
       <div class="flex flex-col">
         <RouterLink
+          v-if="userStore.getUserType() === 'SELLER'"
           active-class="border-b-1"
-          :to="{ name: 'home' }"
+          v-for="(m, i) in menu"
+          :to="{ name: m.to }"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
-          >Home</RouterLink
+          >{{ m.text }}</RouterLink
         >
         <RouterLink
+          v-else
           active-class="border-b-1"
-          :to="{ name: 'sale-items' }"
+          v-for="(m, i) in menu.filter((m) => m.seller !== true)"
+          :to="{ name: m.to }"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
-          >Products</RouterLink
+          >{{ m.text }}</RouterLink
         >
-        <!-- <RouterLink
+
+        <RouterLink
           active-class="border-b-1"
-          :to="{ name: 'signin' }"
-          to="l"
+          :to="{ name: 'order' }"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
-          >Log in</RouterLink
-        > -->
+          >Your orders</RouterLink
+        >
+        <RouterLink
+          v-if="userStore.getUserType() === 'SELLER'"
+          active-class="border-b-1"
+          :to="{ name: 'sale-orders' }"
+          class="mb-2 hover:text-purple-600 transition-colors w-fit"
+          >Sale order</RouterLink
+        >
       </div>
     </div>
   </div>

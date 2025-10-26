@@ -1,123 +1,108 @@
 <script setup>
-import { useRouter, useRoute } from 'vue-router'
-import arrowleft from '../assets/icons/arrowleft.svg'
-import dot from '../assets/icons/dot.svg'
-import heart from '../assets/icons/heart.svg'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { onMounted, ref, onBeforeUnmount, computed } from 'vue'
+import { useRouter, useRoute } from "vue-router";
+import arrowleft from "../assets/icons/arrowleft.svg";
+import dot from "../assets/icons/dot.svg";
+import heart from "../assets/icons/heart.svg";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { onMounted, ref, onBeforeUnmount, computed } from "vue";
 import {
   getSaleItemById,
   deleteSaleItemById,
   getSaleItemById_v2,
   getImageByFileName,
-} from '@/services/SaleItemService'
-import Breadcrumbs from '../components/Breadcrumbs.vue'
-import { useNotiStore } from '@/stores/NotiStore'
-import MessageModal from '@/components/MessageModal.vue'
-import noImage from '@/assets/No_image_available.png'
-import { useUserStore } from '@/stores/UserStore'
-import { addItemToCart } from '@/services/CartService'
-import { useCartStore } from '@/stores/CartStore'
+} from "@/services/SaleItemService";
+import Breadcrumbs from "../components/Breadcrumbs.vue";
+import { useNotiStore } from "@/stores/NotiStore";
+import MessageModal from "@/components/MessageModal.vue";
+import noImage from "@/assets/No_image_available.png";
+import { useUserStore } from "@/stores/UserStore";
+import { addItemToCart } from "@/services/CartService";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { useToastStore } from "@/stores/ToastStore";
 
-
-const userStore = useUserStore()
-const cartStore = useCartStore()
-const route = useRoute()
-const router = useRouter()
-const saleItemStore = useSaleItemStore()
-const saleItemId = route.params.id
-const selectSaleItem = ref(null)
-const isNotFound = ref(false)
-const errorMessage = ref('')
-
+const userStore = useUserStore();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
+const route = useRoute();
+const router = useRouter();
+const saleItemStore = useSaleItemStore();
+const saleItemId = route.params.id;
+const selectSaleItem = ref(null);
+const isNotFound = ref(false);
+const errorMessage = ref("");
+const quantitySelectedItemInCart = ref(0);
 const userNickname = computed(() => userStore.getNickName());
 const userId = computed(() => userStore.getUserId());
 
-
-const notiStore = useNotiStore()
+const notiStore = useNotiStore();
 
 // เพิ่ม state สำหรับจัดการรูปภาพ
-const currentImageIndex = ref(0)
-const imageUrls = ref([])
+const currentImageIndex = ref(0);
+const imageUrls = ref([]);
+
+const availableQuantity = computed(() => {
+  if (!selectSaleItem.value) return 0;
+  return selectSaleItem.value.quantity - quantitySelectedItemInCart.value;
+});
+
+const isSoldOut = computed(() => {
+  if (!selectSaleItem.value) return false;
+  return selectSaleItem.value.quantity <= 0;
+});
 
 // ฟังก์ชันสำหรับโหลดรูปภาพ
 const loadImages = async (imageFileNames) => {
   if (!imageFileNames || imageFileNames.length === 0) {
-    imageUrls.value = [noImage, noImage, noImage, noImage]
-    return
+    imageUrls.value = [noImage, noImage, noImage, noImage];
+    return;
   }
 
-  const urls = []
+  const urls = [];
   for (const fileName of imageFileNames) {
     try {
-      const imageUrl = await getImageByFileName(fileName.fileName)
-      urls.push(imageUrl)
+      const imageUrl = await getImageByFileName(fileName.fileName);
+      urls.push(imageUrl);
     } catch (error) {
-      console.error(`Failed to load image ${fileName.fileName}:`, error)
-      urls.push(noImage)
+      console.error(`Failed to load image ${fileName.fileName}:`, error);
+      urls.push(noImage);
     }
   }
 
   // เติม noImage ให้ครบ 4 รูปถ้าไม่ครบ
   while (urls.length < 4) {
-    urls.push(noImage)
+    urls.push(noImage);
   }
 
-  imageUrls.value = urls.slice(0, 4) // จำกัดไม่เกิน 4 รูป
-}
+  imageUrls.value = urls.slice(0, 4); // จำกัดไม่เกิน 4 รูป
+};
 
 // ฟังก์ชันสำหรับเปลี่ยนรูปหลัก
 const changeMainImage = (index) => {
-  currentImageIndex.value = index
-}
+  currentImageIndex.value = index;
+};
 
 const fetchSaleItemById = async () => {
   try {
     if (!saleItemId) {
-      throw new Error('Invalid ID')
+      throw new Error("Invalid ID");
     }
-    const response = await getSaleItemById_v2(saleItemId)
+    const response = await getSaleItemById_v2(saleItemId);
     if (!response.error) {
-      selectSaleItem.value = response
-      console.log(response)
-
-      // โหลดรูปภาพ
-      await loadImages(response.saleItemImages)
+      selectSaleItem.value = response;
+      quantitySelectedItemInCart.value =
+        cartStore.getQuantityByProductId(saleItemId);
+      await loadImages(response.saleItemImages);
     } else {
-      throw new Error('The requested sale item does not exist.')
+      throw new Error("The requested sale item does not exist.");
     }
   } catch (error) {
-    errorMessage.value = error.message
-    isNotFound.value = true
+    errorMessage.value = error.message;
+    isNotFound.value = true;
   }
-}
-const showDeleteModal = ref(false)
+};
 
-const deleteSuccess = ref(false)
-
-// const handleDelete = async (id) => {
-//   try {
-//     if (selectSaleItem.value && selectSaleItem.value.id) {
-//       const response = await deleteSaleItemById(selectSaleItem.value.id);
-//       showDeleteModal.value = false;
-//       if (response.success) {
-//         deleteSuccess.value = true;
-//         selectSaleItem.value = null;
-//       } else {
-//         throw new Error("The requested sale item does not exist.");
-//       }
-//     }
-//   } catch (e) {
-//     errorMessage.value = e.message;
-//     isNotFound.value = true;
-//   }
-// };
-
-// const successOk = () => {
-//   deleteSuccess.value = false;
-//   router.push({ name: "sale-items" });
-// };
-
+const toastStore = useToastStore();
 
 const addToCart = async () => {
   if (!userNickname.value) {
@@ -126,77 +111,75 @@ const addToCart = async () => {
   }
 
   if (selectSaleItem.value.seller.id === userId.value) {
-    notiStore.addToCartFail = true
-    return ;
+    notiStore.addToCartFail = true;
+    return;
   }
 
-  console.log("before set data");
-  console.log("uid"+ userId.value);
-  console.log("pid"+ selectSaleItem.value.id);
-  console.log("fileName"+ selectSaleItem.value?.saleItemImages[0]?.fileName );
-  console.log("qty" + cartQuantity.value);
-  
-  
-  
   try {
     const data = {
       userId: userId.value,
       productId: selectSaleItem.value.id,
-      imageFileName: selectSaleItem.value?.saleItemImages[0]?.fileName || '',
+      imageFileName: selectSaleItem.value?.saleItemImages[0]?.fileName || "",
       quantity: cartQuantity.value,
     };
 
-    console.log("after set data");
-    console.log("Adding to cart:", data);
     const response = await addItemToCart(data);
-    console.log("Add to cart response:", response);
+
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
 
     if (response.error) {
-       notiStore.addToCartFail = true
+      notiStore.addToCartFail = true;
       throw new Error(response.error);
     }
 
-    cartStore.addToCart(response,cartQuantity.value);
-    console.log("Successfully added to cart store");
+    cartStore.addToCart(response, cartQuantity.value);
+    toastStore.showToast("✓ Added to cart!", "success");
+    quantitySelectedItemInCart.value =
+      cartStore.getQuantityByProductId(saleItemId);
+    cartQuantity.value = 1;
   } catch (error) {
     console.error("Error adding to cart:", error);
-    // hasError.value = error.message || "Failed to add item to cart";
+    toastStore.showToast("✗ Failed to add to cart", "error");
   }
 };
-onMounted(fetchSaleItemById)
+
+onMounted(fetchSaleItemById);
 
 onBeforeUnmount(() => {
   imageUrls.value.forEach((url) => {
-    if (url !== noImage && url.startsWith('blob:')) {
-      URL.revokeObjectURL(url)
+    if (url !== noImage && url.startsWith("blob:")) {
+      URL.revokeObjectURL(url);
     }
-  })
-})
+  });
+});
 
-const showUpdatedModal = ref(false)
-// onMounted(() => {
-//   if (notiStore.updateSuccess) {
-//     showUpdatedModal.value = true;
-//     notiStore.updateSuccess = false;
-//   }
-// });
-
-const cartQuantity = ref(1)
+const cartQuantity = ref(1);
 
 const decreaseQuantity = () => {
   if (cartQuantity.value > 1) {
-    cartQuantity.value--
+    cartQuantity.value--;
   }
-}
+};
 
 const increaseQuantity = () => {
   if (
     selectSaleItem.value &&
-    cartQuantity.value < selectSaleItem.value.quantity
+    cartQuantity.value <
+      selectSaleItem.value.quantity - quantitySelectedItemInCart.value
   ) {
-    cartQuantity.value++
+    cartQuantity.value++;
   }
-}
+};
 </script>
 
 <template>
@@ -224,12 +207,22 @@ const increaseQuantity = () => {
 
         <div class="itbms-picture w-full md:w-[50%]">
           <!-- รูปหลัก -->
-          <div class="w-full mb-4 aspect-square max-w-md mx-auto">
+          <div class="w-full mb-4 aspect-square max-w-md mx-auto relative">
             <img
               :src="imageUrls[currentImageIndex] || noImage"
               class="w-full h-full object-cover rounded-lg border border-gray-200"
+              :class="{ 'opacity-50': isSoldOut }"
               :alt="selectSaleItem.model"
             />
+
+            <div
+              v-if="isSoldOut"
+              class="absolute inset-0 flex items-center justify-center rounded-lg"
+            >
+              <div class="bg-red-500 text-white font-bold px-8 py-3 rounded-lg shadow-lg text-2xl">
+                SOLD OUT
+              </div>
+            </div>
           </div>
 
           <!-- รูปย่อ (แสดงทั้งหมด 4 รูป) -->
@@ -238,11 +231,12 @@ const increaseQuantity = () => {
               v-for="(imageUrl, index) in imageUrls"
               :key="index"
               class="flex-1 aspect-square cursor-pointer rounded-lg overflow-hidden border-2 transition-all max-w-[80px]"
-              :class="
+              :class="[
                 currentImageIndex === index
                   ? 'border-purple-700'
-                  : 'border-gray-300 hover:border-gray-400'
-              "
+                  : 'border-gray-300 hover:border-gray-400',
+                  { 'opacity-50': isSoldOut }
+          ]"
               @click="changeMainImage(index)"
             >
               <img
@@ -296,7 +290,7 @@ const increaseQuantity = () => {
             <div class="itbms-description">
               <p class="font-semibold">Description:</p>
               <span :class="{ 'text-gray-400': !selectSaleItem.description }">{{
-                selectSaleItem.description || 'No description provided'
+                selectSaleItem.description || "No description provided"
               }}</span>
             </div>
             <div class="itbms-ramGb-unit">
@@ -308,7 +302,7 @@ const increaseQuantity = () => {
                 }"
               >
                 <span class="itbms-ramGb"
-                  >{{ selectSaleItem.ramGb || '-' }}
+                  >{{ selectSaleItem.ramGb || "-" }}
                 </span>
                 <span class="itbms-ramGb-unit">GB</span>
               </span>
@@ -323,7 +317,7 @@ const increaseQuantity = () => {
                 }"
               >
                 <span class="itbms-screenSizeInch">{{
-                  selectSaleItem.screenSizeInch || '-'
+                  selectSaleItem.screenSizeInch || "-"
                 }}</span>
                 <span class="itbms-screenSizeInch-unit">Inches</span>
               </span>
@@ -337,7 +331,7 @@ const increaseQuantity = () => {
                 }"
               >
                 <span class="itbms-storageGb">
-                  {{ selectSaleItem.storageGb || '-' }}
+                  {{ selectSaleItem.storageGb || "-" }}
                 </span>
                 <span class="itbms-storageGb-unit">GB</span>
               </span>
@@ -345,25 +339,44 @@ const increaseQuantity = () => {
             <div class="itbms-color">
               <span class="font-semibold">Color: </span>
               <span :class="{ 'text-gray-400': !selectSaleItem.color }">
-                {{ selectSaleItem.color || '-' }}
+                {{ selectSaleItem.color || "-" }}
               </span>
             </div>
             <div>
               <span class="font-semibold">Quantity: </span>
-              <span class="itbms-quantity">
+              <span v-if="!isSoldOut" class="itbms-quantity">
                 {{ selectSaleItem.quantity }}
+              </span>
+              <span v-else class="text-red-500 font-semibold">
+                Sold Out
+              </span>
+            </div>
+
+            
+            <div v-if="!isSoldOut">
+              <span class="font-semibold">Available: </span>
+              <span 
+                class="itbms-available-quantity font-semibold"
+                :class="{
+                  'text-green-600': availableQuantity > 5,
+                  'text-orange-500': availableQuantity > 0 && availableQuantity <= 5,
+                }"
+              >
+                {{ Math.max(0,availableQuantity) }}
               </span>
             </div>
             <div class="flex gap-4 mt-4">
               <!-- Quantity Selector and Add to Cart Button -->
-              <div class="flex gap-3 items-center">
+              <div class="flex gap-3 items-center" v-if="!isSoldOut">
                 <div class="flex items-center bg-gray-200 rounded-lg px-2 py-1">
                   <!-- ปุ่ม - -->
                   <button
                     @click="decreaseQuantity"
                     class="itbms-dec-qty-button text-md font-bold text-gray-600 hover:text-gray-800 px-2 cursor-pointer"
                     :disabled="cartQuantity <= 1"
-                    :class="{ 'opacity-50 cursor-not-allowed': cartQuantity <= 1 }"
+                    :class="{
+                      'opacity-50 cursor-not-allowed': cartQuantity <= 1,
+                    }"
                   >
                     -
                   </button>
@@ -379,17 +392,29 @@ const increaseQuantity = () => {
                   <button
                     @click="increaseQuantity"
                     class="itbms-inc-qty-button text-md text-gray-600 font-bold hover:text-gray-800 px-2 cursor-pointer"
-                    :disabled="cartQuantity >= selectSaleItem.quantity"
-                    :class="{ 'opacity-50 cursor-not-allowed': cartQuantity >= selectSaleItem.quantity }"
+                    :disabled="cartQuantity >= availableQuantity"
+                    :class="{
+                      'opacity-50 cursor-not-allowed': cartQuantity >= availableQuantity,
+                    }"
                   >
                     +
                   </button>
                 </div>
                 <button
-                @click="addToCart"
+                  @click="addToCart"
+                  :disabled="cartQuantity > availableQuantity"
                   class="itbms-add-to-cart-button btn btn-primary bg-blue-700 hover:bg-blue-800 flex-1 text-white"
                 >
                   Add to Cart
+                </button>
+              </div>
+
+              <div v-else>
+                <button
+                  disabled
+                  class="btn btn-error w-full opacity-75 cursor-not-allowed"
+                >
+                  Sold Out
                 </button>
               </div>
 
@@ -447,32 +472,12 @@ const increaseQuantity = () => {
     :message="errorMessage"
   />
 
-   <MessageModal
+  <MessageModal
     v-if="notiStore.addToCartFail"
     :handle-ok="() => (notiStore.addToCartFail = false)"
     :title="'Add to cart fail'"
     :message="'Can not add your own sale item'"
   />
-  <!-- <div v-if="deleteSuccess" class="modal modal-open">
-    <div class="modal-box text-center">
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The sale item has been deleted.
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button @click="successOk" class="btn btn-primary bg-purple-700">
-          OK
-        </button>
-      </div>
-    </div>
-  </div> -->
-
-  <!-- <MessageModal
-    v-if="showUpdatedModal"
-    :handle-ok="() => (showUpdatedModal = false)"
-    :title="'Successfully!'"
-    :message="'The sale item has been updated.'"
-    :type-modal="'text-success'"
-  /> -->
 </template>
 
 <style scoped></style>

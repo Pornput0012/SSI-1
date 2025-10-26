@@ -4,6 +4,10 @@ import { useUserStore } from "@/stores/UserStore";
 import { getImageByFileName, getUserById } from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { Icon } from "@iconify/vue";
+import { useRouter } from "vue-router";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const USER_TYPE = {
   SELLER: "SELLER",
@@ -11,6 +15,9 @@ const USER_TYPE = {
 };
 
 const userStore = useUserStore();
+const router = useRouter();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 
 const frontImageUrl = ref(null);
 const backImageUrl = ref(null);
@@ -21,6 +28,19 @@ const userInfo = ref(null);
 watchEffect(async () => {
   if (userId.value) {
     const user = await getUserById(userId.value);
+    
+    // Check for 401 error
+    if (user.error && user.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
+    
     userInfo.value = user;
     if (user.nationalIdPhotoFront) {
       frontImageUrl.value = await getImageByFileName(user.nationalIdPhotoFront);
@@ -74,26 +94,35 @@ const closeModal = () => {
           <h1 class="text-3xl font-bold text-base-content">โปรไฟล์</h1>
           <p class="text-base-content/70 mt-1">จัดการข้อมูลส่วนตัวของคุณ</p>
         </div>
-        <router-link
-          :to="{ name: 'EditProfile' }"
-          class="btn btn-primary gap-2 min-w-fit itbms-profile-button"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div class="flex gap-2">
+          <router-link
+            :to="{ name: 'changePassword' }"
+            class="btn btn-secondary gap-2 min-w-fit"
           >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-            />
-          </svg>
-          แก้ไขโปรไฟล์
-        </router-link>
+            <Icon icon="charm:key" width="20" height="20" />
+            เปลี่ยนรหัสผ่าน
+          </router-link>
+          <router-link
+            :to="{ name: 'EditProfile' }"
+            class="btn btn-primary gap-2 min-w-fit itbms-profile-button"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            แก้ไขโปรไฟล์
+          </router-link>
+        </div>
       </div>
 
       <!-- Loading State -->

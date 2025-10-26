@@ -1,11 +1,11 @@
 <script setup>
 import { useRouter, useRoute } from "vue-router";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { useUserStore } from "@/stores/UserStore";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 import { onMounted, ref } from "vue";
 import {
-  getSaleItemById,
   getSaleItemById_v2,
-  updateSaleItemById,
   updateSaleItemById_v2,
   updateSaleItemImageById,
 } from "@/services/SaleItemService";
@@ -21,7 +21,9 @@ const router = useRouter();
 const errorTitle = ref("");
 const showModal = ref(false);
 
-const saleItemStore = useSaleItemStore();
+const userStore = useUserStore();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 
 const selectSaleItem = ref(null);
 const saleItemId = route.params.id;
@@ -59,16 +61,42 @@ const editSaleItem = async (formData, images) => {
         formData,
         images
       );
+
+      // Check for 401 error
+      if (response.error && response.error.status === 401) {
+        userStore.clearUserInfo();
+        userStore.setAccessToken(null);
+        cartStore.setCart(null);
+        saleOrderStore.setSaleOrderQuanatity(0);
+        sessionStorage.clear();
+        localStorage.clear();
+        router.push({ name: "signin" });
+        return;
+      }
+
       if (!response.error) {
         updateSuccess();
       } else {
         throw new Error(response.error);
       }
-    }else{
+    } else {
       const response = await updateSaleItemImageById(
         selectSaleItem.value.id,
         images
       );
+
+      // Check for 401 error
+      if (response.error && response.error.status === 401) {
+        userStore.clearUserInfo();
+        userStore.setAccessToken(null);
+        cartStore.setCart(null);
+        saleOrderStore.setSaleOrderQuanatity(0);
+        sessionStorage.clear();
+        localStorage.clear();
+        router.push({ name: "signin" });
+        return;
+      }
+
       if (!response.error) {
         updateSuccess();
       } else {
@@ -85,10 +113,7 @@ const editSaleItem = async (formData, images) => {
 
 const notiStore = useNotiStore();
 const updateSuccess = () => {
-  console.log("call function");
-
   notiStore.updateSuccess = true;
-  console.log(notiStore.updateSuccess);
   router.push({
     name: "sale-item-detail",
     params: { id: selectSaleItem.value.id },

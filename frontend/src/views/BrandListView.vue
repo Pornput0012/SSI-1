@@ -27,8 +27,8 @@ onMounted(async () => {
     if (response.error) {
       throw new Error(response.error);
     }
-    const responseSaleItem = await getAllSaleItems()
-    if(responseSaleItem.error){
+    const responseSaleItem = await getAllSaleItems();
+    if (responseSaleItem.error) {
       throw new Error(responseSaleItem.error);
     }
   } catch (e) {
@@ -54,12 +54,10 @@ const confirmDelete = (brand) => {
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-
       const response = await deleteBrandById(deleteTargetId.value);
       showDeleteModal.value = false;
       if (response.success) {
         brandStore.deleteBrandById(deleteTargetId.value);
-
 
         deleteSuccess.value = true;
       } else {
@@ -110,10 +108,17 @@ onMounted(() => {
       class: 'itbms-item-list',
     }"
   />
+
   <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
     <div class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Brands</h1>
       <div class="flex gap-4 items-center">
+        <router-link
+          :to="{ name: 'create-brand' }"
+          class="itbms-sale-item-add-brand btn btn-primary"
+        >
+          Add Brand
+        </router-link>
         <label class="w-fit h-8 input input-xs hidden sm:flex">
           <input type="search" class="grow" placeholder="Search..." />
           <button class="cursor-pointer">
@@ -138,7 +143,6 @@ onMounted(() => {
       </div>
     </div>
     <div class="mt-10">
-      <!-- error message -->
       <div
         v-if="!brandStore.brands && hasError !== '' && hasError"
         class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-red-100 border-1 border-red-300"
@@ -146,7 +150,6 @@ onMounted(() => {
         <p class="text-red-500 font-extralight">{{ hasError }}</p>
       </div>
 
-      <!-- loader -->
       <div
         v-else-if="!brandStore.brands"
         class="m-10 overflow-auto rounded-lg shadow"
@@ -169,7 +172,6 @@ onMounted(() => {
         </table>
       </div>
 
-      <!-- show brand list -->
       <div
         v-else-if="brandStore.brands && brandStore.brands.length > 0"
         class="rounded-lg shadow"
@@ -226,7 +228,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- no sale item -->
       <div
         v-if="brandStore.brands && brandStore.brands.length === 0"
         class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
@@ -304,27 +305,6 @@ onMounted(() => {
     :type-modal="'text-success'"
   />
 
-  <!-- <div v-if="showCreatedModal" class="modal modal-open">
-    <div class="modal-box text-center">
-      <h3
-        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
-      >
-        Successfully!
-      </h3>
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The brand has been added.
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button
-          @click="showCreatedModal = false"
-          class="btn btn-primary bg-purple-700"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div> -->
-
   <MessageModal
     v-if="showUpdatedModal"
     :handle-ok="() => (showUpdatedModal = false)"
@@ -332,27 +312,6 @@ onMounted(() => {
     :message="'The brand has been updated.'"
     :type-modal="'text-success'"
   />
-
-  <!-- <div v-if="showUpdatedModal" class="modal modal-open">
-    <div class="modal-box text-center">
-      <h3
-        class="font-bold text-[14px] md:text-[16px] lg:text-[18px] text-success"
-      >
-        Successfully!
-      </h3>
-      <p class="itbms-message py-4 text-[12px] md:text-[14px] lg:text-[16px]">
-        The brand has been updated.
-      </p>
-      <div class="itbms-button modal-action justify-center">
-        <button
-          @click="showUpdatedModal = false"
-          class="btn btn-primary bg-purple-700"
-        >
-          OK
-        </button>
-      </div>
-    </div>
-  </div> -->
 
   <MessageModal
     v-if="errorMessage"

@@ -2,6 +2,7 @@ package ssi.backend.controllers;
 
 import java.util.List;
 
+import jakarta.validation.Validator;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,9 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
+import ssi.backend.dtos.ErrorResponseDTO;
 import ssi.backend.dtos.RegisterRequestDTO;
 import ssi.backend.dtos.UserResponseDTO;
 import ssi.backend.entities.User;
+import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.services.UserService;
 
 @RestController
@@ -25,6 +28,9 @@ public class RegisterController {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private Validator validator;
+
     @GetMapping("/buyers")
     public ResponseEntity<List<User>> getAllBuyers() {
         return ResponseEntity.ok(registerService.getAllBuyers());
@@ -35,25 +41,12 @@ public class RegisterController {
         return ResponseEntity.ok(registerService.getAllSellers());
     }
 
-//    @GetMapping("/buyers/email")
-//    public ResponseEntity<List<String>> getBuyersByEmail() {
-//        return ResponseEntity.ok(registerService.getAllUserEmails());
-//    }
-//
-//    @GetMapping("/sellers/email")
-//    public ResponseEntity<List<String>> getSellersByEmail() {
-//        return ResponseEntity.ok(registerService.getAllSellerEmails());
-//    }
 
     @PostMapping("/register")
     public ResponseEntity<Object> registerUser(@Valid @ModelAttribute RegisterRequestDTO user,
-                                                        @RequestParam(required = false) List<MultipartFile> images) {
-        if ("BUYER".equalsIgnoreCase(user.getUserType()) || "SELLER".equalsIgnoreCase(user.getUserType())) {
+                                               @RequestParam(required = false) List<MultipartFile> images) {
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(registerService.createUser(user,images), UserResponseDTO.class));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid accountType. Must be BUYER or SELLER");
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(registerService.createUser(user, images), UserResponseDTO.class));
+
     }
 }

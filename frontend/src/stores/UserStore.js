@@ -3,7 +3,9 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 
 export const useUserStore = defineStore("user", () => {
   const userInfo = ref({});
-
+  const accessToken = ref(null);
+  const getAccessToken = () => accessToken.value;
+  const setAccessToken = (token) => (accessToken.value = token);
   const getNickName = () => {
     return userInfo.value?.nickName;
   };
@@ -20,28 +22,22 @@ export const useUserStore = defineStore("user", () => {
     userInfo.value = user;
   };
   const clearUserInfo = () => {
-  userInfo.value = {};
-  sessionStorage.removeItem("userInfo"); 
-  sessionStorage.removeItem("pageInfo");
-  sessionStorage.removeItem("orderPageInfo");
-  sessionStorage.removeItem("sellerSaleItemPageInfo");
-};
+    userInfo.value = {};
+    sessionStorage.removeItem("userInfo");
+    sessionStorage.removeItem("pageInfo");
+    sessionStorage.removeItem("orderPageInfo");
+    sessionStorage.removeItem("sellerSaleItemPageInfo");
+  };
   const getUserId = () => userInfo.value.id;
-  
+
   const waitForUser = (timeout = 500) => {
-    console.log("wait user...");
-    
     return new Promise((resolve, reject) => {
       const start = Date.now();
-      console.log(userInfo.value);
-      
+
       const check = () => {
         if (Object.keys(userInfo.value) != 0) {
-          console.log("if");
-          
           resolve(userInfo);
         } else if (Date.now() - start >= timeout) {
-          console.log("else if");
           reject(new Error("Timeout waiting for user id"));
         } else {
           setTimeout(check, 100);
@@ -58,7 +54,9 @@ export const useUserStore = defineStore("user", () => {
     getUserType,
     getUserId,
     waitForUser,
-    clearUserInfo
+    clearUserInfo,
+    getAccessToken,
+    setAccessToken
   };
 });
 

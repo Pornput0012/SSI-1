@@ -53,12 +53,15 @@ public class OrderService {
     private CartRepository cartRepository;
 
     public OrderBuyerPageDTO getOrderBuyer(Integer buyerId, Integer page, Integer size, String sortField,
-            String sortDirection) throws ParseException, JOSEException {
+                                           String sortDirection, List<String> filterBrands, String searchKeyWord) throws ParseException, JOSEException {
 
         User user = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ItemNotFoundException("User not found with id: " + buyerId));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(buyerId)) {
@@ -67,10 +70,6 @@ public class OrderService {
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
         boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
-
-        if (page != null || size != null) {
-            System.out.println("ji");
-        }
         Sort sort;
         if (hasSortField) {
             sort = sortDesc
@@ -85,7 +84,12 @@ public class OrderService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Order> orderPage = orderRepository.findAllBuyerOrder(user, pageable);
+        Page<Order> orderPage = orderRepository.findFilteredBuyerOrders(
+                user,
+                (filterBrands != null && !filterBrands.isEmpty()) ? filterBrands : null,
+                searchKeyWord,
+                pageable
+        );
 
         List<OrderResponseDTO> orderDTOs = orderPage.getContent().stream().map(order -> {
             OrderResponseDTO dto = new OrderResponseDTO();
@@ -133,10 +137,13 @@ public class OrderService {
     }
 
     public OrderSellerPageDTO getOrderSeller(Integer sellerId, Integer page, Integer size, String sortField,
-            String sortDirection) throws ParseException, JOSEException {
+                                             String sortDirection) throws ParseException, JOSEException {
         userRepository.findById(sellerId)
                 .orElseThrow(() -> new ItemNotFoundException("User not found with id: " + sellerId));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(sellerId)) {
@@ -146,9 +153,6 @@ public class OrderService {
         boolean hasSortField = sortField != null && !sortField.isBlank();
         boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
 
-        if (page != null || size != null) {
-            System.out.println("ji");
-        }
         Sort sort;
         if (hasSortField) {
             sort = sortDesc
@@ -165,7 +169,6 @@ public class OrderService {
 
         Page<Order> orderPage = orderRepository.findAllSellerOrder(sellerId, pageable);
 
-        System.out.println(orderPage.getContent().isEmpty());
         List<OrderSellerResponseDTO> orderDTOs = orderPage.getContent().stream().map(order -> {
             OrderSellerResponseDTO dto = new OrderSellerResponseDTO();
             dto.setId(order.getId());
@@ -181,6 +184,7 @@ public class OrderService {
             dto.setShippingAddress(order.getShippingAddress());
             dto.setOrderNote(order.getOrderNote());
             dto.setOrderStatus(order.getStatus());
+            dto.setViewOrder(order.getViewOrder());
 
             List<OrderItemDTO> itemDTOs = order.getOrderItems().stream()
                     .filter(oi -> oi.getProduct().getSeller().getId().equals(sellerId))
@@ -201,7 +205,7 @@ public class OrderService {
 
         OrderSellerPageDTO response = new OrderSellerPageDTO();
         response.setContent(orderDTOs);
-        System.out.println(orderDTOs);
+
         response.setFirst(orderPage.isFirst());
         response.setLast(orderPage.isLast());
         response.setTotalPages(orderPage.getTotalPages());
@@ -214,11 +218,50 @@ public class OrderService {
         return response;
     }
 
-    public OrderDetailResponseDTO getOrderById(Integer orderId) throws ParseException, JOSEException {
+    public OrderSellerResponseDTO sellerViewOrder(Integer sellerId, Integer id) throws ParseException, JOSEException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId = (Integer) authentication.getDetails();
+
+        if (!userId.equals(sellerId)) {
+            throw new ForbiddenException("User id in access token not matched with resource id.");
+        }
+
+        Order existingOrder = orderRepository.findById(id).orElse(null);
+        if (existingOrder == null) {
+            throw new ItemNotFoundException("Order not found with id: " + id);
+        }
+
+        existingOrder.setViewOrder(true);
+
+
+        orderRepository.save(existingOrder);
+        OrderSellerResponseDTO dto = new OrderSellerResponseDTO();
+        dto.setId(existingOrder.getId());
+        dto.setSellerId(sellerId);
+        BuyerDTO buyerDTO = new BuyerDTO();
+        buyerDTO.setId(existingOrder.getBuyer().getId());
+        buyerDTO.setUserName(existingOrder.getBuyer().getNickname());
+        dto.setBuyer(buyerDTO);
+        dto.setOrderDate(existingOrder.getOrderDate());
+        dto.setPaymentDate(existingOrder.getPaymentDate());
+        dto.setShippingAddress(existingOrder.getShippingAddress());
+        dto.setOrderNote(existingOrder.getOrderNote());
+        dto.setOrderStatus(existingOrder.getStatus());
+        dto.setViewOrder(existingOrder.getViewOrder());
+        return dto;
+    }
+
+    public OrderDetailResponseDTO getOrderSellerById(Integer orderId) throws ParseException, JOSEException {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ItemNotFoundException("Order not found with id: " + orderId));
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         boolean isBuyer = order.getBuyer().getId().equals(userId);
@@ -232,6 +275,10 @@ public class OrderService {
         OrderDetailResponseDTO dto = new OrderDetailResponseDTO();
         dto.setId(order.getId());
         dto.setBuyerId(order.getBuyer().getId());
+        BuyerDTO buyerDTO = new BuyerDTO();
+        buyerDTO.setId(order.getBuyer().getId());
+        buyerDTO.setUserName(order.getBuyer().getNickname());
+        dto.setBuyer(buyerDTO);
 
         SellerDetailDTO sellerDTO = new SellerDetailDTO();
         sellerDTO.setId(order.getSeller().getId());
@@ -266,6 +313,9 @@ public class OrderService {
     public OrderResponseDTO createOrder(OrderRequestDTO orderRequestDTO) throws ParseException, JOSEException {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if (!userId.equals(orderRequestDTO.getBuyerId())) {
@@ -284,7 +334,7 @@ public class OrderService {
 
         }
 
-        // Validate และหา User
+
         User buyer = userRepository.findById(orderRequestDTO.getBuyerId())
                 .orElseThrow(
                         () -> new ItemNotFoundException("Buyer not found with id: " + orderRequestDTO.getBuyerId()));
@@ -293,7 +343,11 @@ public class OrderService {
                 .orElseThrow(
                         () -> new ItemNotFoundException("Seller not found with id: " + orderRequestDTO.getSellerId()));
 
-        // Validate quantity และเตรียม OrderItem ก่อนการ save
+        if (orderRequestDTO.getBuyerId().equals(orderRequestDTO.getSellerId())) {
+            throw new BadRequestException(
+                    "Cannot create order because buyer and seller are the same user.");
+        }
+
         List<OrderItem> orderItems = new ArrayList<>();
         Integer totalAmount = 0;
         boolean allItemsAvailable = true;
@@ -309,26 +363,17 @@ public class OrderService {
 
             Product product = productRepository.findById(itemDTO.getSaleItemId())
                     .orElseThrow(() -> new ItemNotFoundException(
-                            "Sale item not found with id: " + itemDTO.getSaleItemId()));
+                            "Product not found with id: " + itemDTO.getSaleItemId()));
 
-            if (!product.getSeller().getId().equals(orderRequestDTO.getSellerId())) {
+            if (product.getSeller() == null ||
+                    !product.getSeller().getId().equals(orderRequestDTO.getSellerId())) {
+
                 throw new BadRequestException(
-                        "Sale item " + itemDTO.getSaleItemId() + " does not exist to seller "
-                                + orderRequestDTO.getSellerId());
+                        "Product id " + product.getId() + " does not exist for seller id: " + orderRequestDTO.getSellerId());
             }
 
-            // ห้ามซื้อสินค้าที่ตัวเองเป็นเจ้าของ
-            if (product.getSeller() != null && buyer.getId().equals(product.getSeller().getId())) {
-                throw new BadRequestException(
-                        "Cannot order product id " + product.getId() + " because buyer is the owner of the product.");
-            }
-
-            // ตรวจสอบ quantity ก่อน
+            // ตรวจสอบ quantity และทำเครื่องหมายว่ามีสินค้าไม่พอหรือไม่
             if (product.getQuantity() < itemDTO.getQuantity()) {
-                // throw new ConfilctResourceException("Quantity not enough for product id: " +
-                // itemDTO.getSaleItemId());
-                System.out.println(product.getQuantity() + "qty" + product.getId());
-                System.out.println("order" + itemDTO.getQuantity());
                 allItemsAvailable = false;
             }
 
@@ -341,6 +386,7 @@ public class OrderService {
             orderItem.setDescription(itemDTO.getDescription());
 
             // คัดลอกข้อมูลจาก Product เพื่อป้องกันการเปลี่ยนแปลงในอนาคต
+            orderItem.setBrandName(product.getBrand().getName());
             orderItem.setModel(product.getModel());
             orderItem.setRamGb(product.getRamGb());
             orderItem.setScreenSizeInch(product.getScreenSizeInch());

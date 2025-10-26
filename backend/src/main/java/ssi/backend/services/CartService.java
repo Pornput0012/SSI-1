@@ -2,6 +2,8 @@ package ssi.backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Validator;
 import ssi.backend.dtos.CartRequestDto;
@@ -10,6 +12,7 @@ import ssi.backend.dtos.CartResponseSubDto;
 import ssi.backend.entities.*;
 import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ItemNotFoundException;
+import ssi.backend.exceptions.UnauthorizedException;
 import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.CartRepository;
 import ssi.backend.repositories.ProductRepository;
@@ -46,9 +49,18 @@ public class CartService {
     private SaleItemImageService saleItemImageService;
 
     public List<CartResponseDto> getAllCartById(int userId) {
-        // if () {
-        // throw new IllegalArgumentException("userId is null");
-        // }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer id = (Integer) authentication.getDetails();
+
+        if (id == null || !id.equals(userId)) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
+        User user = userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("User not found"));
         List<Cart> currentCart = cartRepository.findAllByUserId(userId);
         List<CartResponseDto> cartResponseDtos = new ArrayList<>();
 
@@ -64,13 +76,13 @@ public class CartService {
                     .filter((cart) -> sellerName.equals(cart.getProduct().getSeller().getNickname())).toList();
 
             if (cartBySeller.isEmpty())
-                return; // กัน error
+                return;
 
-            // ✅ ดึง sellerId จากสินค้าชิ้นแรก (เพราะทุกสินค้าของร้านเดียวกันมี seller
-            // เดียวกัน)
             Integer sellerId = cartBySeller.get(0).getProduct().getSeller().getId();
 
             CartResponseDto cartResponseDto = new CartResponseDto();
+            cartResponseDto.setAddress(user.getAddress());
+            cartResponseDto.setNote(user.getNote());
             cartResponseDto.setProductSellerId(sellerId);
             cartResponseDto.setProductSellerNickname(sellerName);
             List<CartResponseSubDto> cartResponseSubDtos = listMapper.mapList(cartBySeller, CartResponseSubDto.class,
@@ -80,12 +92,21 @@ public class CartService {
 
             cartResponseDtos.add(cartResponseDto);
         });
+
         return cartResponseDtos;
     }
 
     public CartResponseSubDto addToCart(CartRequestDto cartRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer id = (Integer) authentication.getDetails();
 
-        System.out.println(cartRequestDto.getQuantity());
+        if (id == null || !id.equals(cartRequestDto.getUserId())) {
+            throw new UnauthorizedException("Invalid token");
+        }
+
         SaleItemImage saleItemImage = saleItemImageService.findSaleItemImageByNameV2(cartRequestDto.getImageFileName());
         User existingUser = userRepository.findById(cartRequestDto.getUserId()).orElseThrow(
                 () -> new ItemNotFoundException("User id " + cartRequestDto.getUserId() + " does not exist"));
@@ -104,7 +125,6 @@ public class CartService {
         Cart saveCart = existCart == null ? new Cart() : existCart;
         saveCart.setUser(existingUser);
         saveCart.setProduct(existingProduct);
-        System.out.println(existingProduct.getSeller().getNickname());
 
         if (saleItemImage == null) {
             saveCart.setImage(null);
@@ -129,15 +149,32 @@ public class CartService {
     }
 
     public CartResponseSubDto updateQuantity(int cartId, int quantity) {
-        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ItemNotFoundException("Cart id " + cartId));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer id = (Integer) authentication.getDetails();
 
+        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ItemNotFoundException("Cart id " + cartId));
+        if(cart.getUser().getId() != id){
+            throw new UnauthorizedException("Invalid token");
+        }
         cart.setQuantity(quantity);
 
         return modelMapper.map(cartRepository.save(cart), CartResponseSubDto.class);
     }
 
     public void removeCart(int cartId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer id = (Integer) authentication.getDetails();
+
         Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ItemNotFoundException("Cart id " + cartId));
+        if(cart.getUser().getId() != id){
+            throw new UnauthorizedException("Invalid token");
+        }
         cartRepository.delete(cart);
     }
 }

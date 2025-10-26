@@ -15,7 +15,7 @@ const props = defineProps({
 
 const formData = ref({
   name: props.brandDetail?.name ?? "",
-  websiteUrl: props.brandDetail?.websiteUrl || null, //ใช้ null เพราะเป็นทั้ง optionalและ not empty
+  websiteUrl: props.brandDetail?.websiteUrl || null,
   isActive: props.brandDetail?.isActive ?? true,
   countryOfOrigin: props.brandDetail?.countryOfOrigin || null,
 });
@@ -57,11 +57,9 @@ function isValidUrl() {
 
   if (!pattern.test(url)) {
     validate.value.websiteUrl.msg = `Brand URL must be a valid URL or not specified.`;
-  
 
     return;
   }
-
 
   validate.value.websiteUrl.msg = "";
 }
@@ -70,7 +68,7 @@ function maximumLength(field) {
   const labels = ["name", "country of origin"];
   const matchedLabel =
     labels.find((label) => {
-      const normalizedLabel = label.toLowerCase().replace(/\s+/g, ""); //ลบช่องว่าง \s
+      const normalizedLabel = label.toLowerCase().replace(/\s+/g, "");
       return field.toLowerCase().includes(normalizedLabel);
     }) || field;
   const trimField =
@@ -282,7 +280,10 @@ watchEffect(() => {
         >
           Save
         </button>
-        <button @click="$router.back()" class="itbms-cancel-button btn">
+        <button
+          @click="$router.push({ name: 'brands' })"
+          class="itbms-cancel-button btn"
+        >
           Cancel
         </button>
       </div>

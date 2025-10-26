@@ -1,6 +1,10 @@
 <script setup>
-import { ref, watch, watchEffect } from "vue";
-import { getProfile, login } from "@/services/userService";
+import { onMounted, ref, watch, watchEffect } from "vue";
+import {
+  getAccessTokenFromLocalStorage,
+  getProfile,
+  login,
+} from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
 import MessageModal from "@/components/MessageModal.vue";
 import router from "@/router";
@@ -29,14 +33,14 @@ const handleLogin = async () => {
 
     if (response.success) {
       loginSuccess();
-      console.log("Login success!");
     } else {
       disableSaveBtn.value = false;
+
       throw new Error(response.error);
     }
-  } catch (error) {
+  } catch (error) {    
     errorTitle.value = "Failed to log in";
-    errorMessage.value = error.message;
+    errorMessage.value = error.message || "Email Address or Password incorrect.";
     showModal.value = true;
   }
 };
@@ -137,6 +141,12 @@ const loginSuccess = async () => {
   }
   router.push({ name: "sale-items-list" });
 };
+
+onMounted(() => {
+  if (getAccessTokenFromLocalStorage()) {
+    router.push({ name: "sale-items" });
+  }
+});
 </script>
 
 <template>
@@ -284,16 +294,17 @@ const loginSuccess = async () => {
           <label class="flex items-center">
             <input
               type="checkbox"
+              checked
               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             />
             <span class="ml-2 text-sm text-gray-600">Remember me</span>
           </label>
-          <button
-            type="button"
-            class="text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
+          <router-link
+            :to="{ name: 'forgotPassword' }"
+            class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
           >
             Forgot password?
-          </button>
+          </router-link>
         </div>
 
         <button
@@ -303,7 +314,7 @@ const loginSuccess = async () => {
           :class="[
             disableSaveBtn || onSubmit
               ? 'flex items-center justify-center gap-2 w-full text-white py-3 px-4 rounded-lg font-medium  cursor-not-allowed bg-gray-300 '
-              : 'w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform hover:scale-105',
+              : 'cursor-pointer w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform hover:scale-105',
           ]"
         >
           <svg

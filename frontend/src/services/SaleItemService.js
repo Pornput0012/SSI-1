@@ -1,5 +1,6 @@
 import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { fetchWithTokenRetry } from "@/utils/fetchWithAuth";
 
 const SALE_ITEM_API_URL_V1 = `${
   import.meta.env.VITE_URL_API || "/ssi1"
@@ -8,11 +9,6 @@ const SALE_ITEM_API_URL_V2 = `${
   import.meta.env.VITE_URL_API || "/ssi1"
 }/itb-mshop/v2/sale-items`;
 
-const getAccessToken = () => {
-  return localStorage.getItem("access_token");
-};
-
-// GET all sale-items
 const getAllSaleItems = async () => {
   try {
     const response = await fetch(SALE_ITEM_API_URL_V1);
@@ -72,7 +68,6 @@ const getAllSaleItems_v2 = async (
     const saleItemStore = useSaleItemStore();
 
     saleItemStore.setSaleItemsPage(data);
-    console.log(data);
 
     return data;
   } catch (error) {
@@ -119,7 +114,9 @@ const getImageByFileName = async (fileName) => {
   try {
     if (!fileName) throw new Error("fileName is required.");
     const response = await fetch(
-      `${import.meta.env.VITE_URL_API || "/ssi1"}/itb-mshop/sale-items/${fileName}`,
+      `${
+        import.meta.env.VITE_URL_API || "/ssi1"
+      }/itb-mshop/sale-items/${fileName}`,
       {
         mode: "cors",
       }
@@ -151,6 +148,34 @@ const deleteSaleItemById = async (id) => {
     const response = await fetch(`${SALE_ITEM_API_URL_V1}/${id}`, {
       method: "DELETE",
     });
+
+    if (response.status !== 204) {
+      throw new Error(
+        `Failed to delete Sale Item with ID ${id}. Server responded with status ${response.status}`
+      );
+    }
+    resetCurrentPage();
+    return { success: true };
+  } catch (error) {
+    return {
+      error: `Error deleting Sale Item: ${error.message}`,
+    };
+  }
+};
+
+const deleteSaleItemByIdV2 = async (id) => {
+  try {
+    const { resetCurrentPage } = useFilterStore();
+
+    if (!id) throw new Error(`Sale Item ID is required for deletion.`);
+
+    const response = await fetchWithTokenRetry(
+      `${SALE_ITEM_API_URL_V2}/${id}`,
+      {
+        method: "DELETE",
+        headers: {},
+      }
+    );
 
     if (response.status !== 204) {
       throw new Error(
@@ -206,14 +231,9 @@ const createSaleItem_v2 = async (saleItem, images) => {
         );
       }
     }
-    console.log(images);
 
     if (images) {
-      console.log(images);
-
       images.newImages.forEach((img, index) => {
-        console.log(img);
-
         const splitFileName = img.fileName.split(".");
 
         const ext = splitFileName.pop();
@@ -226,28 +246,27 @@ const createSaleItem_v2 = async (saleItem, images) => {
       });
     }
 
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${SALE_ITEM_API_URL_V2}`, {
+    const response = await fetchWithTokenRetry(`${SALE_ITEM_API_URL_V2}`, {
       method: "POST",
       body: formData,
-      headers: {
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
-      },
+      headers: {},
     });
 
-    console.log(response);
-
     if (!response.ok) {
-      throw new Error(
+      const error = new Error(
         `Failed to create sale item. Server responded with status ${response.status}`
       );
+      error.status = response.status;
+      throw error;
     }
 
     return await response.json();
   } catch (error) {
     return {
-      error: `Error creating sale item: ${error.message}`,
+      error: {
+        message: `Error creating sale item: ${error.message}`,
+        status: error.status,
+      },
     };
   }
 };
@@ -296,8 +315,6 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
       }
     }
 
-    console.log(images);
-
     if (images) {
       images.newImages.forEach((img) => {
         const reordered = images.reorderedImages.find(
@@ -320,15 +337,18 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
       images.reorderedImages.forEach((ele, i) => {
         orderImage += `${i != 0 ? "|" : ""}${ele.fileName},${ele.newOrder}`;
       });
-      console.log(orderImage);
 
       formData.append("orderImages", orderImage);
     }
 
-    const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}`, {
-      method: "PUT",
-      body: formData,
-    });
+    const response = await fetchWithTokenRetry(
+      `${SALE_ITEM_API_URL_V2}/${id}`,
+      {
+        method: "PUT",
+        body: formData,
+        headers: {},
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -373,10 +393,14 @@ const updateSaleItemImageById = async (id, images) => {
       formData.append("orderImages", orderImage);
     }
 
-    const response = await fetch(`${SALE_ITEM_API_URL_V2}/${id}/images`, {
-      method: "PUT",
-      body: formData,
-    });
+    const response = await fetchWithTokenRetry(
+      `${SALE_ITEM_API_URL_V2}/${id}/images`,
+      {
+        method: "PUT",
+        body: formData,
+        headers: {},
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -397,8 +421,6 @@ const getSaleItemsBySeller = async (
   pageInfo = { page: 0, size: 10 }
 ) => {
   try {
-    
-
     if (!sellerId) throw new Error("Seller ID is required");
     const getRequestParameter = () => {
       const requestParameter = [];
@@ -414,21 +436,22 @@ const getSaleItemsBySeller = async (
       }
       return requestParameter.join("&");
     };
-    const response = await fetch(
+    const response = await fetchWithTokenRetry(
       `${
         import.meta.env.VITE_URL_API || "/ssi1"
       }/itb-mshop/v2/sellers/${sellerId}/sale-items?${getRequestParameter()}`,
       {
-        headers: {
-          Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
-        },
+        method: "GET",
+        headers: {},
       }
     );
 
     if (!response.ok) {
-      throw new Error(
+      const error = new Error(
         `(${response.status}) Failed to fetch seller's sale items.`
       );
+      error.status = response.status;
+      throw error;
     }
 
     const data = await response.json();
@@ -437,7 +460,7 @@ const getSaleItemsBySeller = async (
     saleItemStore.setSaleItemsPage({ ...data, isSeller: true });
     return data;
   } catch (error) {
-    return { error };
+    return { error: { message: error.message, status: error.status } };
   }
 };
 
@@ -454,4 +477,5 @@ export {
   updateSaleItemById_v2,
   updateSaleItemImageById,
   getSaleItemsBySeller,
+  deleteSaleItemByIdV2,
 };

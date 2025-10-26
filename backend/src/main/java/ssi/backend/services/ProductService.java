@@ -172,7 +172,6 @@ public class ProductService {
             });
             productPage
                     .setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
-            System.out.println(productPage.getContent().get(0).getSeller().getNickname());
             return productPage;
         }
     }
@@ -190,8 +189,19 @@ public class ProductService {
     }
 
     public ProductItemResponseDTO updateProduct(Integer id, ProductItemRequestDTO productItemRequestDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId = (Integer) authentication.getDetails();
+
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!existingProduct.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to modify this product.");
+        }
+
         Brand existingBrand = brandRepository.findById(productItemRequestDTO.getBrand().getId())
                 .orElseThrow(() -> new ItemNotFoundException(
                         "Brand id " + productItemRequestDTO.getBrand().getId() + " does not exist"));
@@ -211,24 +221,48 @@ public class ProductService {
 
     @Transactional
     public void deleteProductById(Integer id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId =  (Integer) authentication.getDetails();
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!product.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to Delete this product.");
+        }
+
         productRepository.delete(product);
     }
 
     public void deleteProductByIdV2(Integer id) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId =  (Integer) authentication.getDetails();
+
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!product.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to Delete this product.");
+        }
+
         saleItemImageService.findAllByProduct(id).forEach(saleItemImage -> {
             saleItemImageService.deleteImage(saleItemImage.getId());
-            fileService.removeFile(product, saleItemImage.getFileName());
+            if(saleItemImage.getFileName() != null && !saleItemImage.getFileName().isEmpty()) {
+                fileService.removeFile(product, saleItemImage.getFileName());
+            }
         });
 
         productRepository.delete(product);
     }
 
     public ProductItemResponseDTO createProduct(ProductItemRequestDTO product) {
-
         Brand existingBrand = brandRepository.findById(product.getBrand().getId())
                 .orElseThrow(
                         () -> new ItemNotFoundException("Brand id " + product.getBrand().getId() + " does not exist"));
@@ -268,9 +302,11 @@ public class ProductService {
     @Transactional
     public ProductItemResponseDtoV2 createProductSeller(ProductItemRequestDtoV2 product, List<MultipartFile> images, Integer id) throws ParseException, JOSEException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = id != null ? id : (Integer) authentication.getDetails();
 
-        System.out.println("userId = " + userId);
         if (images != null && images.size() > 4) {
             throw new BadRequestException("Images Size Exceeded");
         }
@@ -298,8 +334,19 @@ public class ProductService {
     @Transactional
     public ProductItemRequestDtoV2 updateProductV2(Integer id, ProductItemRequestDtoV2 product, String removeImage,
             String orderImages, List<MultipartFile> newImages) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId = (Integer) authentication.getDetails();
+
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!existingProduct.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to modify this product.");
+        }
+
         Brand existingBrand = brandRepository.findById(product.getBrandId())
                 .orElseThrow(() -> new ItemNotFoundException(
                         "Brand id " + product.getBrandId() + " does not exist"));
@@ -389,8 +436,18 @@ public class ProductService {
     @Transactional
     public ProductItemRequestDtoV2 updateProductV2(Integer id, String removeImage, String orderImages,
             List<MultipartFile> newImages) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer userId =  (Integer) authentication.getDetails();
+
         Product existingProduct = productRepository.findById(id)
                 .orElseThrow(() -> new ItemNotFoundException("SaleItem id " + id + " does not exist"));
+
+        if(!existingProduct.getSeller().getId().equals(userId)) {
+            throw new UnauthorizedException("Access denied. You do not have permission to modify this product.");
+        }
 
         // ลบรูปภาพที่ระบุ
         if (removeImage != null && !removeImage.trim().isEmpty()) {
@@ -411,22 +468,18 @@ public class ProductService {
             String[] imageOrderPairs = orderImages.split("\\|");
             for (String pair : imageOrderPairs) {
                 if (pair.trim().isEmpty()) {
-                    System.out.println("[DEBUG] Empty pair, skip");
                     continue;
                 }
                 String[] parts = pair.split(",");
                 if (parts.length != 2) {
-                    System.out.println("[DEBUG] Invalid pair format: " + pair);
                     continue;
                 }
                 String fileNameRaw = parts[0].trim();
                 String orderStr = parts[1].trim();
-                System.out.println("[DEBUG] Processing file: " + fileNameRaw + ", order: " + orderStr);
                 try {
                     Integer newOrder = Integer.parseInt(orderStr);
                     String[] fileNameSplit = fileNameRaw.split("\\.");
                     if (fileNameSplit.length < 3) {
-                        System.out.println("[DEBUG] fileNameSplit < 3: " + fileNameRaw);
                         continue;
                     }
                     String baseName = fileNameSplit[0];
@@ -437,32 +490,24 @@ public class ProductService {
                     SaleItemImage existingImage = saleItemImageService.findByProductAndFileName(existingProduct,
                             fileNameForDb);
                     if (existingImage != null) {
-                        System.out.println("[DEBUG] Found image in DB: " + fileNameForDb);
                         if (!existingImage.getFileName().equals(newFileName)) {
-                            System.out.println(
-                                    "[DEBUG] Rename file " + existingImage.getFileName() + " -> " + newFileName);
                             fileService.renameFile(existingProduct, existingImage.getFileName(), newFileName);
                             saleItemImageService.updateFileName(existingImage.getId(), newFileName);
                         }
                         if (!newOrder.equals(existingImage.getImageViewOrder())) {
-                            System.out.println("[DEBUG] Update imageViewOrder for " + newFileName + " to " + newOrder);
                             saleItemImageService.updateImageOrder(existingImage.getId(), newOrder);
                         }
                     } else {
-                        System.out.println("[DEBUG] Image not found in DB: " + fileNameForDb);
                         if (fileService.fileExists(existingProduct, fileNameRaw)) {
-                            System.out.println("[DEBUG] File exists in folder, save to DB: " + fileNameRaw);
                             SaleItemImage newImage = new SaleItemImage();
                             newImage.setProduct(existingProduct);
                             newImage.setFileName(fileNameRaw);
                             newImage.setImageViewOrder(newOrder);
                             saleItemImageService.saveImage(newImage);
                         } else {
-                            System.out.println("[DEBUG] File not found in folder: " + fileNameRaw);
                         }
                     }
                 } catch (NumberFormatException e) {
-                    System.out.println("[DEBUG] Invalid order number: " + orderStr);
                     continue;
                 }
             }
@@ -485,6 +530,9 @@ public class ProductService {
 
         User user = userRepository.findById(sellerId).orElseThrow(() -> new UnauthorizedException("Seller not found"));
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new UnauthorizedException("No Access token");
+        }
         Integer userId = (Integer) authentication.getDetails();
 
         if ( !userId.equals(sellerId)) {
@@ -505,7 +553,6 @@ public class ProductService {
 
 
         if (page != null || size != null) {
-            System.out.println("ji");
         }
         Sort sort;
         if (hasSortField) {

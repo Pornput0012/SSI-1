@@ -11,7 +11,11 @@ import com.nimbusds.jwt.SignedJWT;
 import org.springframework.stereotype.Service;
 import ssi.backend.configuration.JwtProperties;
 import ssi.backend.dtos.JwtClaimDTO;
+import ssi.backend.entities.User;
 import ssi.backend.exceptions.BadRequestException;
+import ssi.backend.exceptions.ForbiddenException;
+import ssi.backend.exceptions.UnauthorizedException;
+import ssi.backend.repositories.UserRepository;
 
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -24,10 +28,12 @@ public class JwtService {
 
     private static final long ACCESS_TOKEN_EXP = 30 * 60 * 1000; // 30 นาที
     private static final long REFRESH_TOKEN_EXP = DEFAULT_EXPIRATION;
+    private final UserRepository userRepository;
 
 
-    public JwtService(JwtProperties jwtProperties) {
+    public JwtService(JwtProperties jwtProperties, UserRepository userRepository) {
         this.jwtProperties = jwtProperties;
+        this.userRepository = userRepository;
     }
 
     public String generateVerifyEmailToken(Integer user_id, String username, String email, String userType) throws JOSEException {
@@ -58,6 +64,35 @@ public class JwtService {
         return signedJWT.serialize();
     }
 
+    public String generateResetPasswordToken(Integer userId, String email) throws JOSEException {
+        if (userId == null || email == null) {
+            throw new IllegalArgumentException("User ID and email cannot be null");
+        }
+
+        Date now = new Date();
+
+        long RESET_EXPIRATION = 15 * 60 * 1000;
+        Date expiryDate = new Date(now.getTime() + RESET_EXPIRATION);
+
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .subject("reset_password")
+                .claim("email", email)
+                .claim("user_id", userId)
+                .issueTime(now)
+                .expirationTime(expiryDate)
+                .build();
+
+        SignedJWT signedJWT = new SignedJWT(
+                new JWSHeader(JWSAlgorithm.HS256),
+                claims
+        );
+
+        signedJWT.sign(new MACSigner(jwtProperties.getSecretResetPassword().getBytes(StandardCharsets.UTF_8)));
+
+        return signedJWT.serialize();
+    }
+
+
     public void validateVerifyEmailToken(String token) throws JOSEException, ParseException {
         if (token == null || token.trim().isEmpty()) {
             throw new BadRequestException("Token is required");
@@ -65,6 +100,24 @@ public class JwtService {
 
         SignedJWT signedJWT = SignedJWT.parse(token);
         JWSVerifier verifier = new MACVerifier(jwtProperties.getSecretVerifyEmail().getBytes(StandardCharsets.UTF_8));
+
+        if (!signedJWT.verify(verifier)) {
+            throw new BadRequestException("Invalid verification token");
+        }
+
+        Date expirationTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        if (expirationTime == null || !new Date().before(expirationTime)) {
+            throw new BadRequestException("Invalid verification token");
+        }
+    }
+
+    public void validateVerifyResetPassword(String token) throws JOSEException, ParseException {
+        if (token == null || token.trim().isEmpty()) {
+            throw new BadRequestException("Token is required");
+        }
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+        JWSVerifier verifier = new MACVerifier(jwtProperties.getSecretResetPassword().getBytes(StandardCharsets.UTF_8));
 
         if (!signedJWT.verify(verifier)) {
             throw new BadRequestException("Invalid verification token");
@@ -142,6 +195,20 @@ public class JwtService {
         SignedJWT signedJWT = SignedJWT.parse(token);
         JWSVerifier verifier = new MACVerifier(jwtProperties.getSecretRefresh().getBytes(StandardCharsets.UTF_8));
 
+        JwtClaimDTO claim = new JwtClaimDTO();
+        Long user_id = (Long) signedJWT.getJWTClaimsSet().getClaim("id");
+
+        Integer user_id_int = user_id.intValue();
+        claim.setUserId(user_id_int);
+
+
+        User user = userRepository.findById(claim.getUserId())
+                .orElseThrow(() -> new UnauthorizedException("User not found or access denied"));
+
+
+        if ("INACTIVE".equalsIgnoreCase(user.getStatus())) {
+            throw new ForbiddenException("User is inactive");
+        }
         if (!signedJWT.verify(verifier)) {
             throw new BadRequestException("Invalid refresh token");
         }
@@ -178,8 +245,8 @@ public class JwtService {
         SignedJWT signedJWT = SignedJWT.parse(refreshToken);
         Integer userId = ((Long) signedJWT.getJWTClaimsSet().getClaim("id")).intValue();
         String email = signedJWT.getJWTClaimsSet().getSubject();
-        String role = signedJWT.getJWTClaimsSet().getClaim("role").toString();
-        String nickname = signedJWT.getJWTClaimsSet().getClaim("nickName").toString();
+        String role =  (String) signedJWT.getJWTClaimsSet().getClaim("role");
+        String nickname = (String) signedJWT.getJWTClaimsSet().getClaim("nickName");
 
         return generateAccessToken(userId, nickname, email, role);
     }

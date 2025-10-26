@@ -3,8 +3,7 @@ import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
 import MessageModal from "@/components/MessageModal.vue";
 import router from "@/router";
-import { createSaleItem, createSaleItem_v2 } from "@/services/SaleItemService";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { createSaleItem_v2 } from "@/services/SaleItemService";
 import { useNotiStore } from "@/stores/NotiStore";
 import { ref } from "vue";
 
@@ -17,9 +16,7 @@ const handleCreateSaleItem = async (formData, images) => {
     isSaving.value = true;
     if (formData) {
       const response = await createSaleItem_v2(formData, images);
-      console.log(response);
-      console.log(response.error);
-      
+
       if (!response.error) {
         createSuccess();
       } else {
@@ -37,7 +34,7 @@ const handleCreateSaleItem = async (formData, images) => {
 const notiStore = useNotiStore();
 const createSuccess = () => {
   notiStore.createSuccess = true;
-  router.back();
+  router.push({ name: "sale-items" });
 };
 </script>
 

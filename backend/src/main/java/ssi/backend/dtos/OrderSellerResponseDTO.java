@@ -18,4 +18,6 @@ public class OrderSellerResponseDTO {
     private String orderNote;
     private List<OrderItemDTO> orderItems;
     private String orderStatus;
+    private Boolean viewOrder;
+
 }

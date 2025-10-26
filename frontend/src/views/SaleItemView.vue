@@ -7,8 +7,6 @@ import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
-import { useUserStore } from "@/stores/UserStore";
-import { getProfile } from "@/services/userService";
 import MessageModal from "@/components/MessageModal.vue";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
@@ -23,7 +21,6 @@ const STORAGE_KEYS = {
 const filterStore = useFilterStore();
 const saleItemStore = useSaleItemStore();
 const notiStore = useNotiStore();
-const userStore = useUserStore();
 
 const {
   getFilterList,
@@ -282,9 +279,7 @@ const initializeBrands = async () => {
 };
 
 const initializeSaleItems = async (pageInfo) => {
-  try {
-    console.log("initSaleitem");
-    
+  try {    
     const response = await getAllSaleItems_v2({
       filterBrands: getFilterList().brands,
       filterStorages: getFilterList().storages,
