@@ -360,7 +360,7 @@ const increaseQuantity = () => {
                     "
                     :class="{
                       'opacity-50 cursor-not-allowed':
-                        cartQuantity >= selectSaleItem.quantity,
+                        cartQuantity >= selectSaleItem.quantity - quantitySelectedItemInCart,
                     }"
                   >
                     +
