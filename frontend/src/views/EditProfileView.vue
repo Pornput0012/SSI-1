@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, watchEffect } from "vue";
+import { ref, computed, onMounted, watchEffect } from "vue";
 import { useUserStore } from "@/stores/UserStore";
 import { updateUserById } from "@/services/userService";
 import { useRouter } from "vue-router";

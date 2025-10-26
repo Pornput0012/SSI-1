@@ -1,12 +1,9 @@
 <script setup>
-import { useFilterStore } from '@/stores/FilterStore'
 import { useOrderStore } from '@/stores/OrderStore'
 import { useUserStore } from '@/stores/UserStore'
 import { ref, onMounted, computed, watch } from 'vue'
 import OrderGallery from '@/components/OrderGallery.vue'
 import { getOrdersBuyer, getOrdersSeller } from '@/services/OrderService'
-import MessageModal from '@/components/MessageModal.vue'
-import { useNotiStore } from '@/stores/NotiStore'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/CartStore'
 import { useSaleOrderStore } from '@/stores/saleOrderStore'
@@ -34,15 +31,12 @@ const {
     removeBrand,
     setSearchKeyWord,
     clearSelectedBrands,
-    getSearchKeyWord,
 } = orderFilterStore
 
 const activeTab = ref('COMPLETED')
 const hasError = ref('')
 
 const userId = computed(() => userStore.getUserId())
-const userType = computed(() => userStore.getUserType())
-const isSeller = computed(() => userType.value?.toUpperCase() === 'SELLER')
 
 const ordersPage = computed(() => orderStore.getOrdersPage())
 
