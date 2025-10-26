@@ -160,6 +160,7 @@ watch(
           :color="itemInList.color"
           :id="itemInList.id"
           :sellerId="itemInList.seller.id"
+          :quantity="itemInList.quantity"
         />
       </template>
     </ContainerList>
