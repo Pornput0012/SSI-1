@@ -362,7 +362,7 @@ const increaseQuantity = () => {
                   'text-orange-500': availableQuantity > 0 && availableQuantity <= 5,
                 }"
               >
-                {{ availableQuantity }}
+                {{ Math.max(0,availableQuantity) }}
               </span>
             </div>
             <div class="flex gap-4 mt-4">

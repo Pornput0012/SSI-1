@@ -1,18 +1,18 @@
 <script setup>
-import noImage from '@/assets/No_image_available.png'
-import router from '@/router'
-import { getImageByFileName } from '@/services/SaleItemService'
-import { useCartStore } from '@/stores/CartStore'
-import { useUserStore } from '@/stores/UserStore'
-import { useSaleOrderStore } from '@/stores/saleOrderStore'
-import { computed, onMounted, ref } from 'vue'
-import { addItemToCart } from '@/services/CartService'
-import { useNotiStore } from '@/stores/NotiStore'
-import { useToastStore } from '@/stores/ToastStore'
-const notiStore = useNotiStore()
-const cartStore = useCartStore()
-const userStore = useUserStore()
-const saleOrderStore = useSaleOrderStore()
+import noImage from "@/assets/No_image_available.png";
+import router from "@/router";
+import { getImageByFileName } from "@/services/SaleItemService";
+import { useCartStore } from "@/stores/CartStore";
+import { useUserStore } from "@/stores/UserStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { computed, onMounted, ref } from "vue";
+import { addItemToCart } from "@/services/CartService";
+import { useNotiStore } from "@/stores/NotiStore";
+import { useToastStore } from "@/stores/ToastStore";
+const notiStore = useNotiStore();
+const cartStore = useCartStore();
+const userStore = useUserStore();
+const saleOrderStore = useSaleOrderStore();
 const props = defineProps({
   id: {
     type: Number,
@@ -46,95 +46,95 @@ const props = defineProps({
     type: Number,
     required: true,
   },
-})
+});
 
-const hasError = ref('')
-const userNickname = computed(() => userStore.getNickName())
-const userId = computed(() => userStore.getUserId())
+const hasError = ref("");
+const userNickname = computed(() => userStore.getNickName());
+const userId = computed(() => userStore.getUserId());
 
-const imageUrl = ref(null)
+const imageUrl = ref(null);
 
 const quantityInCart = computed(() => {
-  return cartStore.getQuantityByProductId(props.id) || 0
-})
+  return cartStore.getQuantityByProductId(props.id) || 0;
+});
 
 const availableQuantity = computed(() => {
-  return props.quantity - quantityInCart.value
-})
+  return props.quantity - quantityInCart.value;
+});
 
-const isAddToCartDisabled = computed(() => {
-  return availableQuantity.value <= 0
-})
+const isAvailableBuy = computed(() => {
+  return availableQuantity.value <= 0;
+});
 
 const isSoldOut = computed(() => {
-  return props.quantity <= 0
-})
+  return props.quantity <= 0;
+});
 
 const loadImages = async () => {
   try {
     if (props.fileName?.fileName) {
-      const image_url = await getImageByFileName(props.fileName.fileName)
-      imageUrl.value = image_url
+      const image_url = await getImageByFileName(props.fileName.fileName);
+      imageUrl.value = image_url;
     } else {
-      imageUrl.value = noImage
+      imageUrl.value = noImage;
     }
   } catch (error) {
-    console.error(`Failed to load image:`, error)
-    imageUrl.value = noImage
+    console.error(`Failed to load image:`, error);
+    imageUrl.value = noImage;
   }
-}
+};
 
 onMounted(async () => {
-  await loadImages()
-})
+  await loadImages();
+});
 
-const toastStore = useToastStore()
+const toastStore = useToastStore();
 
 const addToCart = async () => {
   if (!userNickname.value) {
-    router.push({ name: 'signin' })
-    return
+    router.push({ name: "signin" });
+    return;
   }
 
   if (userId.value === props.sellerId) {
-    notiStore.addToCartFail = true
-    return
+    notiStore.addToCartFail = true;
+    return;
   }
 
   try {
     const data = {
       userId: userId.value,
       productId: props.id,
-      imageFileName: props.fileName?.fileName || '',
+      imageFileName: props.fileName?.fileName || "",
       quantity: 1,
-    }
+    };
 
-    const response = await addItemToCart(data)
+    const response = await addItemToCart(data);
 
     if (response.error && response.error.status === 401) {
-      userStore.clearUserInfo()
-      userStore.setAccessToken(null)
-      cartStore.setCart(null)
-      saleOrderStore.setSaleOrderQuanatity(0)
-      sessionStorage.clear()
-      localStorage.clear()
-      router.push({ name: 'signin' })
-      return
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
     }
 
     if (response.error) {
-      notiStore.addToCartFail = true
-      throw new Error(response.error)
+      notiStore.addToCartFail = true;
+      throw new Error(response.error);
     }
 
-    cartStore.addToCart(response)
-    toastStore.showToast('✓ Added to cart!', 'success')
+    cartStore.addToCart(response);
+    toastStore.showToast("✓ Added to cart!", "success");
   } catch (error) {
-    console.error('Error adding to cart:', error)
-    toastStore.showToast('✗ Failed to add to cart', 'error')
-    hasError.value = error.message || 'Failed to add item to cart'
+    console.error("Error adding to cart:", error);
+    toastStore.showToast("✗ Failed to add to cart", "error");
+    hasError.value = error.message || "Failed to add item to cart";
   }
-}
+};
 </script>
 
 <template>
@@ -215,7 +215,7 @@ const addToCart = async () => {
                     availableQuantity > 0 && availableQuantity <= 5,
                 }"
               >
-                {{ availableQuantity }}
+                {{ Math.max(0, availableQuantity) }}
               </span>
             </span>
             <span v-else class="text-red-500 font-semibold"> Sold Out </span>
@@ -230,10 +230,10 @@ const addToCart = async () => {
           </p>
           <button
             @click.prevent="addToCart"
-            :disabled="isAddToCartDisabled"
+            :disabled="isAvailableBuy"
             class="itbms-add-to-cart-button ml-1 btn btn-sm btn-primary text-xs hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
             :class="{
-              'opacity-50 cursor-not-allowed': isAddToCartDisabled,
+              'opacity-50 cursor-not-allowed': isAvailableBuy,
             }"
           >
             <svg
