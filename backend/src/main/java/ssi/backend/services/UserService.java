@@ -249,7 +249,7 @@ public class UserService {
         }
 
         user.setPassword(passwordEncoder.encode(updateUser.getNewPassword()));
-
+        userRepository.save(user);
         response.setMessage("New password has been sent");
         response.setSuccess(Boolean.TRUE);
 

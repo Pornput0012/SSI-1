@@ -39,9 +39,9 @@ const handleLogin = async () => {
 
       throw new Error(response.error);
     }
-  } catch (error) {
+  } catch (error) {    
     errorTitle.value = "Failed to log in";
-    errorMessage.value = "Email Address or Password incorrect.";
+    errorMessage.value = error.message || "Email Address or Password incorrect.";
     showModal.value = true;
   }
 };
