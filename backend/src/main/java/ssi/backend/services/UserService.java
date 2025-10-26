@@ -4,10 +4,13 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.SignedJWT;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.multipart.MultipartFile;
 import ssi.backend.configuration.HostProperties;
 import ssi.backend.dtos.*;
@@ -16,6 +19,7 @@ import ssi.backend.exceptions.*;
 import ssi.backend.repositories.UserRepository;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -49,40 +53,73 @@ public class UserService {
     }
 
 
-    public User createUser(RegisterRequestDTO user, List<MultipartFile> images) {
+    public Object createUser(RegisterRequestDTO user, List<MultipartFile> images) {
+        ErrorResponseDTO errors = new ErrorResponseDTO(
+                400,
+                "Validation failed",
+                "/itb-mshop/v2/auth/register"
+        );
         if (user.getUserType() == null) {
-            throw new BadRequestException("Role is required");
+            errors.addValidationError("userType","Role is required");
         }
-        if (getAllUserEmails().contains(user.getEmail())) {
-            throw new BadRequestException("Email already exists: " + user.getEmail());
+        if (!("BUYER".equalsIgnoreCase(user.getUserType()) || "SELLER".equalsIgnoreCase(user.getUserType()))) {
+
+            errors.addValidationError("userType","Invalid accountType. Must be BUYER or SELLER");
         }
+
         if (user.getPassword() == null || user.getPassword().isBlank()) {
-            throw new BadRequestException("Password is required");
+            errors.addValidationError("password","Password is required");
+        } else {
+            String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,}$";
+            if (!user.getPassword().matches(passwordRegex)) {
+                errors.addValidationError("password","Password must be at least 8 characters and contain uppercase, lowercase, number, and special character");
+            }
         }
 
+        if (user.getNickName() == null || user.getNickName().isBlank()) {
+            errors.addValidationError("nickname","Nickname is required");
+        }
 
-        if (user.getUserType().equalsIgnoreCase("SELLER")) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            errors.addValidationError("email","Email is required");
+        } else {
+            String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+            if (!user.getEmail().matches(emailRegex)) {
+                errors.addValidationError("email","Invalid email format");
+            }
+            if (getAllUserEmails().contains(user.getEmail())) {
+                errors.addValidationError("email","Email already exists: " + user.getEmail());
+            }
+        }
 
+        if (user.getFullName() == null || user.getFullName().isBlank()) {
+            errors.addValidationError("fullname","Full name is required");
+        } else if (user.getFullName().length() < 4 || user.getFullName().length() > 40) {
+            errors.addValidationError("fullname","Full name must be between 4 and 40 characters");
+        }
+
+        if ("SELLER".equalsIgnoreCase(user.getUserType())) {
             if (user.getPhoneNumber() == null || user.getPhoneNumber().isBlank()) {
-                throw new BadRequestException("Phone number is required");
+                errors.addValidationError("phoneNumber","Phone number is required");
             }
 
             if (user.getBankAccount() == null || user.getBankAccount().isBlank()) {
-                throw new BadRequestException("Bank account is required");
+                errors.addValidationError("bankAccount","Bank account is required");
             }
 
             if (user.getNationalIdNumber() == null || user.getNationalIdNumber().isBlank()) {
-                throw new BadRequestException("National ID number is required");
+                errors.addValidationError("nationalId","National ID number is required");
+            } else if (!idCardCheck(user.getNationalIdNumber())) {
+                errors.addValidationError("nationalId","National ID number is not valid");
             }
-            if (!idCardCheck(user.getNationalIdNumber())) {
-                throw new BadRequestException("National ID number is not valid");
-            }
-            System.out.println(idCardCheck(user.getNationalIdNumber()));
-
 
             if (user.getBankName() == null || user.getBankName().isBlank()) {
-                throw new BadRequestException("Bank name is required");
+                errors.addValidationError("bankName","Bank name is required");
             }
+        }
+
+        if (errors.getErrors() != null && !errors.getErrors().isEmpty()) {
+            throw new BadRequestException(errors);
         }
 
         User creatingUser = modelMapper.map(user, User.class);
@@ -195,7 +232,7 @@ public class UserService {
 
     public UserProfileResponseDTO getUserProfileById(Integer id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication==null){
+        if (authentication == null) {
             throw new UnauthorizedException("No Access token");
         }
         Integer userId = (Integer) authentication.getDetails();
@@ -304,7 +341,7 @@ public class UserService {
             throw new BadRequestException("Email not found");
         }
 
-        if(!resetPassword.getNewPassword().equals(resetPassword.getConfirmPassword())) {
+        if (!resetPassword.getNewPassword().equals(resetPassword.getConfirmPassword())) {
             throw new BadRequestException("Passwords do not match");
         }
 
@@ -316,12 +353,13 @@ public class UserService {
         return response;
     }
 
-    public void updateAddressAndNote (Integer id,String address, String note) {
+    public void updateAddressAndNote(Integer id, String address, String note) {
         User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
         user.setAddress(address);
         user.setNote(note);
         userRepository.save(user);
     }
+
     public boolean idCardCheck(String idCard) {
 
         if (idCard == null) {

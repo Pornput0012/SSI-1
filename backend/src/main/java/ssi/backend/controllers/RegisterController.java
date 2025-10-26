@@ -41,25 +41,12 @@ public class RegisterController {
         return ResponseEntity.ok(registerService.getAllSellers());
     }
 
-//    @GetMapping("/buyers/email")
-//    public ResponseEntity<List<String>> getBuyersByEmail() {
-//        return ResponseEntity.ok(registerService.getAllUserEmails());
-//    }
-//
-//    @GetMapping("/sellers/email")
-//    public ResponseEntity<List<String>> getSellersByEmail() {
-//        return ResponseEntity.ok(registerService.getAllSellerEmails());
-//    }
 
     @PostMapping("/register")
     public ResponseEntity<Object> registerUser(@Valid @ModelAttribute RegisterRequestDTO user,
                                                @RequestParam(required = false) List<MultipartFile> images) {
-        if ("BUYER".equalsIgnoreCase(user.getUserType()) || "SELLER".equalsIgnoreCase(user.getUserType())) {
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(registerService.createUser(user, images), UserResponseDTO.class));
-        } else {
-            ErrorResponseDTO badRequestException = new ErrorResponseDTO(400,"Invalid accountType. Must be BUYER or SELLER","uri=/itb-mshop/v2/auth/register");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(badRequestException);
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(registerService.createUser(user, images), UserResponseDTO.class));
+
     }
 }
