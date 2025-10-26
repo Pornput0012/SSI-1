@@ -3,8 +3,7 @@ import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import FormSaleItem from "@/components/FormSaleItem.vue";
 import MessageModal from "@/components/MessageModal.vue";
 import router from "@/router";
-import { createSaleItem, createSaleItem_v2 } from "@/services/SaleItemService";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { createSaleItem_v2 } from "@/services/SaleItemService";
 import { useNotiStore } from "@/stores/NotiStore";
 import { ref } from "vue";
 

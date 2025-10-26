@@ -1,18 +1,11 @@
 <script setup>
 import MessageModal from "@/components/MessageModal.vue";
-import {
-  getAllSaleItems,
-  getSaleItemsBySeller,
-} from "@/services/SaleItemService";
+import { getSaleItemsBySeller } from "@/services/SaleItemService";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
-import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
-import { useFilterStore } from "@/stores/FilterStore";
-import { useRoute } from "vue-router";
 import SaleItemList from "@/components/SaleItemList.vue";
 import { useUserStore } from "@/stores/UserStore";
 
-const route = useRoute();
 const userStore = useUserStore();
 const hasError = ref("");
 const STORAGE_KEYS = {
@@ -21,7 +14,9 @@ const STORAGE_KEYS = {
 
 const saleItemStore = useSaleItemStore();
 
-const currentPage = computed(() => saleItemStore.getCurrentSellerSaleItemPage());
+const currentPage = computed(() =>
+  saleItemStore.getCurrentSellerSaleItemPage()
+);
 const { setCurrentSellerSaleItemPage } = saleItemStore;
 
 const { getSaleItemsPage } = saleItemStore;
@@ -80,14 +75,7 @@ onMounted(async () => {
   }
 });
 
-const notiStore = useNotiStore();
 const showCreatedModal = ref(false);
-onMounted(() => {
-  // if (notiStore.loginUserSuccess) { 
-  //   showCreatedModal.value = true;
-  //   notiStore.loginUserSuccess = false;
-  // }
-});
 </script>
 
 <template>

@@ -7,7 +7,6 @@ import { useFilterStore } from "@/stores/FilterStore";
 import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useNotiStore } from "@/stores/NotiStore";
 import { computed, onMounted, ref } from "vue";
-import { useUserStore } from "@/stores/UserStore";
 import MessageModal from "@/components/MessageModal.vue";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
@@ -22,7 +21,6 @@ const STORAGE_KEYS = {
 const filterStore = useFilterStore();
 const saleItemStore = useSaleItemStore();
 const notiStore = useNotiStore();
-const userStore = useUserStore();
 
 const {
   getFilterList,

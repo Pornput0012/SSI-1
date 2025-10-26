@@ -4,14 +4,11 @@ import { useUserStore } from "@/stores/UserStore";
 import { ref, onMounted, computed, watch } from "vue";
 import OrderGallery from "@/components/OrderGallery.vue";
 import { getOrdersSeller } from "@/services/OrderService";
-import MessageModal from "@/components/MessageModal.vue";
-import { useSaleOrderStore } from "@/stores/saleOrderStore";
 import { useRouter } from "vue-router";
 import { useCartStore } from "@/stores/CartStore";
 
 const userStore = useUserStore();
 const orderStore = useOrderStore();
-const saleOrderStore = useSaleOrderStore();
 const router = useRouter();
 const cartStore = useCartStore();
 const STORAGE_KEYS = {

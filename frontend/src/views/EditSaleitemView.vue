@@ -1,14 +1,11 @@
 <script setup>
 import { useRouter, useRoute } from "vue-router";
-import { useSaleItemStore } from "@/stores/SaleItemStore";
 import { useUserStore } from "@/stores/UserStore";
 import { useCartStore } from "@/stores/CartStore";
 import { useSaleOrderStore } from "@/stores/saleOrderStore";
 import { onMounted, ref } from "vue";
 import {
-  getSaleItemById,
   getSaleItemById_v2,
-  updateSaleItemById,
   updateSaleItemById_v2,
   updateSaleItemImageById,
 } from "@/services/SaleItemService";
@@ -24,7 +21,6 @@ const router = useRouter();
 const errorTitle = ref("");
 const showModal = ref(false);
 
-const saleItemStore = useSaleItemStore();
 const userStore = useUserStore();
 const cartStore = useCartStore();
 const saleOrderStore = useSaleOrderStore();
