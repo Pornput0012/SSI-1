@@ -172,7 +172,6 @@ public class ProductService {
             });
             productPage
                     .setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
-            System.out.println(productPage.getContent().get(0).getSeller().getNickname());
             return productPage;
         }
     }
@@ -308,7 +307,6 @@ public class ProductService {
         }
         Integer userId = id != null ? id : (Integer) authentication.getDetails();
 
-        System.out.println("userId = " + userId);
         if (images != null && images.size() > 4) {
             throw new BadRequestException("Images Size Exceeded");
         }
@@ -470,22 +468,18 @@ public class ProductService {
             String[] imageOrderPairs = orderImages.split("\\|");
             for (String pair : imageOrderPairs) {
                 if (pair.trim().isEmpty()) {
-                    System.out.println("[DEBUG] Empty pair, skip");
                     continue;
                 }
                 String[] parts = pair.split(",");
                 if (parts.length != 2) {
-                    System.out.println("[DEBUG] Invalid pair format: " + pair);
                     continue;
                 }
                 String fileNameRaw = parts[0].trim();
                 String orderStr = parts[1].trim();
-                System.out.println("[DEBUG] Processing file: " + fileNameRaw + ", order: " + orderStr);
                 try {
                     Integer newOrder = Integer.parseInt(orderStr);
                     String[] fileNameSplit = fileNameRaw.split("\\.");
                     if (fileNameSplit.length < 3) {
-                        System.out.println("[DEBUG] fileNameSplit < 3: " + fileNameRaw);
                         continue;
                     }
                     String baseName = fileNameSplit[0];
@@ -496,32 +490,25 @@ public class ProductService {
                     SaleItemImage existingImage = saleItemImageService.findByProductAndFileName(existingProduct,
                             fileNameForDb);
                     if (existingImage != null) {
-                        System.out.println("[DEBUG] Found image in DB: " + fileNameForDb);
                         if (!existingImage.getFileName().equals(newFileName)) {
-                            System.out.println(
                                     "[DEBUG] Rename file " + existingImage.getFileName() + " -> " + newFileName);
                             fileService.renameFile(existingProduct, existingImage.getFileName(), newFileName);
                             saleItemImageService.updateFileName(existingImage.getId(), newFileName);
                         }
                         if (!newOrder.equals(existingImage.getImageViewOrder())) {
-                            System.out.println("[DEBUG] Update imageViewOrder for " + newFileName + " to " + newOrder);
                             saleItemImageService.updateImageOrder(existingImage.getId(), newOrder);
                         }
                     } else {
-                        System.out.println("[DEBUG] Image not found in DB: " + fileNameForDb);
                         if (fileService.fileExists(existingProduct, fileNameRaw)) {
-                            System.out.println("[DEBUG] File exists in folder, save to DB: " + fileNameRaw);
                             SaleItemImage newImage = new SaleItemImage();
                             newImage.setProduct(existingProduct);
                             newImage.setFileName(fileNameRaw);
                             newImage.setImageViewOrder(newOrder);
                             saleItemImageService.saveImage(newImage);
                         } else {
-                            System.out.println("[DEBUG] File not found in folder: " + fileNameRaw);
                         }
                     }
                 } catch (NumberFormatException e) {
-                    System.out.println("[DEBUG] Invalid order number: " + orderStr);
                     continue;
                 }
             }
@@ -567,7 +554,6 @@ public class ProductService {
 
 
         if (page != null || size != null) {
-            System.out.println("ji");
         }
         Sort sort;
         if (hasSortField) {

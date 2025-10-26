@@ -50,7 +50,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
 
         if (header != null && header.startsWith("Bearer ")) {
-            //System.out.println("hi");
             String token = header.substring(7);
             try {
                 SignedJWT signedJWT = SignedJWT.parse(token);
@@ -60,7 +59,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 
                 if (!signedJWT.verify(verifier) || expirationTime == null || new Date().after(expirationTime)) {
-                    System.out.println("Login Failure");
                     sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token");
                     return;
                 }
@@ -80,7 +78,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 List<GrantedAuthority> authorities = List.of(
                         new SimpleGrantedAuthority("ROLE_" + accessTokenClaim.getRole().toUpperCase())
                 );
-                System.out.println("ROLE_" + accessTokenClaim.getRole().toUpperCase());
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(accessTokenClaim.getEmail(), null, authorities);
 
@@ -91,8 +88,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
         } else if(header != null){
-            System.out.println(header);
-            System.out.println(header.length());
             sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token");
             return;
         }

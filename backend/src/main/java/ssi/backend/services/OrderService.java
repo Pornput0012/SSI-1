@@ -70,10 +70,6 @@ public class OrderService {
 
         boolean hasSortField = sortField != null && !sortField.isBlank();
         boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
-
-        if (page != null || size != null) {
-            System.out.println("ji");
-        }
         Sort sort;
         if (hasSortField) {
             sort = sortDesc
@@ -173,7 +169,6 @@ public class OrderService {
 
         Page<Order> orderPage = orderRepository.findAllSellerOrder(sellerId, pageable);
 
-        System.out.println(orderPage.getContent().isEmpty());
         List<OrderSellerResponseDTO> orderDTOs = orderPage.getContent().stream().map(order -> {
             OrderSellerResponseDTO dto = new OrderSellerResponseDTO();
             dto.setId(order.getId());
@@ -372,11 +367,7 @@ public class OrderService {
 
             if (product.getSeller() == null ||
                     !product.getSeller().getId().equals(orderRequestDTO.getSellerId())) {
-                System.out.println("product seller is " +  product.getSeller().getId());
-                System.out.println("orderRequestDTO.getSellerId() " +  orderRequestDTO.getSellerId());
-                System.out.println(product.getSeller().getId().equals(orderRequestDTO.getSellerId()));
 
-                System.out.println(product.getSeller() == null);
                 throw new BadRequestException(
                         "Product id " + product.getId() + " does not exist for seller id: " + orderRequestDTO.getSellerId());
             }
