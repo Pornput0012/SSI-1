@@ -117,10 +117,7 @@ const editSaleItem = async (formData, images) => {
 
 const notiStore = useNotiStore();
 const updateSuccess = () => {
-  console.log("call function");
-
   notiStore.updateSuccess = true;
-  console.log(notiStore.updateSuccess);
   router.push({
     name: "sale-item-detail",
     params: { id: selectSaleItem.value.id },

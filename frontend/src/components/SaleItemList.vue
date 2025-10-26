@@ -16,7 +16,6 @@ const props = defineProps({
   hasError: String,
 });
 
-// === Pagination ===
 const emit = defineEmits(["pageChanged"]);
 const currentPage = ref(props.pageInfo?.page ?? 0);
 const pageNumbers = ref([]);
@@ -126,7 +125,6 @@ watch(
   { deep: true }
 );
 
-// ==== Delete Item ====
 const router = useRouter();
 const showDeleteModal = ref(false);
 const deleteSuccess = ref(false);
@@ -149,7 +147,6 @@ const handleDelete = async () => {
       const response = await deleteSaleItemByIdV2(deleteTargetId.value);
       showDeleteModal.value = false;
 
-      // Check for 401 error
       if (response.error && response.error.status === 401) {
         userStore.clearUserInfo();
         userStore.setAccessToken(null);
@@ -183,7 +180,6 @@ const successOk = () => {
 
 <template>
   <div class="mt-5">
-    <!-- error message -->
     <div
       v-if="!saleItems && hasError !== '' && hasError"
       class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-red-100 border-1 border-red-300"
@@ -191,7 +187,6 @@ const successOk = () => {
       <p class="text-red-500 font-extralight">{{ hasError }}</p>
     </div>
 
-    <!-- Loader -->
     <div v-else-if="!saleItems" class="m-10 overflow-auto rounded-lg shadow">
       <table class="w-full animate-pulse">
         <thead class="bg-gray-100 border-b-2 border-gray-200">
@@ -211,7 +206,6 @@ const successOk = () => {
       </table>
     </div>
 
-    <!-- show sale item list -->
     <div
       v-else-if="saleItems && saleItems.length > 0"
       class="rounded-lg shadow"
@@ -291,7 +285,6 @@ const successOk = () => {
       </div>
     </div>
 
-    <!-- no sale item -->
     <div
       v-if="saleItems && saleItems.length === 0"
       class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
@@ -299,7 +292,6 @@ const successOk = () => {
       <p class="text-purple-700 font-medium">no sale item</p>
     </div>
 
-    <!-- Pagination -->
     <div
       v-if="pageInfo && !hasError && saleItems && saleItems.length !== 0"
       class="join mt-7 w-full justify-center flex-wrap md:flex-nowrap"

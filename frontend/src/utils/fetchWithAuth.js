@@ -26,10 +26,8 @@ const getAccessTokenFromRefreshToken = async () => {
   }
 };
 
-// Utility function สำหรับจัดการ token refresh อัตโนมัติ
 const fetchWithTokenRetry = async (url, options = {}, retryCount = 0) => {
   try {
-    // เพิ่ม Authorization header ถ้ามี access token
     const token = getAccessTokenFromLocalStorage();
     if (token && !options.headers?.Authorization) {
       options.headers = {
@@ -40,29 +38,21 @@ const fetchWithTokenRetry = async (url, options = {}, retryCount = 0) => {
 
     const response = await fetch(url, options);
 
-    // ถ้า response สำเร็จ ให้ return response
     if (response.ok) {
       return response;
     }
 
-    // ถ้าได้ 401 หรือ 403 และยังไม่เคย retry ให้ลอง refresh token
-    if ((response.status === 401 || response.status === 403) && retryCount < 1) {
-      console.log("Access token expired, refreshing...");
-      
-      // ลบ access token เก่า
+    if ((response.status === 401 || response.status === 403) && retryCount < 1) {      
       localStorage.removeItem("access_token");
       
-      // ขอ access token ใหม่
       const refreshResult = await getAccessTokenFromRefreshToken();
       
       if (refreshResult.ok && refreshResult.access_token) {
-        // อัพเดท Authorization header ด้วย token ใหม่
         options.headers = {
           ...options.headers,
           Authorization: `Bearer ${refreshResult.access_token}`,
         };
         
-        // ลองยิง API อีกรอบ
         return await fetchWithTokenRetry(url, options, retryCount + 1);
       } else {
         localStorage.removeItem("access_token");
@@ -74,7 +64,6 @@ const fetchWithTokenRetry = async (url, options = {}, retryCount = 0) => {
 
     return response;
   } catch (error) {
-    // ถ้า error ยังไม่มี status ให้เพิ่ม status เข้าไป
     if (!error.status && error.response) {
       error.status = error.response.status;
     }

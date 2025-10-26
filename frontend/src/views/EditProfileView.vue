@@ -57,10 +57,7 @@ onMounted(() => {
 
 const notiStore = useNotiStore();
 const updateSuccess = () => {
-  console.log("call function");
-
   notiStore.updateSuccess = true;
-  console.log(notiStore.updateSuccess);
   router.push({ name: "profile" });
 };
 
@@ -71,14 +68,10 @@ const handleSubmit = async () => {
       throw new Error("Invalid ID or form data");
     }
 
-    const response = await updateUserById(
-      userId.value,
-      {
-        nickName: formData.value.nickName,
-        fullName: formData.value.fullName,
-      }    );
-
-    console.log(response);
+    const response = await updateUserById(userId.value, {
+      nickName: formData.value.nickName,
+      fullName: formData.value.fullName,
+    });
 
     // Check for 401 error
     if (response.error && response.error.status === 401) {
@@ -122,10 +115,6 @@ watchEffect(() => {
     const check = ["nickName", "fullName"];
     // Check each field for changes
     for (const key of check) {
-      console.log(key);
-      console.log(formData.value[key]);
-      console.log(originalFormData.value[key]);
-
       if (formData.value[key]) {
         isValid = true;
       }

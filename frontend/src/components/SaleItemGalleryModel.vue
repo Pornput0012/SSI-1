@@ -89,11 +89,8 @@ const addToCart = async () => {
       quantity: 1,
     }
 
-    console.log('Adding to cart:', data)
     const response = await addItemToCart(data)
-    console.log('Add to cart response:', response)
 
-    // Check for 401 error
     if (response.error && response.error.status === 401) {
       userStore.clearUserInfo()
       userStore.setAccessToken(null)
@@ -112,8 +109,6 @@ const addToCart = async () => {
 
     cartStore.addToCart(response)
     toastStore.showToast('✓ Added to cart!', 'success')
-    console.log('Successfully added to cart store')
-    console.log(cartStore.getCarts())
   } catch (error) {
     console.error('Error adding to cart:', error)
     toastStore.showToast('✗ Failed to add to cart', 'error')

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, onMounted, watch } from "vue";
 import ContainerList from "./ContainerList.vue";
 import SaleItemGalleryModel from "./SaleItemGalleryModel.vue";
 const props = defineProps({
@@ -121,13 +121,10 @@ watch(
   },
   { deep: true }
 );
-
-
 </script>
 
 <template>
   <div>
-    <!-- Error message -->
     <div
       v-if="!saleItems && hasError !== '' && hasError"
       class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-red-100 border-1 border-red-300"
@@ -135,7 +132,6 @@ watch(
       <p class="text-red-500 font-extralight">{{ hasError }}</p>
     </div>
 
-    <!-- Loader -->
     <div
       v-else-if="!saleItems"
       class="w-full h-full justify-center items-center grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 md:gap-6 lg:grid-cols-4 lg:gap-8 xl:grid-cols-5 xl:gap-10"
@@ -148,7 +144,6 @@ watch(
       </div>
     </div>
 
-    <!-- Show sale items -->
     <ContainerList
       v-else-if="saleItems && saleItems.length > 0"
       :items="saleItems"
@@ -169,7 +164,6 @@ watch(
       </template>
     </ContainerList>
 
-    <!-- No sale item -->
     <div
       v-if="saleItems && saleItems.length === 0"
       class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
@@ -177,7 +171,6 @@ watch(
       <p class="text-purple-700 font-medium">no sale item</p>
     </div>
 
-    <!-- Pagination -->
     <div
       v-if="pageInfo && !hasError && saleItems && saleItems.length !== 0"
       class="join mt-7 w-full justify-center flex-wrap md:flex-nowrap"

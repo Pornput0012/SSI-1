@@ -1,50 +1,46 @@
-import { ref } from 'vue'
-import { defineStore, acceptHMRUpdate } from 'pinia'
+import { ref } from "vue";
+import { defineStore, acceptHMRUpdate } from "pinia";
 
-export const useOrderStore = defineStore('order', () => {
-  const orders = ref([])
-  const ordersPage = ref(null)
-  const currentOrderPage = ref(0)
+export const useOrderStore = defineStore("order", () => {
+  const orders = ref([]);
+  const ordersPage = ref(null);
+  const currentOrderPage = ref(0);
 
   function setOrders(orderArray) {
-    orders.value = orderArray
+    orders.value = orderArray;
   }
 
   function setOrdersPage(orderArray) {
-    ordersPage.value = orderArray
+    ordersPage.value = orderArray;
   }
 
   function getOrders() {
-    return orders.value
+    return orders.value;
   }
 
   function getOrdersPage() {
-    return ordersPage.value
+    return ordersPage.value;
   }
 
   function addOrder(order) {
-    console.log('🟢 Before add:', orders.value)
-
     if (Array.isArray(order)) {
-      orders.value.push(...order)
+      orders.value.push(...order);
     } else {
-      orders.value.push(order)
+      orders.value.push(order);
     }
-
-    console.log('🟢 After add:', orders.value)
   }
 
   // ✅ เพิ่มฟังก์ชันจัดการ currentOrderPage
   function setCurrentOrderPage(page) {
-    currentOrderPage.value = page
+    currentOrderPage.value = page;
   }
 
   function getCurrentOrderPage() {
-    return currentOrderPage.value
+    return currentOrderPage.value;
   }
 
   function resetOrderPage() {
-    currentOrderPage.value = 0
+    currentOrderPage.value = 0;
   }
 
   return {
@@ -59,9 +55,9 @@ export const useOrderStore = defineStore('order', () => {
     setCurrentOrderPage,
     getCurrentOrderPage,
     resetOrderPage,
-  }
-})
+  };
+});
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useOrderStore, import.meta.hot))
+  import.meta.hot.accept(acceptHMRUpdate(useOrderStore, import.meta.hot));
 }
