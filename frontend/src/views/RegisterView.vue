@@ -30,15 +30,57 @@ const handleSubmit = async (payload) => {
         createSuccess();
         clearData.value = true
       } else {
-        throw new Error(response.error);
+        const errorInfo = getErrorByField(response);
+        errorTitle.value = errorInfo.title;
+        errorMessage.value = errorInfo.message;
+        showModal.value = true;
+        isSaving.value = false;
       }
     }
   } catch (error) {
-    errorTitle.value = "Failed to create user";
-    errorMessage.value = error.message;
-    showModal.value = true;
     isSaving.value = false;
+    console.error("❌ Unexpected error:", error);
+    errorTitle.value = "Failed to Create Account";
+    errorMessage.value = "An unexpected error occurred. Please try again.";
+    showModal.value = true;
   }
+};
+
+// ✅ แปลง error ตาม field
+const getErrorByField = (response) => {
+  // ถ้ามี errors array
+  if (response.errors && response.errors.length > 0) {
+    const field = response.errors[0].field?.toLowerCase() || "";
+    
+    // ✅ แมพ field กับ error message
+    const errorMap = {
+      "email": {
+        title: "Email Already Exists",
+        message: "This email is already registered. Please use a different email or sign in."
+      },
+      "nationalId": {
+        title: "Invalid National ID",
+        message: "National ID number is not valid. Please enter a valid 13-digit ID number."
+      },
+    };
+
+    // ถ้าเจอ field ใน map ใช้ message ที่กำหนดไว้
+    if (errorMap[field]) {
+      return errorMap[field];
+    }
+
+    // ถ้าไม่เจอ ใช้ message จาก backend
+    return {
+      title: "Validation Error",
+      message: response.errors[0].message || "Please check your information."
+    };
+  }
+
+  // ถ้าไม่มี errors array ใช้ message เดียว
+  return {
+    title: "Failed to Create Account",
+    message: response.message || "An error occurred. Please try again."
+  };
 };
 
 const notiStore = useNotiStore();
