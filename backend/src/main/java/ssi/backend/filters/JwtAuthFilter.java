@@ -61,7 +61,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 if (!signedJWT.verify(verifier) || expirationTime == null || new Date().after(expirationTime)) {
                     System.out.println("Login Failure");
-                    sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token 1");
+                    sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token");
                     return;
                 }
 
@@ -87,13 +87,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 auth.setDetails(accessTokenClaim.getUserId());
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (JOSEException | ParseException e) {
-                sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token 2");
+                sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token");
                 return;
             }
         } else if(header != null){
             System.out.println(header);
             System.out.println(header.length());
-            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token 3");
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid access token");
             return;
         }
 

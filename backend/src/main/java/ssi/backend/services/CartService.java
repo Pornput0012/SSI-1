@@ -2,6 +2,8 @@ package ssi.backend.services;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.Validator;
 import ssi.backend.dtos.CartRequestDto;
@@ -10,6 +12,7 @@ import ssi.backend.dtos.CartResponseSubDto;
 import ssi.backend.entities.*;
 import ssi.backend.exceptions.BadRequestException;
 import ssi.backend.exceptions.ItemNotFoundException;
+import ssi.backend.exceptions.UnauthorizedException;
 import ssi.backend.repositories.BrandRepository;
 import ssi.backend.repositories.CartRepository;
 import ssi.backend.repositories.ProductRepository;
@@ -46,9 +49,16 @@ public class CartService {
     private SaleItemImageService saleItemImageService;
 
     public List<CartResponseDto> getAllCartById(int userId) {
-        // if () {
-        // throw new IllegalArgumentException("userId is null");
-        // }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer id = (Integer) authentication.getDetails();
+
+        if (id == null || !id.equals(userId)) {
+            throw new UnauthorizedException("Invalid token");
+        }
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ItemNotFoundException("User not found"));
         List<Cart> currentCart = cartRepository.findAllByUserId(userId);
@@ -87,6 +97,15 @@ public class CartService {
     }
 
     public CartResponseSubDto addToCart(CartRequestDto cartRequestDto) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer id = (Integer) authentication.getDetails();
+
+        if (id == null || !id.equals(cartRequestDto.getUserId())) {
+            throw new UnauthorizedException("Invalid token");
+        }
 
         System.out.println(cartRequestDto.getQuantity());
         SaleItemImage saleItemImage = saleItemImageService.findSaleItemImageByNameV2(cartRequestDto.getImageFileName());
@@ -132,15 +151,32 @@ public class CartService {
     }
 
     public CartResponseSubDto updateQuantity(int cartId, int quantity) {
-        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ItemNotFoundException("Cart id " + cartId));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer id = (Integer) authentication.getDetails();
 
+        Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ItemNotFoundException("Cart id " + cartId));
+        if(cart.getUser().getId() != id){
+            throw new UnauthorizedException("Invalid token");
+        }
         cart.setQuantity(quantity);
 
         return modelMapper.map(cartRepository.save(cart), CartResponseSubDto.class);
     }
 
     public void removeCart(int cartId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if(authentication==null){
+            throw new UnauthorizedException("No Access token");
+        }
+        Integer id = (Integer) authentication.getDetails();
+
         Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new ItemNotFoundException("Cart id " + cartId));
+        if(cart.getUser().getId() != id){
+            throw new UnauthorizedException("Invalid token");
+        }
         cartRepository.delete(cart);
     }
 }

@@ -70,7 +70,7 @@ public class UserController {
     }
 
     @PostMapping("/v2/auth/reset-password")
-    public ResponseEntity<ChangePasswordResponseDto> resetPassword(@RequestParam String token,@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) throws ParseException, JOSEException {
+    public ResponseEntity<ChangePasswordResponseDto> resetPassword(@RequestParam String token, @Valid @RequestBody ResetPasswordDTO resetPasswordDTO) throws ParseException, JOSEException {
         return ResponseEntity.ok(userService.resetPassword(token, resetPasswordDTO));
     }
 
@@ -136,7 +136,7 @@ public class UserController {
             }
         }
         System.out.println("User not found");
-            throw new UnauthorizedException("Email or Password is incorrect.");
+        throw new UnauthorizedException("Email or Password is incorrect.");
     }
 
 
@@ -155,9 +155,8 @@ public class UserController {
     @PostMapping("/v2/auth/logout")
     public ResponseEntity<Object> logoutUser(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new BadRequestException( "No access token provided or Invalid token");
+            throw new BadRequestException("No access token provided or Invalid token");
         }
-
 
 
         ResponseCookie deleteRefreshToken = ResponseCookie.from("refresh_token", "")
@@ -210,7 +209,11 @@ public class UserController {
 
     @PatchMapping("/v2/users/{id}/password")
     public ResponseEntity<ChangePasswordResponseDto> changePasswordById(@PathVariable Integer id, @RequestBody ChangePasswordRequestDto updatePassword) throws ParseException, JOSEException {
-        return ResponseEntity.ok(userService.changePasswordById(id, updatePassword));
+        ChangePasswordResponseDto dtoResponese = userService.changePasswordById(id, updatePassword);
+        if (dtoResponese.isSuccess()) {
+            return ResponseEntity.ok(dtoResponese);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(dtoResponese);
     }
 
 }

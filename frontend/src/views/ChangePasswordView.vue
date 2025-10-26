@@ -4,10 +4,14 @@ import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/UserStore";
 import { changePassword } from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const router = useRouter();
 const userStore = useUserStore();
 const notiStore = useNotiStore();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 
 const userId = userStore.getUserInfo().id;
 
@@ -112,13 +116,23 @@ const handleSubmit = async () => {
       },
     );
 
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
+
     if (!response.error) {
       isSaving.value = false;
       notiStore.updateSuccess = true;
       router.push({ name: "profile" });
     } else {
-      console.log(response);
-
       throw new Error("Failed to change password");
     }
   } catch (error) {

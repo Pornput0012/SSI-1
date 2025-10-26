@@ -1,15 +1,7 @@
 import { useOrderStore } from "@/stores/OrderStore";
-import { useUserStore } from "@/stores/UserStore";
+import { fetchWithTokenRetry } from "@/utils/fetchWithAuth";
 
 const ORDER_API_URL_V2 = `${import.meta.env.VITE_URL_API || "/ssi1"}/itb-mshop/v2/orders`;
-const getAccessToken = () => {
-  try {
-    const userStore = useUserStore();
-    return userStore.getAccessToken();
-  } catch (err) {
-    return localStorage.getItem("access_token");
-  }
-};
 
 const getOrdersBuyer = async (buyerId, pageInfo = { page: 0, size: 10 }) => {
   try {
@@ -30,19 +22,20 @@ const getOrdersBuyer = async (buyerId, pageInfo = { page: 0, size: 10 }) => {
       }
       return requestParameter.join("&");
     };
-    const response = await fetch(
+    const response = await fetchWithTokenRetry(
       `${
         import.meta.env.VITE_URL_API || "/ssi1"
       }/itb-mshop/v2/users/${buyerId}/orders?${getRequestParameter()}`,
       {
-        headers: {
-          Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
-        },
+        method: "GET",
+        headers: {},
       }
     );
 
     if (!response.ok) {
-      throw new Error(`(${response.status}) Failed to fetch user's orders.`);
+      const error = new Error(`(${response.status}) Failed to fetch user's orders.`);
+      error.status = response.status;
+      throw error;
     }
 
     const data = await response.json();
@@ -51,58 +44,61 @@ const getOrdersBuyer = async (buyerId, pageInfo = { page: 0, size: 10 }) => {
     orderStore.setOrdersPage({ ...data });
     return data;
   } catch (error) {
-    return { error };
+    return { error: { message: error.message, status: error.status } };
   }
 };
 
 const getOrderById = async (orderId) => {
   try {
     if (!orderId) throw new Error("Order ID is required.");
-    const response = await fetch(`${ORDER_API_URL_V2}/${orderId}`, {
-      headers: {
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
-      },
+    const response = await fetchWithTokenRetry(`${ORDER_API_URL_V2}/${orderId}`, {
+      method: "GET",
+      headers: {},
     });
+
+    if (!response.ok) {
+      const data = await response.json();
+      const error = new Error(`(${data.status || response.status}) ${data.message}`);
+      error.status = response.status;
+      throw error;
+    }
 
     const data = await response.json();
 
-    if (!data.id || !response.ok) {
-      throw new Error(`(${data.status || response.status}) ${data.message}`);
+    if (!data.id) {
+      throw new Error("Invalid order data received");
     }
 
     return data;
   } catch (error) {
-    return { error };
+    return { error: { message: error.message, status: error.status } };
   }
 };
 
 const sellerViewOrder = async (sellerId, id) => {
   try {
     if (!sellerId) throw new Error("Seller ID is required");
-    let headers;
-    if (getAccessToken()) {
-      headers = {
-        Authorization: `Bearer ${getAccessToken()}`,
-      };
-    }
-    const res = await fetch(
+    
+    const res = await fetchWithTokenRetry(
       `${
         import.meta.env.VITE_URL_API || "/ssi1"
       }/itb-mshop/v2/sellers/${sellerId}/orders/${id}`,
       {
         method: "PATCH",
-        headers,
+        headers: {},
       }
     );
 
     if (!res.ok) {
-      throw new Error(`(${res.status}) Failed to update status view order.`);
+      const error = new Error(`(${res.status}) Failed to update status view order.`);
+      error.status = res.status;
+      throw error;
     }
 
     const data = await res.json();
     return data;
   } catch (error) {
-    return { error };
+    return { error: { message: error.message, status: error.status } };
   }
 };
 
@@ -123,19 +119,20 @@ const getOrdersSeller = async (sellerId, pageInfo = { page: 0, size: 10 }) => {
       }
       return requestParameter.join("&");
     };
-    const response = await fetch(
+    const response = await fetchWithTokenRetry(
       `${
         import.meta.env.VITE_URL_API || "/ssi1"
       }/itb-mshop/v2/sellers/${sellerId}/orders?${getRequestParameter()}`,
       {
-        headers: {
-          Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
-        },
+        method: "GET",
+        headers: {},
       }
     );
 
     if (!response.ok) {
-      throw new Error(`(${response.status}) Failed to fetch seller's orders.`);
+      const error = new Error(`(${response.status}) Failed to fetch seller's orders.`);
+      error.status = response.status;
+      throw error;
     }
 
     const data = await response.json();
@@ -144,19 +141,16 @@ const getOrdersSeller = async (sellerId, pageInfo = { page: 0, size: 10 }) => {
     orderStore.setOrdersPage({ ...data, isSeller: true });
     return data;
   } catch (error) {
-    return { error };
+    return { error: { message: error.message, status: error.status } };
   }
 };
 
 const createOrder = async (orders) => {
   try {
-    console.log(orders);
-
-    const response = await fetch(`${ORDER_API_URL_V2}`, {
+    const response = await fetchWithTokenRetry(`${ORDER_API_URL_V2}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: getAccessToken() ? `Bearer ${getAccessToken()}` : "",
       },
       body: JSON.stringify(orders),
     });

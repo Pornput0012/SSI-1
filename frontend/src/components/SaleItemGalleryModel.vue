@@ -1,15 +1,18 @@
 <script setup>
-import noImage from '@/assets/No_image_available.png'
-import router from '@/router'
-import { getImageByFileName } from '@/services/SaleItemService'
-import { useCartStore } from '@/stores/CartStore'
-import { useUserStore } from '@/stores/UserStore'
-import { computed, onMounted, ref } from 'vue'
-import { addItemToCart } from '@/services/CartService'
-import { useNotiStore } from '@/stores/NotiStore'
-const notiStore = useNotiStore()
-const cartStore = useCartStore()
-const userStore = useUserStore()
+import noImage from "@/assets/No_image_available.png";
+import router from "@/router";
+import { getImageByFileName } from "@/services/SaleItemService";
+import { useCartStore } from "@/stores/CartStore";
+import { useUserStore } from "@/stores/UserStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { computed, onMounted, ref } from "vue";
+import { addItemToCart } from "@/services/CartService";
+import { useNotiStore } from "@/stores/NotiStore";
+import { useToastStore } from "@/stores/ToastStore";
+const notiStore = useNotiStore();
+const cartStore = useCartStore();
+const userStore = useUserStore();
+const saleOrderStore = useSaleOrderStore();
 const props = defineProps({
   id: {
     type: Number,
@@ -39,74 +42,99 @@ const props = defineProps({
     type: Number,
     required: true,
   },
-})
+  quantity: {
+    type: Number,
+    required: true,
+  },
+});
 
-const hasError = ref('')
-const userNickname = computed(() => userStore.getNickName())
-const userId = computed(() => userStore.getUserId())
+const hasError = ref("");
+const userNickname = computed(() => userStore.getNickName());
+const userId = computed(() => userStore.getUserId());
 
-const imageUrl = ref(null)
+const imageUrl = ref(null);
+
+const quantityInCart = computed(() => {
+  return cartStore.getQuantityByProductId(props.id) || 0;
+});
+
+const availableQuantity = computed(() => {
+  return props.quantity - quantityInCart.value;
+});
+
+const isAvailableBuy = computed(() => {
+  return availableQuantity.value <= 0;
+});
+
+const isSoldOut = computed(() => {
+  return props.quantity <= 0;
+});
 
 const loadImages = async () => {
   try {
     if (props.fileName?.fileName) {
-      const image_url = await getImageByFileName(props.fileName.fileName)
-      imageUrl.value = image_url
+      const image_url = await getImageByFileName(props.fileName.fileName);
+      imageUrl.value = image_url;
     } else {
-      imageUrl.value = noImage
+      imageUrl.value = noImage;
     }
   } catch (error) {
-    console.error(`Failed to load image:`, error)
-    imageUrl.value = noImage
+    console.error(`Failed to load image:`, error);
+    imageUrl.value = noImage;
   }
-}
+};
 
 onMounted(async () => {
-  await loadImages()
-})
+  await loadImages();
+});
 
-const showSuccessToast = ref(false)
+const toastStore = useToastStore();
 
 const addToCart = async () => {
   if (!userNickname.value) {
-    router.push({ name: 'signin' })
-    return
+    router.push({ name: "signin" });
+    return;
   }
 
   if (userId.value === props.sellerId) {
-    notiStore.addToCartFail = true
-    return
+    notiStore.addToCartFail = true;
+    return;
   }
 
   try {
     const data = {
       userId: userId.value,
       productId: props.id,
-      imageFileName: props.fileName?.fileName || '',
+      imageFileName: props.fileName?.fileName || "",
       quantity: 1,
-    }
+    };
 
-    console.log('Adding to cart:', data)
-    const response = await addItemToCart(data)
-    console.log('Add to cart response:', response)
+    const response = await addItemToCart(data);
+
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
 
     if (response.error) {
-      notiStore.addToCartFail = true
-      throw new Error(response.error)
+      notiStore.addToCartFail = true;
+      throw new Error(response.error);
     }
 
-    cartStore.addToCart(response)
-    showSuccessToast.value = true
-    setTimeout(() => {
-      showSuccessToast.value = false
-    }, 2000)
-    console.log('Successfully added to cart store')
-    console.log(cartStore.getCarts())
+    cartStore.addToCart(response);
+    toastStore.showToast("✓ Added to cart!", "success");
   } catch (error) {
-    console.error('Error adding to cart:', error)
-    hasError.value = error.message || 'Failed to add item to cart'
+    console.error("Error adding to cart:", error);
+    toastStore.showToast("✗ Failed to add to cart", "error");
+    hasError.value = error.message || "Failed to add item to cart";
   }
-}
+};
 </script>
 
 <template>
@@ -116,24 +144,39 @@ const addToCart = async () => {
   >
     <div
       class="card w-full h-72 bg-base-100 shadow-md rounded-xl flex flex-col md:h-80 lg:h-[350px] xl:h-[360px] hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+      :class="{ 'opacity-75': isSoldOut }"
     >
-      <div
-        class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
-      >
-        <img
-          v-if="imageUrl"
-          :src="imageUrl"
-          alt="Product image"
-          class="w-full h-full object-center"
-          :class="'object-cover'"
-        />
-        <img
-          v-else
-          :src="noImage"
-          alt="Product image"
-          class="w-full h-full object-center"
-          :class="'object-contain'"
-        />
+      <div class="relative">
+        <div
+          class="w-full overflow-hidden rounded-t-xl flex justify-center items-center shrink-0 h-36 md:h-40 lg:h-48 xl:h-52"
+        >
+          <img
+            v-if="imageUrl"
+            :src="imageUrl"
+            alt="Product image"
+            class="w-full h-full object-center"
+            :class="'object-cover'"
+          />
+          <img
+            v-else
+            :src="noImage"
+            alt="Product image"
+            class="w-full h-full object-center"
+            :class="'object-contain'"
+          />
+        </div>
+
+        <!-- ✅ Sold Out Overlay -->
+        <div
+          v-if="isSoldOut"
+          class="absolute inset-0 flex items-center justify-center rounded-t-xl"
+        >
+          <div
+            class="bg-red-500 text-white font-bold px-6 py-2 rounded-lg shadow-lg text-lg md:text-xl"
+          >
+            SOLD OUT
+          </div>
+        </div>
       </div>
 
       <div class="h-px bg-gray-200 shadow-sm"></div>
@@ -159,6 +202,24 @@ const addToCart = async () => {
           <p v-if="color" class="itbms-color text-gray-600">
             color : {{ color }}
           </p>
+
+          <!-- ✅ แสดง Available Quantity แบบมีสี -->
+          <p class="itbms-quantity-status text-xs mt-1">
+            <span v-if="!isSoldOut" class="text-gray-500">
+              Available:
+              <span
+                class="font-semibold"
+                :class="{
+                  'text-green-600': availableQuantity > 5,
+                  'text-orange-500':
+                    availableQuantity > 0 && availableQuantity <= 5,
+                }"
+              >
+                {{ Math.max(0, availableQuantity) }}
+              </span>
+            </span>
+            <span v-else class="text-red-500 font-semibold"> Sold Out </span>
+          </p>
         </div>
         <div class="pt-1 flex justify-between items-center">
           <p
@@ -169,7 +230,11 @@ const addToCart = async () => {
           </p>
           <button
             @click.prevent="addToCart"
+            :disabled="isAvailableBuy"
             class="itbms-add-to-cart-button ml-1 btn btn-sm btn-primary text-xs hover:shadow-xl hover:scale-[1.02] transition duration-300 ease-in-out"
+            :class="{
+              'opacity-50 cursor-not-allowed': isAvailableBuy,
+            }"
           >
             <svg
               class=""
@@ -189,13 +254,6 @@ const addToCart = async () => {
       </div>
     </div>
   </RouterLink>
-
-  <!-- ✅ Toast Notification -->
-  <div v-if="showSuccessToast" class="toast toast-bottom toast-end z-50">
-    <div class="alert alert-success">
-      <span>✓ Added to cart!</span>
-    </div>
-  </div>
 </template>
 
 <style scoped></style>

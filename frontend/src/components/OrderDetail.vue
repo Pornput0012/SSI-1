@@ -1,12 +1,13 @@
 <script setup>
-import { getOrderById, getOrdersBuyer } from "@/services/OrderService";
-import { getImageByFileName } from "@/services/SaleItemService";
+import { getOrderById } from "@/services/OrderService";
 import { useUserStore } from "@/stores/UserStore";
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import MessageModal from "@/components/MessageModal.vue";
 import noImage from "@/assets/No_image_available.png";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const props = defineProps({
   yourOrder: {
@@ -20,8 +21,9 @@ const props = defineProps({
 
 const selectedOrder = ref(null);
 const userStore = useUserStore();
-const route = useRoute();
 const router = useRouter();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 const orderId = Number(props.id);
 const isNotFound = ref(false);
 const errorMessage = ref("");
@@ -33,9 +35,20 @@ const fetchOrderById = async () => {
       throw new Error("Invalid ID");
     }
     const response = await getOrderById(orderId);
+
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
+
     if (!response.error) {
       selectedOrder.value = response;
-      console.log(response);
 
       const isBuyer = selectedOrder.value.buyerId === userId.value;
       const isSeller = selectedOrder.value.seller?.id === userId.value;
@@ -64,7 +77,6 @@ const formatDate = (dateString) => {
 
   const date = new Date(dateString);
 
-  // ตัวเลือกการแสดงผล
   const options = {
     year: "numeric",
     month: "long",
@@ -102,7 +114,6 @@ onMounted(fetchOrderById);
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
     <div v-if="selectedOrder" class="max-w-4xl mx-auto">
       <div class="bg-white rounded-2xl shadow-lg overflow-hidden itbms-row">
-        <!-- Header -->
         <div
           class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-6 border-b-2 border-blue-100"
         >
@@ -161,7 +172,6 @@ onMounted(fetchOrderById);
             </div>
           </div>
 
-          <!-- Shipping Address -->
           <div
             class="mt-6 bg-white bg-opacity-60 rounded-lg p-4 itbms-shipping-address"
           >
@@ -171,7 +181,6 @@ onMounted(fetchOrderById);
             </p>
           </div>
 
-          <!-- Note -->
           <div class="mt-3 rounded-lg p-4 itbms-order-note">
             <p class="text-sm font-medium text-gray-600 mb-1">Note:</p>
             <p class="text-gray-700 itbms-order-note">
@@ -180,7 +189,6 @@ onMounted(fetchOrderById);
           </div>
         </div>
 
-        <!-- Order Items -->
         <div class="p-6">
           <div
             v-for="(item, index) in selectedOrder.orderItems"

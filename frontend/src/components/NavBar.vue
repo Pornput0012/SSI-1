@@ -39,6 +39,22 @@ const menu = [
   {
     to: "brands",
     text: "Manage Brand",
+    seller: true,
+  },
+  {
+    to: "sale-items-list",
+    text: "My Sale Items",
+    seller: true,
+  },
+  {
+    to: "create-sale-item",
+    text: "Add Sale Item",
+    seller: true,
+  },
+  {
+    to: "create-brand",
+    text: "Add Brand",
+    seller: true,
   },
 ];
 
@@ -50,7 +66,7 @@ const handleLogout = async () => {
     cartStore.setCart(null);
     saleOrderStore.setSaleOrderQuanatity(0);
     sessionStorage.clear();
-    localStorage.clear()
+    localStorage.clear();
 
     router.push({ name: "sale-items" });
   } else {
@@ -115,7 +131,6 @@ watchEffect(async () => {
       }
 
       saleOrderStore.setSaleOrderQuanatity(response);
-      console.log(saleOrderStore.getSaleOrderQuanatity());
     } catch (error) {
       console.error("Error loading cart:", error?.message || "Unknown error");
     }
@@ -235,8 +250,17 @@ const productLength = computed(() => {
       class="bg-base-100 border-t-1 border-base-300 shadow-sm px-6 py-2 flex gap-10"
     >
       <RouterLink
+        v-if="userStore.getUserType() === 'SELLER'"
         active-class="border-b-1"
         v-for="(m, i) in menu"
+        :to="{ name: m.to }"
+        class="font-light hover:text-purple-700 transition-colors"
+        >{{ m.text }}</RouterLink
+      >
+      <RouterLink
+        v-else
+        active-class="border-b-1"
+        v-for="(m, i) in menu.filter((m) => m.seller !== true)"
         :to="{ name: m.to }"
         class="font-light hover:text-purple-700 transition-colors"
         >{{ m.text }}</RouterLink
@@ -303,7 +327,7 @@ const productLength = computed(() => {
           class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm"
         >
           <RouterLink
-            :to="{ name: userStore.getUserId ? 'profile' : 'register' }"
+            :to="{ name: userStore.getUserId() ? 'profile' : 'register' }"
             ><li>
               <a>{{ userStore.getUserId() ? "Profile" : "Register" }} </a>
             </li></RouterLink
@@ -329,16 +353,34 @@ const productLength = computed(() => {
       </button>
       <div class="flex flex-col">
         <RouterLink
+          v-if="userStore.getUserType() === 'SELLER'"
           active-class="border-b-1"
-          :to="{ name: 'home' }"
+          v-for="(m, i) in menu"
+          :to="{ name: m.to }"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
-          >Home</RouterLink
+          >{{ m.text }}</RouterLink
         >
         <RouterLink
+          v-else
           active-class="border-b-1"
-          :to="{ name: 'sale-items' }"
+          v-for="(m, i) in menu.filter((m) => m.seller !== true)"
+          :to="{ name: m.to }"
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
-          >Products</RouterLink
+          >{{ m.text }}</RouterLink
+        >
+
+        <RouterLink
+          active-class="border-b-1"
+          :to="{ name: 'order' }"
+          class="mb-2 hover:text-purple-600 transition-colors w-fit"
+          >Your orders</RouterLink
+        >
+        <RouterLink
+          v-if="userStore.getUserType() === 'SELLER'"
+          active-class="border-b-1"
+          :to="{ name: 'sale-orders' }"
+          class="mb-2 hover:text-purple-600 transition-colors w-fit"
+          >Sale order</RouterLink
         >
       </div>
     </div>

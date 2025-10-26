@@ -14,8 +14,6 @@ const isCanNotSave = ref(true);
 let roles = ["Buyer", "Seller"];
 const userType = ref(roles[0]);
 
-const router = useRouter();
-
 const errorTitle = ref("");
 const errorMessage = ref("");
 const showModal = ref(false);
@@ -169,7 +167,7 @@ const checkEmail = (email, userType) => {
   const emailConstraint = formConstraints.Buyer[1].constraint;
 
   const validate =
-    userType === "Seller" ? sellerValidate.value : buyerValidate.value;
+    userType === "seller" ? sellerValidate.value : buyerValidate.value;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -187,6 +185,31 @@ const checkEmail = (email, userType) => {
 
   validate.email.invalid = false;
   validate.email.msg = ``;
+};
+
+const checkFullname = (fullName, userType) => {
+  const fullNameConstraint = formConstraints.Buyer[3].constraint;
+
+  const validate =
+    userType === "Seller" ? sellerValidate.value : buyerValidate.value;
+
+  if (!fullName) {
+    validate.fullName.invalid = true;
+    validate.fullName.msg = `Fullname must be filled`;
+    return;
+  }
+
+  if (
+    fullName.length > fullNameConstraint.maxLength ||
+    fullName.length < fullNameConstraint.minLength
+  ) {
+    validate.fullName.invalid = true;
+    validate.fullName.msg = `Fullname must be 4-40 Characters`;
+    return;
+  }
+
+  validate.fullName.invalid = false;
+  validate.fullName.msg = ``;
 };
 
 const frontImage = ref(null);
@@ -317,6 +340,14 @@ watch(
 );
 
 watch(
+  [() => formDataSeller.value.fullName, () => formDataBuyer.value.fullName],
+  ([newSellerFullName, newBuyerFullName]) => {
+    checkFullname(newSellerFullName, "Seller");
+    checkFullname(newBuyerFullName, "Buyer");
+  }
+);
+
+watch(
   [() => formDataSeller.value.email, () => formDataBuyer.value.email],
   ([newSellerEmail, newBuyerEmail]) => {
     checkEmail(newSellerEmail, "Seller");
@@ -352,7 +383,7 @@ watchEffect(() => {
 
   const hasImage = imagesToSend?.front && imagesToSend?.back;
   const emptyFields = Object.entries(dataToCheck).filter(
-    ([key, value]) => value === "" || value === null
+    ([_, value]) => value === "" || value === null
   );
 
   if (emptyFields.length > 0) {
@@ -372,20 +403,16 @@ watchEffect(() => {
     <div
       class="absolute inset-0 w-1/2 min-h-screen h-full bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 hidden lg:block"
     ></div>
-    <!-- Left Banner Section -->
     <div
       class="w-1/2 h-screen bg-gradient-to-br from-indigo-700 via-purple-700 to-blue-700 hidden lg:flex lg:flex-col lg:justify-center lg:items-center text-white"
     >
-      <!-- Main Content -->
       <div class="z-10 text-center px-12">
         <div class="mb-8">
-          <!-- Icon -->
           <div
             class="mask mask-squircle bg-white w-20 h-20 flex items-center justify-center mb-4 mx-auto"
           >
             <img src="/logo.png" alt="" />
           </div>
-          <!-- Main Title -->
           <h1 class="text-4xl font-bold mb-4 leading-tight">
             Join Our
             <span
@@ -395,13 +422,11 @@ watchEffect(() => {
             </span>
           </h1>
 
-          <!-- Subtitle -->
           <p class="text-xl text-indigo-100 mb-8 leading-relaxed">
             Connect with thousands of buyers and sellers in our secure, trusted
             platform
           </p>
 
-          <!-- Features List -->
           <div class="space-y-4 text-left max-w-sm mx-auto">
             <div class="flex items-center space-x-3">
               <div class="w-2 h-2 bg-green-400 rounded-full"></div>
@@ -545,13 +570,11 @@ watchEffect(() => {
             National ID photo<span class="text-red-500"> *</span>
           </label>
 
-          <!-- Front Side -->
           <p class="my-2 text-sm text-purple-900/70">Front</p>
           <div class="flex-col mb-4">
             <div
               class="w-64 h-44 lg:w-80 lg:h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
             >
-              <!-- Image Preview or Placeholder -->
               <div v-if="frontImage?.file.src" class="relative">
                 <img
                   :src="frontImage?.file.src"
@@ -566,7 +589,6 @@ watchEffect(() => {
                 </button>
               </div>
 
-              <!-- Placeholder when no image -->
               <div
                 v-else
                 class="w-64 h-44 lg:w-80 lg:h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
@@ -588,7 +610,6 @@ watchEffect(() => {
                 <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 2MB</p>
               </div>
 
-              <!-- Hidden file input -->
               <input
                 type="file"
                 ref="frontUploadInput"
@@ -599,13 +620,11 @@ watchEffect(() => {
             </div>
           </div>
 
-          <!-- Back Side -->
           <p class="my-2 text-sm text-purple-900/70">Back</p>
           <div class="flex-col">
             <div
               class="w-64 h-44 lg:w-80 lg:h-52 flex justify-center items-center overflow-hidden relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-purple-400 transition-colors"
             >
-              <!-- Image Preview or Placeholder -->
               <div v-if="backImage?.file.src" class="relative">
                 <img
                   :src="backImage?.file.src"
@@ -620,7 +639,6 @@ watchEffect(() => {
                 </button>
               </div>
 
-              <!-- Placeholder when no image -->
               <div
                 v-else
                 class="w-64 h-44 lg:w-80 lg:h-52 overflow-hidden flex flex-col items-center justify-center text-gray-500"
@@ -642,7 +660,6 @@ watchEffect(() => {
                 <p class="text-xs text-gray-400 mt-1">PNG, JPG up to 2MB</p>
               </div>
 
-              <!-- Hidden file input -->
               <input
                 type="file"
                 ref="backUploadInput"

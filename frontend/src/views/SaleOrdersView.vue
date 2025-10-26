@@ -6,10 +6,14 @@ import OrderGallery from "@/components/OrderGallery.vue";
 import { getOrdersSeller } from "@/services/OrderService";
 import MessageModal from "@/components/MessageModal.vue";
 import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { useRouter } from "vue-router";
+import { useCartStore } from "@/stores/CartStore";
 
 const userStore = useUserStore();
 const orderStore = useOrderStore();
-const saleOrderStore = useSaleOrderStore()
+const saleOrderStore = useSaleOrderStore();
+const router = useRouter();
+const cartStore = useCartStore();
 const STORAGE_KEYS = {
   PAGE_INFO: "saleOrdersPageInfo",
 };
@@ -23,7 +27,8 @@ const isSeller = computed(() => userType.value?.toUpperCase() === "SELLER");
 
 const ordersPage = computed(() => orderStore.getOrdersPage());
 
-const orders = computed(() => {
+// Filter orders ตาม active tab ก่อน
+const allFilteredOrders = computed(() => {
   if (!ordersPage.value?.content) return null;
 
   switch (activeTab.value) {
@@ -43,11 +48,22 @@ const orders = computed(() => {
           order.orderStatus?.toUpperCase() === "COMPLETED" && !order.viewOrder
         );
       });
+    default:
+      return ordersPage.value.content.filter((order) => {
+        return order.orderStatus === activeTab.value;
+      });
   }
+});
 
-  return ordersPage.value.content.filter((order) => {
-    return order.orderStatus === activeTab.value;
-  });
+// แบ่งหน้าที่ฝั่ง client
+const orders = computed(() => {
+  if (!allFilteredOrders.value) return null;
+  
+  const pageSize = 10;
+  const start = currentPage.value * pageSize;
+  const end = start + pageSize;
+  
+  return allFilteredOrders.value.slice(start, end);
 });
 
 const { setCurrentOrderPage } = orderStore;
@@ -80,11 +96,26 @@ const fetchOrders = async (pageInfo) => {
       throw new Error("User not logged in");
     }
 
+    // ดึงข้อมูลทั้งหมดมาครั้งเดียว
     const response = await getOrdersSeller(userId.value, {
-      page: pageInfo?.page ?? currentPage.value,
-      size: 10,
+      page: 0,
+      size: 1000, // ดึงข้อมูลทั้งหมด
       sortDirection: "DESC",
     });
+
+    
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+       userStore.clearUserInfo()
+        userStore.setAccessToken(null)
+        cartStore.setCart(null)
+        saleOrderQuantity.setSaleOrderQuanatity(0)
+        sessionStorage.clear()
+        localStorage.clear()
+      router.push({ name: "signin" });
+      return;
+    }
+    
     saveToLocalStorage();
     if (response.error) {
       throw new Error(response?.error);
@@ -96,7 +127,7 @@ const fetchOrders = async (pageInfo) => {
 
 const handlePageChange = async (pageIndex) => {
   setCurrentOrderPage(pageIndex);
-  await fetchOrders();
+  // ไม่ต้อง fetch ใหม่ เพราะมีข้อมูลทั้งหมดแล้ว
 };
 
 onMounted(async () => {
@@ -114,11 +145,21 @@ watch(activeTab, () => {
 });
 
 const pageInfo = computed(() => {
-  if (!ordersPage.value) return null;
+  if (!allFilteredOrders.value) return null;
+
+  const pageSize = 10;
+  const totalElements = allFilteredOrders.value.length;
+  const totalPages = Math.ceil(totalElements / pageSize);
+  const currentPageNum = currentPage.value;
 
   return {
-    ...ordersPage.value,
-    page: ordersPage.value.page ?? 0,
+    content: orders.value,
+    page: currentPageNum,
+    size: pageSize,
+    totalElements: totalElements,
+    totalPages: totalPages,
+    first: currentPageNum === 0,
+    last: currentPageNum >= totalPages - 1 || totalPages === 0,
   };
 });
 </script>

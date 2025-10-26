@@ -1,20 +1,12 @@
 <script setup>
-import { useRoute } from "vue-router";
 import NavBar from "./components/NavBar.vue";
-import { computed } from "vue";
-
-const route = useRoute();
-
-
-
-const authenFormPath = ['/register','/signin','/verify-email']
-
-const hasNav = computed(()=>!authenFormPath.includes(route.path))
+import GlobalToast from "./components/GlobalToast.vue";
 </script>
 
 <template>
   <NavBar />
   <RouterView />
+  <GlobalToast />
 </template>
 
 <style scoped></style>

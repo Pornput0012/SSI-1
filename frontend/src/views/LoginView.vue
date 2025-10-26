@@ -1,6 +1,10 @@
 <script setup>
-import { ref, watch, watchEffect } from "vue";
-import { getProfile, login } from "@/services/userService";
+import { onMounted, ref, watch, watchEffect } from "vue";
+import {
+  getAccessTokenFromLocalStorage,
+  getProfile,
+  login,
+} from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
 import MessageModal from "@/components/MessageModal.vue";
 import router from "@/router";
@@ -31,13 +35,12 @@ const handleLogin = async () => {
       loginSuccess();
     } else {
       disableSaveBtn.value = false;
-      console.log(response);
-      
+
       throw new Error(response.error);
     }
-  } catch (error) {
+  } catch (error) {    
     errorTitle.value = "Failed to log in";
-    errorMessage.value = "Email Address or Password incorrect.";
+    errorMessage.value = error.message || "Email Address or Password incorrect.";
     showModal.value = true;
   }
 };
@@ -138,6 +141,12 @@ const loginSuccess = async () => {
   }
   router.push({ name: "sale-items-list" });
 };
+
+onMounted(() => {
+  if (getAccessTokenFromLocalStorage()) {
+    router.push({ name: "sale-items" });
+  }
+});
 </script>
 
 <template>
@@ -292,7 +301,7 @@ const loginSuccess = async () => {
           </label>
           <router-link
             :to="{ name: 'forgotPassword' }"
-            class="text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
+            class="cursor-pointer text-sm text-indigo-600 hover:text-indigo-500 transition-colors"
           >
             Forgot password?
           </router-link>
@@ -305,7 +314,7 @@ const loginSuccess = async () => {
           :class="[
             disableSaveBtn || onSubmit
               ? 'flex items-center justify-center gap-2 w-full text-white py-3 px-4 rounded-lg font-medium  cursor-not-allowed bg-gray-300 '
-              : 'w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform hover:scale-105',
+              : 'cursor-pointer w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-700 hover:to-purple-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all transform hover:scale-105',
           ]"
         >
           <svg

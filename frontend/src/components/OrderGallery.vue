@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from "vue";
 import ContainerList from "./ContainerList.vue";
 import OrderGalleryModel from "./OrderGalleryModel.vue";
 
@@ -11,154 +11,150 @@ const props = defineProps({
   pageInfo: Object,
   hasError: String,
   newOrder: Boolean,
-  saleOrders: Boolean
-})
+  saleOrders: Boolean,
+});
 
-const emit = defineEmits(['pageChanged'])
+const emit = defineEmits(["pageChanged"]);
 
-const currentPage = ref(props.pageInfo?.page ?? 0)
-const pageNumbers = ref([])
-const startPageIndex = ref(0)
-const isActionPage = ref(true)
+const currentPage = ref(props.pageInfo?.page ?? 0);
+const pageNumbers = ref([]);
+const startPageIndex = ref(0);
+const isActionPage = ref(true);
 
 const calcPageNumber = (oldPage) => {
   if (!props.pageInfo) {
-    return
+    return;
   }
-  
-  const totalPages = props.pageInfo.totalPages
-  const MAX_SHOW_PAGE = Math.min(totalPages, 10)
+
+  const totalPages = props.pageInfo.totalPages;
+  const MAX_SHOW_PAGE = Math.min(totalPages, 10);
 
   if (
     currentPage.value >= 10 &&
     totalPages > 10 &&
     !isNaN(pageNumbers.value[9])
   ) {
-    isActionPage.value = true
-    startPageIndex.value += 1
+    isActionPage.value = true;
+    startPageIndex.value += 1;
   } else if (oldPage && currentPage.value < oldPage) {
-    isActionPage.value = true
-    startPageIndex.value -= 1
+    isActionPage.value = true;
+    startPageIndex.value -= 1;
   }
 
   if (isActionPage.value) {
-    const newPageNumber = []
+    const newPageNumber = [];
     for (
       let i = startPageIndex.value;
       i < MAX_SHOW_PAGE + startPageIndex.value;
       i++
     ) {
-      newPageNumber.push(i + 1)
+      newPageNumber.push(i + 1);
     }
 
-    pageNumbers.value = newPageNumber
+    pageNumbers.value = newPageNumber;
   }
-  isActionPage.value = false
-}
+  isActionPage.value = false;
+};
 
 onMounted(() => {
   if (!props.pageInfo) {
-    return
+    return;
   }
 
   if (currentPage.value >= 10) {
     startPageIndex.value =
       Math.floor((currentPage.value + 1) / 10) > 1
         ? ((currentPage.value + 1) / 10) * 10 - 10
-        : (currentPage.value + 1) % 10
+        : (currentPage.value + 1) % 10;
   }
-  calcPageNumber()
-})
+  calcPageNumber();
+});
 
 function changePage(pageIndex) {
   if (!props.pageInfo) {
-    return
+    return;
   }
-  currentPage.value = pageIndex
+  currentPage.value = pageIndex;
   if (pageIndex === 0) {
-    startPageIndex.value = 0
-    isActionPage.value = true
-    calcPageNumber()
+    startPageIndex.value = 0;
+    isActionPage.value = true;
+    calcPageNumber();
   } else if (pageIndex === props.pageInfo.totalPages - 1) {
     startPageIndex.value =
       props.pageInfo.totalPages > 10
         ? Math.floor(currentPage.value / 10) > 1
           ? (currentPage.value / 10) * 10 - 10
           : currentPage.value % 10
-        : 0
+        : 0;
 
-    isActionPage.value = true
-    calcPageNumber()
+    isActionPage.value = true;
+    calcPageNumber();
   }
-  emit('pageChanged', currentPage.value)
+
+  emit("pageChanged", currentPage.value);
+
 }
 
 function nextPage() {
   if (!props.pageInfo) {
-    return
+    return;
   }
   if (currentPage.value < props.pageInfo.totalPages - 1) {
-    currentPage.value++
+    currentPage.value++;
     if (currentPage.value > 9) {
-      calcPageNumber()
+      calcPageNumber();
     }
-    changePage(currentPage.value)
+    changePage(currentPage.value);
   }
 }
 
 function prevPage() {
   if (currentPage.value > 0) {
-    const oldPageNumber = currentPage.value
-    currentPage.value--
+    const oldPageNumber = currentPage.value;
+    currentPage.value--;
     if (currentPage.value < pageNumbers.value[0] - 1) {
-      calcPageNumber(oldPageNumber)
+      calcPageNumber(oldPageNumber);
     }
 
-    changePage(currentPage.value)
+    changePage(currentPage.value);
   }
 }
 
 watch(
   () => props.pageInfo,
   (newVal, oldVal) => {
-    // ✅ ถ้า newVal เป็น null ให้หยุดทันที
     if (!newVal) {
-      return
+      return;
     }
 
-    // ✅ กรณีที่ oldVal เป็น null (รอบแรก) - ให้ init pagination
     if (!oldVal) {
-      startPageIndex.value = 0
-      currentPage.value = newVal.page ?? 0
-      isActionPage.value = true
-      calcPageNumber()
-      return
+      startPageIndex.value = 0;
+      currentPage.value = newVal.page ?? 0;
+      isActionPage.value = true;
+      calcPageNumber();
+      return;
     }
 
-    // ✅ กรณีที่มีการเปลี่ยนแปลง metadata
     if (
       newVal.size !== oldVal.size ||
       newVal.totalPages !== oldVal.totalPages ||
       newVal.sort !== oldVal.sort ||
       newVal.totalElements !== oldVal.totalElements
     ) {
-      startPageIndex.value = 0
-      currentPage.value = newVal.page ?? 0
-      isActionPage.value = true
-      calcPageNumber()
-    } 
-    // ✅ กรณีที่เปลี่ยนแค่ page number
-    else if (newVal.page !== oldVal.page) {
-      currentPage.value = newVal.page ?? 0
+      startPageIndex.value = 0;
+      currentPage.value = newVal.page ?? 0;
+      isActionPage.value = true;
+      calcPageNumber();
+    } else if (newVal.page !== oldVal.page) {
+      currentPage.value = newVal.page ?? 0;
     }
   },
   { deep: true }
-)
+);
 </script>
 
 <template>
   <div>
-    <!-- Error message -->
     <div
       v-if="!orders && hasError !== '' && hasError"
       class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-red-100 border-1 border-red-300"
@@ -166,7 +162,6 @@ watch(
       <p class="text-red-500 font-extralight">{{ hasError }}</p>
     </div>
 
-    <!-- Loader -->
     <div
       v-else-if="!orders"
       class="w-full h-full justify-center items-center space-y-6"
@@ -176,18 +171,20 @@ watch(
       </div>
     </div>
 
-    <!-- Show orders -->
     <ContainerList
       v-else-if="orders && orders.length > 0"
       :items="orders"
       class="space-y-6"
     >
       <template v-slot="{ itemInList }">
-        <OrderGalleryModel :new-order="newOrder" :order="itemInList" :sale-orders="saleOrders" />
+        <OrderGalleryModel
+          :new-order="newOrder"
+          :order="itemInList"
+          :sale-orders="saleOrders"
+        />
       </template>
     </ContainerList>
 
-    <!-- No orders -->
     <div
       v-if="orders && orders.length === 0"
       class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"
@@ -195,7 +192,6 @@ watch(
       <p class="text-purple-700 font-medium">No orders found</p>
     </div>
 
-    <!-- Pagination -->
     <div
       v-if="pageInfo && !hasError && orders && orders.length !== 0"
       class="join mt-7 w-full justify-center flex-wrap md:flex-nowrap"

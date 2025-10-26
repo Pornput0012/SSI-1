@@ -5,6 +5,9 @@ import { getImageByFileName, getUserById } from "@/services/userService";
 import { useNotiStore } from "@/stores/NotiStore";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import { Icon } from "@iconify/vue";
+import { useRouter } from "vue-router";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const USER_TYPE = {
   SELLER: "SELLER",
@@ -12,6 +15,9 @@ const USER_TYPE = {
 };
 
 const userStore = useUserStore();
+const router = useRouter();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 
 const frontImageUrl = ref(null);
 const backImageUrl = ref(null);
@@ -22,6 +28,19 @@ const userInfo = ref(null);
 watchEffect(async () => {
   if (userId.value) {
     const user = await getUserById(userId.value);
+    
+    // Check for 401 error
+    if (user.error && user.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
+    
     userInfo.value = user;
     if (user.nationalIdPhotoFront) {
       frontImageUrl.value = await getImageByFileName(user.nationalIdPhotoFront);

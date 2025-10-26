@@ -11,7 +11,6 @@ const errorTitle = ref("");
 const errorMessage = ref("");
 const showModal = ref(false);
 onMounted(async () => {
-  console.log(route.query.jwtToken);
   try {
     const response = await verifyEmail(route.query.jwtToken);
 

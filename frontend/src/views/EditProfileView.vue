@@ -4,6 +4,8 @@ import { useUserStore } from "@/stores/UserStore";
 import { updateUserById } from "@/services/userService";
 import { useRouter } from "vue-router";
 import { useNotiStore } from "@/stores/NotiStore";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
 
 const USER_TYPE = {
   SELLER: "SELLER",
@@ -19,6 +21,8 @@ const userId = computed(() => userStore.getUserInfo().id);
 const userType = computed(() => userStore.getUserInfo().userType);
 
 const router = useRouter();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
 
 const userInfo = ref(userStore.getUserInfo());
 const originalFormData = ref(null);
@@ -53,10 +57,7 @@ onMounted(() => {
 
 const notiStore = useNotiStore();
 const updateSuccess = () => {
-  console.log("call function");
-
   notiStore.updateSuccess = true;
-  console.log(notiStore.updateSuccess);
   router.push({ name: "profile" });
 };
 
@@ -67,14 +68,22 @@ const handleSubmit = async () => {
       throw new Error("Invalid ID or form data");
     }
 
-    const response = await updateUserById(
-      userId.value,
-      {
-        nickName: formData.value.nickName,
-        fullName: formData.value.fullName,
-      }    );
+    const response = await updateUserById(userId.value, {
+      nickName: formData.value.nickName,
+      fullName: formData.value.fullName,
+    });
 
-    console.log(response);
+    // Check for 401 error
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
+    }
 
     if (!response.error) {
       isSaving.value = false;
@@ -106,10 +115,6 @@ watchEffect(() => {
     const check = ["nickName", "fullName"];
     // Check each field for changes
     for (const key of check) {
-      console.log(key);
-      console.log(formData.value[key]);
-      console.log(originalFormData.value[key]);
-
       if (formData.value[key]) {
         isValid = true;
       }

@@ -30,14 +30,20 @@ const handleSubmit = async (payload) => {
         createSuccess();
         clearData.value = true
       } else {
-        throw new Error(response.error);
+        errorTitle.value = "Failed to Create Account";
+        errorMessage.value = response.errors && response.errors.length > 0
+          ? response.errors[0].message
+          : response.message || "An error occurred. Please try again.";
+        
+        showModal.value = true;
+        isSaving.value = false;
       }
     }
   } catch (error) {
-    errorTitle.value = "Failed to create user";
-    errorMessage.value = error.message;
-    showModal.value = true;
     isSaving.value = false;
+    errorTitle.value = "Failed to Create Account";
+    errorMessage.value = "An unexpected error occurred. Please try again.";
+    showModal.value = true;
   }
 };
 
