@@ -17,7 +17,7 @@ const handleCreateSaleItem = async (formData, images) => {
     isSaving.value = true;
     if (formData) {
       const response = await createSaleItem_v2(formData, images);
-      
+
       if (!response.error) {
         createSuccess();
       } else {
@@ -35,7 +35,7 @@ const handleCreateSaleItem = async (formData, images) => {
 const notiStore = useNotiStore();
 const createSuccess = () => {
   notiStore.createSuccess = true;
-  router.back();
+  router.push({ name: "sale-items" });
 };
 </script>
 
