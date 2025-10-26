@@ -126,7 +126,7 @@ const getAccessTokenFromRefreshToken = async () => {
   }
 };
 
-const getProfile = async () => {
+const getProfile = async ( retryCount = 0) => {
   try {
     const response = await fetchWithTokenRetry(USER_API_URL, {
       method: "GET",
