@@ -27,8 +27,8 @@ onMounted(async () => {
     if (response.error) {
       throw new Error(response.error);
     }
-    const responseSaleItem = await getAllSaleItems()
-    if(responseSaleItem.error){
+    const responseSaleItem = await getAllSaleItems();
+    if (responseSaleItem.error) {
       throw new Error(responseSaleItem.error);
     }
   } catch (e) {
@@ -54,12 +54,10 @@ const confirmDelete = (brand) => {
 const handleDelete = async () => {
   try {
     if (deleteTargetId.value) {
-
       const response = await deleteBrandById(deleteTargetId.value);
       showDeleteModal.value = false;
       if (response.success) {
         brandStore.deleteBrandById(deleteTargetId.value);
-
 
         deleteSuccess.value = true;
       } else {
@@ -110,10 +108,17 @@ onMounted(() => {
       class: 'itbms-item-list',
     }"
   />
+
   <div class="w-full h-full px-10 pb-10 md:px-20 md:pb-20">
     <div class="w-full flex justify-between items-center">
       <h1 class="font-bold text-2xl">Brands</h1>
       <div class="flex gap-4 items-center">
+        <router-link
+          :to="{ name: 'create-brand' }"
+          class="itbms-sale-item-add-brand btn btn-primary"
+        >
+          Add Brand
+        </router-link>
         <label class="w-fit h-8 input input-xs hidden sm:flex">
           <input type="search" class="grow" placeholder="Search..." />
           <button class="cursor-pointer">

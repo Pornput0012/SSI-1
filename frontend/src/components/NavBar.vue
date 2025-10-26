@@ -46,16 +46,6 @@ const menu = [
     text: "My Sale Items",
     seller: true,
   },
-  {
-    to: "create-sale-item",
-    text: "Add Sale Item",
-    seller: true,
-  },
-  {
-    to: "create-brand",
-    text: "Add Brand",
-    seller: true,
-  },
 ];
 
 const handleLogout = async () => {

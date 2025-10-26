@@ -702,7 +702,7 @@ watchEffect(() => {
           <span>{{ disableSaveBtn ? "Submitting..." : "Submit" }}</span>
         </button>
         <button
-          @click="$router.back()"
+          @click="$router.push({ name: 'register' })"
           class="itbms-cancel-button btn bg-base-200 shadow-sm text-indigo-700"
         >
           Cancel

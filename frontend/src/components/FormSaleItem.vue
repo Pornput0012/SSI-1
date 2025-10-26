@@ -18,7 +18,7 @@ const props = defineProps({
   disableSaveBtn: Boolean,
   mode: {
     type: String,
-    default: "create", 
+    default: "create",
   },
 });
 
@@ -96,7 +96,7 @@ const showModal = ref(false);
 
 const originalImages = ref([]);
 const images = ref([]);
-const deletedImageFileNames = ref([]); 
+const deletedImageFileNames = ref([]);
 
 const showImage = ref(noPhoto);
 const showImageIndex = ref(-1);
@@ -406,23 +406,27 @@ const checkImageChanges = () => {
 
   const activeImages = images.value.filter((img) => !img.isDeleted);
 
-  const hasNewImages = activeImages.some((img) => !img.isOriginal);  
+  const hasNewImages = activeImages.some((img) => !img.isOriginal);
   const hasDeletedOriginalImages = deletedImageFileNames.value.length > 0;
 
   const originalImagesInCurrentOrder = activeImages.filter(
     (img) => img.isOriginal
   );
-  
 
-  const currentOriginalFilenames = originalImagesInCurrentOrder.map((img) => img.imageName);
+  const currentOriginalFilenames = originalImagesInCurrentOrder.map(
+    (img) => img.imageName
+  );
 
   const originalOrderIds = originalImages.value
     .sort((a, b) => a.imageViewOrder - b.imageViewOrder)
     .filter((img) => !deletedImageFileNames.value.includes(img.imageName))
     .map((img) => img.imageName);
 
-  const hasReorderedImages = !arraysEqual(currentOriginalFilenames, originalOrderIds);
-  
+  const hasReorderedImages = !arraysEqual(
+    currentOriginalFilenames,
+    originalOrderIds
+  );
+
   const expectedOriginalCount =
     originalImages.value.length - deletedImageFileNames.value.length;
   const currentOriginalImagesCount = originalImagesInCurrentOrder.length;
@@ -520,8 +524,7 @@ const uploadImage = (event) => {
 
   if (availableSlots === 0) {
     errorTitle.value = "No Available Slots";
-    errorMessage.value =
-      "Maximum 4 pictures are allowed";
+    errorMessage.value = "Maximum 4 pictures are allowed";
     showModal.value = true;
     event.target.value = "";
     return;
@@ -537,42 +540,41 @@ const uploadImage = (event) => {
     } files were skipped.`;
   }
 
-const checkSizeAndUploadFile = (file, i) => {
-  if (file && file.size > MAX_SIZE_BYTES) {
-    errorTitle.value = "File Size Too Large";
-    errorMessage.value = `File "${file.name}" exceeds the 2MB limit.`;
-    showModal.value = true;
-  } else {
-    const fileName = generateUniqueFileName(file.name);
-    const objectURL = URL.createObjectURL(file);
-
-    const image = {
-      imageName: fileName,
-      src: objectURL,
-      file,
-      isOriginal: false,
-      isDeleted: false,
-    };
-
-    let insertIndex = images.value.findIndex((img) => img.isDeleted);
-
-    if (insertIndex === -1) {
-      images.value.push(image);
-      insertIndex = images.value.length - 1;
+  const checkSizeAndUploadFile = (file, i) => {
+    if (file && file.size > MAX_SIZE_BYTES) {
+      errorTitle.value = "File Size Too Large";
+      errorMessage.value = `File "${file.name}" exceeds the 2MB limit.`;
+      showModal.value = true;
     } else {
-      images.value[insertIndex] = image;
-    }
+      const fileName = generateUniqueFileName(file.name);
+      const objectURL = URL.createObjectURL(file);
 
-    if (
-      showImageIndex.value === -1 ||
-      images.value[showImageIndex.value]?.isDeleted
-    ) {
-      showImageIndex.value = insertIndex;
-      showImage.value = objectURL;
-    }
-  }
-};
+      const image = {
+        imageName: fileName,
+        src: objectURL,
+        file,
+        isOriginal: false,
+        isDeleted: false,
+      };
 
+      let insertIndex = images.value.findIndex((img) => img.isDeleted);
+
+      if (insertIndex === -1) {
+        images.value.push(image);
+        insertIndex = images.value.length - 1;
+      } else {
+        images.value[insertIndex] = image;
+      }
+
+      if (
+        showImageIndex.value === -1 ||
+        images.value[showImageIndex.value]?.isDeleted
+      ) {
+        showImageIndex.value = insertIndex;
+        showImage.value = objectURL;
+      }
+    }
+  };
 
   filesToProcess.forEach((file, i) => {
     checkSizeAndUploadFile(file, i);
@@ -664,8 +666,8 @@ const removeImage = (index) => {
     imageName: "",
     src: null,
     isOriginal: false,
-    isDeleted: true, 
-    originalPosition: index + 1, 
+    isDeleted: true,
+    originalPosition: index + 1,
   };
 
   if (index === showImageIndex.value) {
@@ -860,7 +862,6 @@ const removeImage = (index) => {
               </span>
             </h3>
           </div>
-
 
           <div
             v-for="(image, i) in images"
@@ -1263,6 +1264,13 @@ const removeImage = (index) => {
             />
 
             <div
+              class="text-gray-500 mt-1 text-xs"
+              v-if="!validate.quantity.showError"
+            >
+              If not specified, default quantity will be set to 1.
+            </div>
+
+            <div
               class="text-red-500 mt-2 flex gap-2 text-sm"
               v-if="validate.quantity.showError"
             >
@@ -1284,7 +1292,10 @@ const removeImage = (index) => {
               Save
             </button>
 
-            <button @click="$router.back()" class="itbms-cancel-button btn">
+            <button
+              @click="$router.push({ name: 'sale-items' })"
+              class="itbms-cancel-button btn"
+            >
               Cancel
             </button>
           </div>
