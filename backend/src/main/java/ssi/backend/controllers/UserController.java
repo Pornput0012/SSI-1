@@ -108,7 +108,6 @@ public class UserController {
         }
 
         User user = userRepository.findByEmail(email);
-        System.out.println("Active Login");
         if (user != null) {
             if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
                 throw new ForbiddenException("You need activate your account before signing in.");
@@ -131,11 +130,9 @@ public class UserController {
                         .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                         .body(dtoResponse);
             } else {
-                System.out.println(" Login Failure");
                 throw new UnauthorizedException("Email or Password is incorrect.");
             }
         }
-        System.out.println("User not found");
         throw new UnauthorizedException("Email or Password is incorrect.");
     }
 

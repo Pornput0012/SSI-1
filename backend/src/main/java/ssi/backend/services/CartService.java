@@ -107,7 +107,6 @@ public class CartService {
             throw new UnauthorizedException("Invalid token");
         }
 
-        System.out.println(cartRequestDto.getQuantity());
         SaleItemImage saleItemImage = saleItemImageService.findSaleItemImageByNameV2(cartRequestDto.getImageFileName());
         User existingUser = userRepository.findById(cartRequestDto.getUserId()).orElseThrow(
                 () -> new ItemNotFoundException("User id " + cartRequestDto.getUserId() + " does not exist"));
@@ -126,7 +125,6 @@ public class CartService {
         Cart saveCart = existCart == null ? new Cart() : existCart;
         saveCart.setUser(existingUser);
         saveCart.setProduct(existingProduct);
-        System.out.println(existingProduct.getSeller().getNickname());
 
         if (saleItemImage == null) {
             saveCart.setImage(null);
