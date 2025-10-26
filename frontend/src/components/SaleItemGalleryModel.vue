@@ -5,7 +5,7 @@ import { getImageByFileName } from "@/services/SaleItemService";
 import { useCartStore } from "@/stores/CartStore";
 import { useUserStore } from "@/stores/UserStore";
 import { useSaleOrderStore } from "@/stores/saleOrderStore";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { addItemToCart } from "@/services/CartService";
 import { useNotiStore } from "@/stores/NotiStore";
 import { useToastStore } from "@/stores/ToastStore";
@@ -87,6 +87,14 @@ const loadImages = async () => {
 onMounted(async () => {
   await loadImages();
 });
+
+watch(
+  () => [props.fileName, props.id],
+  async () => {
+    await loadImages();
+  },
+  { deep: true }
+);
 
 const toastStore = useToastStore();
 
