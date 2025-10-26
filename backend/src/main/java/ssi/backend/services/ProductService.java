@@ -72,6 +72,10 @@ public class ProductService {
         boolean hasSortField = sortField != null && !sortField.isBlank();
         boolean sortDesc = "desc".equalsIgnoreCase(sortDirection);
 
+        if (searchKeyWord != null) {
+            searchKeyWord = searchKeyWord.trim().toLowerCase().replaceAll("\\s+", "");
+        }
+
         Sort sort;
         if (hasSortField) {
             sort = sortDesc
@@ -172,7 +176,6 @@ public class ProductService {
             });
             productPage
                     .setSort((sortField == null ? "brand.createOn" : sortField) + ": " + (sortDesc ? "DESC" : "ASC"));
-            System.out.println(productPage.getContent().get(0).getSeller().getNickname());
             return productPage;
         }
     }
