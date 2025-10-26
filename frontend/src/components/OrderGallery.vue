@@ -57,6 +57,7 @@ const calcPageNumber = (oldPage) => {
 }
 
 onMounted(() => {
+  
   if (!props.pageInfo) {
     return
   }
@@ -90,7 +91,11 @@ function changePage(pageIndex) {
     isActionPage.value = true
     calcPageNumber()
   }
+  
   emit('pageChanged', currentPage.value)
+
+      console.log(props.orders);
+
 }
 
 function nextPage() {
