@@ -54,12 +54,24 @@ const searchInput = ref('')
 const brandOptions = ref([])
 const showFilterDropdown = ref(false)
 
-const orders = computed(() => {
+// Filter orders ตาม active tab ก่อน
+const allFilteredOrders = computed(() => {
   if (!ordersPage.value?.content) return null
 
   return ordersPage.value.content.filter((order) => {
     return order.orderStatus === activeTab.value
   })
+})
+
+// แบ่งหน้าที่ฝั่ง client
+const orders = computed(() => {
+  if (!allFilteredOrders.value) return null
+  
+  const pageSize = 10
+  const start = currentPage.value * pageSize
+  const end = start + pageSize
+  
+  return allFilteredOrders.value.slice(start, end)
 })
 
 const { setCurrentOrderPage } = orderStore
@@ -111,11 +123,12 @@ const fetchOrders = async (pageInfo) => {
       throw new Error('User not logged in')
     }
 
+    // ดึงข้อมูลทั้งหมดมาครั้งเดียว
     const response = await getOrdersBuyer(userId.value, {
       filterBrands: filterBrands.value,
       searchKeyWord: searchKeyWord.value,
-      page: pageInfo?.page ?? currentPage.value,
-      size: 10,
+      page: 0,
+      size: 1000, // ดึงข้อมูลทั้งหมด
       sortDirection: 'DESC',
     })
     console.log(response)
@@ -175,7 +188,7 @@ const removeBrandAndApply = async (brand) => {
 
 const handlePageChange = async (pageIndex) => {
   setCurrentOrderPage(pageIndex)
-  await fetchOrders()
+  // ไม่ต้อง fetch ใหม่ เพราะมีข้อมูลทั้งหมดแล้ว
 }
 
 const clearSelectBrands = async () => {
@@ -200,11 +213,21 @@ watch(activeTab, () => {
 })
 
 const pageInfo = computed(() => {
-  if (!ordersPage.value) return null
+  if (!allFilteredOrders.value) return null
+
+  const pageSize = 10
+  const totalElements = allFilteredOrders.value.length
+  const totalPages = Math.ceil(totalElements / pageSize)
+  const currentPageNum = currentPage.value
 
   return {
-    ...ordersPage.value,
-    page: ordersPage.value.page ?? 0,
+    content: orders.value,
+    page: currentPageNum,
+    size: pageSize,
+    totalElements: totalElements,
+    totalPages: totalPages,
+    first: currentPageNum === 0,
+    last: currentPageNum >= totalPages - 1 || totalPages === 0,
   }
 })
 
