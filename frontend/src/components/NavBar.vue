@@ -39,7 +39,7 @@ const menu = [
   {
     to: "brands",
     text: "Manage Brand",
-    seller: true
+    seller: true,
   },
   {
     to: "sale-items-list",
@@ -66,7 +66,7 @@ const handleLogout = async () => {
     cartStore.setCart(null);
     saleOrderStore.setSaleOrderQuanatity(0);
     sessionStorage.clear();
-    localStorage.clear()
+    localStorage.clear();
 
     router.push({ name: "sale-items" });
   } else {
@@ -131,7 +131,6 @@ watchEffect(async () => {
       }
 
       saleOrderStore.setSaleOrderQuanatity(response);
-      console.log(saleOrderStore.getSaleOrderQuanatity());
     } catch (error) {
       console.error("Error loading cart:", error?.message || "Unknown error");
     }
@@ -369,7 +368,7 @@ const productLength = computed(() => {
           class="mb-2 hover:text-purple-600 transition-colors w-fit"
           >{{ m.text }}</RouterLink
         >
-        
+
         <RouterLink
           active-class="border-b-1"
           :to="{ name: 'order' }"

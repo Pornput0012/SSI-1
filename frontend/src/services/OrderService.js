@@ -147,8 +147,6 @@ const getOrdersSeller = async (sellerId, pageInfo = { page: 0, size: 10 }) => {
 
 const createOrder = async (orders) => {
   try {
-    console.log(orders);
-
     const response = await fetchWithTokenRetry(`${ORDER_API_URL_V2}`, {
       method: "POST",
       headers: {

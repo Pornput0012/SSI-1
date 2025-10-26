@@ -43,13 +43,9 @@ export const useCartStore = defineStore("Cart", () => {
 
     if (found) {
       carts.value[sellerIndex].cart.splice(productIndex, 1);
-      console.log(carts.value[sellerIndex]);
-      console.log(carts.value[sellerIndex].cart.length === 0);
 
       if (carts.value[sellerIndex].cart.length === 0) {
         carts.value.splice(sellerIndex, 1);
-
-        console.log(carts.value);
       }
       return;
     }
@@ -59,8 +55,6 @@ export const useCartStore = defineStore("Cart", () => {
     if (!carts.value) {
       carts.value = [];
     }
-
-    console.log(product.productSellerNickname);
 
     const { found, sellerIndex, productIndex } = findProductById(
       product.productId
@@ -78,13 +72,10 @@ export const useCartStore = defineStore("Cart", () => {
       carts.value = [];
     }
 
-    console.log(product.productSellerNickname);
-
     const { found, sellerIndex, productIndex } = findProductById(
       product.productId
     );
 
-    console.log(product.quantity);
     if (found) {
       carts.value[sellerIndex].cart[productIndex].quantity += quantity;
       return;

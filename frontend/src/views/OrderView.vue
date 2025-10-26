@@ -131,7 +131,6 @@ const fetchOrders = async (pageInfo) => {
       size: 1000, // ดึงข้อมูลทั้งหมด
       sortDirection: 'DESC',
     })
-    console.log(response)
 
     // Check for 401 error
     if (response.error && response.error.status === 401) {

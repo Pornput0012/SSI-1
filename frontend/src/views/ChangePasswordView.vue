@@ -133,8 +133,6 @@ const handleSubmit = async () => {
       notiStore.updateSuccess = true;
       router.push({ name: "profile" });
     } else {
-      console.log(response);
-
       throw new Error("Failed to change password");
     }
   } catch (error) {

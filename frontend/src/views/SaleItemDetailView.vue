@@ -1,175 +1,165 @@
 <script setup>
-import { useRouter, useRoute } from 'vue-router'
-import arrowleft from '../assets/icons/arrowleft.svg'
-import dot from '../assets/icons/dot.svg'
-import heart from '../assets/icons/heart.svg'
-import { useSaleItemStore } from '@/stores/SaleItemStore'
-import { onMounted, ref, onBeforeUnmount, computed } from 'vue'
+import { useRouter, useRoute } from "vue-router";
+import arrowleft from "../assets/icons/arrowleft.svg";
+import dot from "../assets/icons/dot.svg";
+import heart from "../assets/icons/heart.svg";
+import { useSaleItemStore } from "@/stores/SaleItemStore";
+import { onMounted, ref, onBeforeUnmount, computed } from "vue";
 import {
   getSaleItemById,
   deleteSaleItemById,
   getSaleItemById_v2,
   getImageByFileName,
-} from '@/services/SaleItemService'
-import Breadcrumbs from '../components/Breadcrumbs.vue'
-import { useNotiStore } from '@/stores/NotiStore'
-import MessageModal from '@/components/MessageModal.vue'
-import noImage from '@/assets/No_image_available.png'
-import { useUserStore } from '@/stores/UserStore'
-import { addItemToCart } from '@/services/CartService'
-import { useCartStore } from '@/stores/CartStore'
-import { useSaleOrderStore } from '@/stores/saleOrderStore'
-import { useToastStore } from '@/stores/ToastStore'
+} from "@/services/SaleItemService";
+import Breadcrumbs from "../components/Breadcrumbs.vue";
+import { useNotiStore } from "@/stores/NotiStore";
+import MessageModal from "@/components/MessageModal.vue";
+import noImage from "@/assets/No_image_available.png";
+import { useUserStore } from "@/stores/UserStore";
+import { addItemToCart } from "@/services/CartService";
+import { useCartStore } from "@/stores/CartStore";
+import { useSaleOrderStore } from "@/stores/saleOrderStore";
+import { useToastStore } from "@/stores/ToastStore";
 
-const userStore = useUserStore()
-const cartStore = useCartStore()
-const saleOrderStore = useSaleOrderStore()
-const route = useRoute()
-const router = useRouter()
-const saleItemStore = useSaleItemStore()
-const saleItemId = route.params.id
-const selectSaleItem = ref(null)
-const isNotFound = ref(false)
-const errorMessage = ref('')
-const quantitySelectedItemInCart = ref(0)
-const userNickname = computed(() => userStore.getNickName())
-const userId = computed(() => userStore.getUserId())
+const userStore = useUserStore();
+const cartStore = useCartStore();
+const saleOrderStore = useSaleOrderStore();
+const route = useRoute();
+const router = useRouter();
+const saleItemStore = useSaleItemStore();
+const saleItemId = route.params.id;
+const selectSaleItem = ref(null);
+const isNotFound = ref(false);
+const errorMessage = ref("");
+const quantitySelectedItemInCart = ref(0);
+const userNickname = computed(() => userStore.getNickName());
+const userId = computed(() => userStore.getUserId());
 
-const notiStore = useNotiStore()
+const notiStore = useNotiStore();
 
 // เพิ่ม state สำหรับจัดการรูปภาพ
-const currentImageIndex = ref(0)
-const imageUrls = ref([])
+const currentImageIndex = ref(0);
+const imageUrls = ref([]);
 
 // ฟังก์ชันสำหรับโหลดรูปภาพ
 const loadImages = async (imageFileNames) => {
   if (!imageFileNames || imageFileNames.length === 0) {
-    imageUrls.value = [noImage, noImage, noImage, noImage]
-    return
+    imageUrls.value = [noImage, noImage, noImage, noImage];
+    return;
   }
 
-  const urls = []
+  const urls = [];
   for (const fileName of imageFileNames) {
     try {
-      const imageUrl = await getImageByFileName(fileName.fileName)
-      urls.push(imageUrl)
+      const imageUrl = await getImageByFileName(fileName.fileName);
+      urls.push(imageUrl);
     } catch (error) {
-      console.error(`Failed to load image ${fileName.fileName}:`, error)
-      urls.push(noImage)
+      console.error(`Failed to load image ${fileName.fileName}:`, error);
+      urls.push(noImage);
     }
   }
 
   // เติม noImage ให้ครบ 4 รูปถ้าไม่ครบ
   while (urls.length < 4) {
-    urls.push(noImage)
+    urls.push(noImage);
   }
 
-  imageUrls.value = urls.slice(0, 4) // จำกัดไม่เกิน 4 รูป
-}
+  imageUrls.value = urls.slice(0, 4); // จำกัดไม่เกิน 4 รูป
+};
 
 // ฟังก์ชันสำหรับเปลี่ยนรูปหลัก
 const changeMainImage = (index) => {
-  currentImageIndex.value = index
-}
+  currentImageIndex.value = index;
+};
 
 const fetchSaleItemById = async () => {
   try {
     if (!saleItemId) {
-      throw new Error('Invalid ID')
+      throw new Error("Invalid ID");
     }
-    const response = await getSaleItemById_v2(saleItemId)
+    const response = await getSaleItemById_v2(saleItemId);
     if (!response.error) {
-      selectSaleItem.value = response
+      selectSaleItem.value = response;
       quantitySelectedItemInCart.value =
-        cartStore.getQuantityByProductId(saleItemId)
-      await loadImages(response.saleItemImages)
+        cartStore.getQuantityByProductId(saleItemId);
+      await loadImages(response.saleItemImages);
     } else {
-      throw new Error('The requested sale item does not exist.')
+      throw new Error("The requested sale item does not exist.");
     }
   } catch (error) {
-    errorMessage.value = error.message
-    isNotFound.value = true
+    errorMessage.value = error.message;
+    isNotFound.value = true;
   }
-}
+};
 
-const toastStore = useToastStore()
+const toastStore = useToastStore();
 
 const addToCart = async () => {
   if (!userNickname.value) {
-    router.push({ name: 'signin' })
-    return
+    router.push({ name: "signin" });
+    return;
   }
 
   if (selectSaleItem.value.seller.id === userId.value) {
-    notiStore.addToCartFail = true
-    return
+    notiStore.addToCartFail = true;
+    return;
   }
-
-  console.log('before set data')
-  console.log('uid' + userId.value)
-  console.log('pid' + selectSaleItem.value.id)
-  console.log('fileName' + selectSaleItem.value?.saleItemImages[0]?.fileName)
-  console.log('qty' + cartQuantity.value)
 
   try {
     const data = {
       userId: userId.value,
       productId: selectSaleItem.value.id,
-      imageFileName: selectSaleItem.value?.saleItemImages[0]?.fileName || '',
+      imageFileName: selectSaleItem.value?.saleItemImages[0]?.fileName || "",
       quantity: cartQuantity.value,
-    }
+    };
 
-    console.log('after set data')
-    console.log('Adding to cart:', data)
-    const response = await addItemToCart(data)
-    console.log('Add to cart response:', response)
+    const response = await addItemToCart(data);
 
     // Check for 401 error
     if (response.error && response.error.status === 401) {
-      userStore.clearUserInfo()
-      userStore.setAccessToken(null)
-      cartStore.setCart(null)
-      saleOrderStore.setSaleOrderQuanatity(0)
-      sessionStorage.clear()
-      localStorage.clear()
-      router.push({ name: "signin" })
-      return
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
     }
 
     if (response.error) {
-      notiStore.addToCartFail = true
-      throw new Error(response.error)
+      notiStore.addToCartFail = true;
+      throw new Error(response.error);
     }
 
-    cartStore.addToCart(response, cartQuantity.value)
-    toastStore.showToast('✓ Added to cart!', 'success')
+    cartStore.addToCart(response, cartQuantity.value);
+    toastStore.showToast("✓ Added to cart!", "success");
     quantitySelectedItemInCart.value =
-      cartStore.getQuantityByProductId(saleItemId)
-    cartQuantity.value = 1
-    console.log('Successfully added to cart store')
+      cartStore.getQuantityByProductId(saleItemId);
+    cartQuantity.value = 1;
   } catch (error) {
-    console.error('Error adding to cart:', error)
-    toastStore.showToast('✗ Failed to add to cart', 'error')
+    console.error("Error adding to cart:", error);
+    toastStore.showToast("✗ Failed to add to cart", "error");
   }
-}
+};
 
-onMounted(fetchSaleItemById)
+onMounted(fetchSaleItemById);
 
 onBeforeUnmount(() => {
   imageUrls.value.forEach((url) => {
-    if (url !== noImage && url.startsWith('blob:')) {
-      URL.revokeObjectURL(url)
+    if (url !== noImage && url.startsWith("blob:")) {
+      URL.revokeObjectURL(url);
     }
-  })
-})
+  });
+});
 
-const cartQuantity = ref(1)
+const cartQuantity = ref(1);
 
 const decreaseQuantity = () => {
   if (cartQuantity.value > 1) {
-    cartQuantity.value--
+    cartQuantity.value--;
   }
-}
+};
 
 const increaseQuantity = () => {
   if (
@@ -177,9 +167,9 @@ const increaseQuantity = () => {
     cartQuantity.value <
       selectSaleItem.value.quantity - quantitySelectedItemInCart.value
   ) {
-    cartQuantity.value++
+    cartQuantity.value++;
   }
-}
+};
 </script>
 
 <template>
@@ -279,7 +269,7 @@ const increaseQuantity = () => {
             <div class="itbms-description">
               <p class="font-semibold">Description:</p>
               <span :class="{ 'text-gray-400': !selectSaleItem.description }">{{
-                selectSaleItem.description || 'No description provided'
+                selectSaleItem.description || "No description provided"
               }}</span>
             </div>
             <div class="itbms-ramGb-unit">
@@ -291,7 +281,7 @@ const increaseQuantity = () => {
                 }"
               >
                 <span class="itbms-ramGb"
-                  >{{ selectSaleItem.ramGb || '-' }}
+                  >{{ selectSaleItem.ramGb || "-" }}
                 </span>
                 <span class="itbms-ramGb-unit">GB</span>
               </span>
@@ -306,7 +296,7 @@ const increaseQuantity = () => {
                 }"
               >
                 <span class="itbms-screenSizeInch">{{
-                  selectSaleItem.screenSizeInch || '-'
+                  selectSaleItem.screenSizeInch || "-"
                 }}</span>
                 <span class="itbms-screenSizeInch-unit">Inches</span>
               </span>
@@ -320,7 +310,7 @@ const increaseQuantity = () => {
                 }"
               >
                 <span class="itbms-storageGb">
-                  {{ selectSaleItem.storageGb || '-' }}
+                  {{ selectSaleItem.storageGb || "-" }}
                 </span>
                 <span class="itbms-storageGb-unit">GB</span>
               </span>
@@ -328,7 +318,7 @@ const increaseQuantity = () => {
             <div class="itbms-color">
               <span class="font-semibold">Color: </span>
               <span :class="{ 'text-gray-400': !selectSaleItem.color }">
-                {{ selectSaleItem.color || '-' }}
+                {{ selectSaleItem.color || "-" }}
               </span>
             </div>
             <div>
@@ -450,5 +440,4 @@ const increaseQuantity = () => {
   />
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

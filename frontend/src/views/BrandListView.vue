@@ -138,7 +138,6 @@ onMounted(() => {
       </div>
     </div>
     <div class="mt-10">
-      <!-- error message -->
       <div
         v-if="!brandStore.brands && hasError !== '' && hasError"
         class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-red-100 border-1 border-red-300"
@@ -146,7 +145,6 @@ onMounted(() => {
         <p class="text-red-500 font-extralight">{{ hasError }}</p>
       </div>
 
-      <!-- loader -->
       <div
         v-else-if="!brandStore.brands"
         class="m-10 overflow-auto rounded-lg shadow"
@@ -169,7 +167,6 @@ onMounted(() => {
         </table>
       </div>
 
-      <!-- show brand list -->
       <div
         v-else-if="brandStore.brands && brandStore.brands.length > 0"
         class="rounded-lg shadow"
@@ -226,7 +223,6 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- no sale item -->
       <div
         v-if="brandStore.brands && brandStore.brands.length === 0"
         class="w-full h-full p-12 flex justify-center items-center rounded-lg bg-purple-200 border-1 border-purple-400"

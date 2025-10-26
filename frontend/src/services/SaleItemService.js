@@ -68,7 +68,6 @@ const getAllSaleItems_v2 = async (
     const saleItemStore = useSaleItemStore();
 
     saleItemStore.setSaleItemsPage(data);
-    console.log(data);
 
     return data;
   } catch (error) {
@@ -115,7 +114,9 @@ const getImageByFileName = async (fileName) => {
   try {
     if (!fileName) throw new Error("fileName is required.");
     const response = await fetch(
-      `${import.meta.env.VITE_URL_API || "/ssi1"}/itb-mshop/sale-items/${fileName}`,
+      `${
+        import.meta.env.VITE_URL_API || "/ssi1"
+      }/itb-mshop/sale-items/${fileName}`,
       {
         mode: "cors",
       }
@@ -168,10 +169,13 @@ const deleteSaleItemByIdV2 = async (id) => {
 
     if (!id) throw new Error(`Sale Item ID is required for deletion.`);
 
-    const response = await fetchWithTokenRetry(`${SALE_ITEM_API_URL_V2}/${id}`, {
-      method: "DELETE",
-      headers: {},
-    });
+    const response = await fetchWithTokenRetry(
+      `${SALE_ITEM_API_URL_V2}/${id}`,
+      {
+        method: "DELETE",
+        headers: {},
+      }
+    );
 
     if (response.status !== 204) {
       throw new Error(
@@ -227,14 +231,9 @@ const createSaleItem_v2 = async (saleItem, images) => {
         );
       }
     }
-    console.log(images);
 
     if (images) {
-      console.log(images);
-
       images.newImages.forEach((img, index) => {
-        console.log(img);
-
         const splitFileName = img.fileName.split(".");
 
         const ext = splitFileName.pop();
@@ -253,8 +252,6 @@ const createSaleItem_v2 = async (saleItem, images) => {
       headers: {},
     });
 
-    console.log(response);
-
     if (!response.ok) {
       const error = new Error(
         `Failed to create sale item. Server responded with status ${response.status}`
@@ -266,7 +263,10 @@ const createSaleItem_v2 = async (saleItem, images) => {
     return await response.json();
   } catch (error) {
     return {
-      error: { message: `Error creating sale item: ${error.message}`, status: error.status },
+      error: {
+        message: `Error creating sale item: ${error.message}`,
+        status: error.status,
+      },
     };
   }
 };
@@ -315,8 +315,6 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
       }
     }
 
-    console.log(images);
-
     if (images) {
       images.newImages.forEach((img) => {
         const reordered = images.reorderedImages.find(
@@ -339,16 +337,18 @@ const updateSaleItemById_v2 = async (id, saleItem, images) => {
       images.reorderedImages.forEach((ele, i) => {
         orderImage += `${i != 0 ? "|" : ""}${ele.fileName},${ele.newOrder}`;
       });
-      console.log(orderImage);
 
       formData.append("orderImages", orderImage);
     }
 
-    const response = await fetchWithTokenRetry(`${SALE_ITEM_API_URL_V2}/${id}`, {
-      method: "PUT",
-      body: formData,
-      headers: {},
-    });
+    const response = await fetchWithTokenRetry(
+      `${SALE_ITEM_API_URL_V2}/${id}`,
+      {
+        method: "PUT",
+        body: formData,
+        headers: {},
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -393,11 +393,14 @@ const updateSaleItemImageById = async (id, images) => {
       formData.append("orderImages", orderImage);
     }
 
-    const response = await fetchWithTokenRetry(`${SALE_ITEM_API_URL_V2}/${id}/images`, {
-      method: "PUT",
-      body: formData,
-      headers: {},
-    });
+    const response = await fetchWithTokenRetry(
+      `${SALE_ITEM_API_URL_V2}/${id}/images`,
+      {
+        method: "PUT",
+        body: formData,
+        headers: {},
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
@@ -418,8 +421,6 @@ const getSaleItemsBySeller = async (
   pageInfo = { page: 0, size: 10 }
 ) => {
   try {
-    
-
     if (!sellerId) throw new Error("Seller ID is required");
     const getRequestParameter = () => {
       const requestParameter = [];

@@ -5,7 +5,6 @@ const toastStore = useToastStore()
 </script>
 
 <template>
-  <!-- ✅ Global Toast Container -->
   <div class="toast toast-bottom toast-end z-50 flex flex-col-reverse gap-2">
     <TransitionGroup name="toast">
       <div
