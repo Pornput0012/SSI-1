@@ -24,59 +24,42 @@ const shipTo = ref({
 const hasError = ref("");
 
 onMounted(async () => {
-  loadSavedData();
+  // loadSavedData();
   try {
-    if (cartStore.carts) {
-      carts.value = cartStore.carts.map((ele) => {
-        return {
-          ...ele,
-          checkAll: false,
-        };
-      });
-      if (cartStore.carts && cartStore.carts.length > 0) {
-        const first = cartStore.carts[0];
-        if (first) {
-          shipTo.value.address = first.address || shipTo.value.address;
-          shipTo.value.note = first.note || shipTo.value.note;
-          shippingAddress.value = shipTo.value.address;
-          orderNote.value = shipTo.value.note;
-        }
-      }
-    } else {
-      const response = await getAllCart(userId.value);
+    const response = await getAllCart(userId.value);
 
-      if (response.error && response.error.status === 401) {
-        userStore.clearUserInfo();
-        userStore.setAccessToken(null);
-        cartStore.setCart(null);
-        saleOrderStore.setSaleOrderQuanatity(0);
-        sessionStorage.clear();
-        localStorage.clear();
-        router.push({ name: "signin" });
-        return;
-      }
-
-      if (response.error) {
-        throw new Error(response.error);
-      }
-      const first = response && response.length ? response[0] : null;
-      if (first) {
-        shipTo.value.address = first.address || shipTo.value.address;
-        shipTo.value.note = first.note || shipTo.value.note;
-        shippingAddress.value = shipTo.value.address;
-        orderNote.value = shipTo.value.note;
-      }
-
-      carts.value = response?.map((ele) => {
-        return {
-          ...ele,
-          cart: ele?.cart.map((ele) => {
-            return { ...ele, checked: false };
-          }),
-          checkAll: false,
-        };
-      });
+    if (response.error && response.error.status === 401) {
+      userStore.clearUserInfo();
+      userStore.setAccessToken(null);
+      cartStore.setCart(null);
+      saleOrderStore.setSaleOrderQuanatity(0);
+      sessionStorage.clear();
+      localStorage.clear();
+      router.push({ name: "signin" });
+      return;
     }
+
+    if (response.error) {
+      throw new Error(response.error);
+    }
+    const first = response && response.length ? response[0] : null;
+    if (first) {
+      shipTo.value.address = first.address || shipTo.value.address;
+      shipTo.value.note = first.note || shipTo.value.note;
+      shippingAddress.value = shipTo.value.address;
+      orderNote.value = shipTo.value.note;
+    }
+
+    carts.value = response?.map((ele) => {
+      return {
+        ...ele,
+        cart: ele?.cart.map((ele) => {
+          return { ...ele, checked: false };
+        }),
+        checkAll: false,
+      };
+    });
+
     await loadImages();
   } catch (error) {
     hasError.value = error.message;
@@ -227,7 +210,7 @@ const productLength = computed(() => {
   if (carts.value) {
     carts.value.forEach((sellerCart) => {
       sellerCart.cart.forEach((item) => {
-        countItem+=item.quantity;
+        countItem += item.quantity;
       });
     });
   }
@@ -280,36 +263,6 @@ const STORAGE_KEYS = {
 const shippingAddress = ref("");
 const orderNote = ref("");
 const orderStore = useOrderStore();
-
-const loadSavedData = () => {
-  const savedAddress = sessionStorage.getItem(STORAGE_KEYS.SHIPPING_ADDRESS);
-  const savedNote = sessionStorage.getItem(STORAGE_KEYS.ORDER_NOTE);
-
-  if (savedAddress) {
-    shippingAddress.value = savedAddress;
-    shipTo.value.address = savedAddress;
-  }
-  if (savedNote) {
-    orderNote.value = savedNote;
-    shipTo.value.note = savedNote;
-  }
-};
-
-const saveFormData = () => {
-  shipTo.value.address = shippingAddress.value
-    ? shippingAddress.value.trim()
-    : "";
-  shipTo.value.note = orderNote.value ? orderNote.value.trim() : "";
-
-  sessionStorage.setItem(
-    STORAGE_KEYS.SHIPPING_ADDRESS,
-    shippingAddress.value ? shippingAddress.value.trim() : ""
-  );
-  sessionStorage.setItem(
-    STORAGE_KEYS.ORDER_NOTE,
-    orderNote.value ? orderNote.value.trim() : ""
-  );
-};
 
 const handlePlaceOrder = async () => {
   try {
@@ -370,8 +323,6 @@ const handlePlaceOrder = async () => {
       throw new Error(response.error);
     }
 
-    saveFormData();
-
     orderStore.addOrder(response);
 
     carts.value.forEach((sellerCart, i) => {
@@ -392,12 +343,6 @@ const handlePlaceOrder = async () => {
     console.error("Error placing order:", error);
   }
 };
-
-watch([shippingAddress, orderNote], () => {
-  if (shippingAddress.value || orderNote.value) {
-    saveFormData();
-  }
-});
 
 const notiStore = useNotiStore();
 const orderCreateSuccess = () => {
