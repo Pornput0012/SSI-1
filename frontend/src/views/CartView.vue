@@ -227,7 +227,7 @@ const productLength = computed(() => {
   if (carts.value) {
     carts.value.forEach((sellerCart) => {
       sellerCart.cart.forEach((item) => {
-        countItem++;
+        countItem+=item.quantity;
       });
     });
   }

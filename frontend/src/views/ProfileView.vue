@@ -173,10 +173,10 @@ const closeModal = () => {
                   >ชื่อผู้ใช้ (nickname)</span
                 >
               </label>
-              <input
-                class="itbms-nickname p-3 bg-base-200 rounded-lg"
-                :value="userInfo.nickName"
-              />
+              <input class="block itbms-nickname p-3 bg-base-200 rounded-lg" :value="userInfo.nickName" readonly>
+               
+              </input>
+
             </div>
 
             <!-- Email -->
