@@ -42,8 +42,6 @@ services:
       JWT_SECRET_ACCESS: ${JWT_SECRET_ACCESS:-dev-only-access-token-secret-change-me}
       JWT_SECRET_REFRESH: ${JWT_SECRET_REFRESH:-dev-only-refresh-token-secret-change-me}
       TZ: ${TZ:-Asia/Bangkok}
-    ports:
-      - "${BACKEND_PORT:-8080}:8080"
     volumes:
       - backend_uploads:/usr/src/myapp/picture
     depends_on:
