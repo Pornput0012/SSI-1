@@ -14,8 +14,54 @@ if [[ -n "${SUDO_USER:-}" ]]; then
   RUN_HOME="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
 fi
 readonly LAB_DIR="${INT531_LAB_DIR:-$RUN_HOME/int531-slo-chaos-lab}"
+readonly CRON_USER="${SUDO_USER:-$(id -un)}"
 
-for command in docker curl; do
+as_cron_user() {
+  if [[ "$(id -un)" == "$CRON_USER" ]]; then
+    "$@"
+  else
+    sudo -u "$CRON_USER" "$@"
+  fi
+}
+
+install_daily_check_cron() {
+  local current_crontab filtered_crontab
+  as_cron_user mkdir -p "$LAB_DIR/logs"
+  current_crontab="$(as_cron_user crontab -l 2>/dev/null || true)"
+  filtered_crontab="$(printf '%s\n' "$current_crontab" | awk '
+    $0 == "# BEGIN SSI-1 check-collecting" { in_block = 1; next }
+    $0 == "# END SSI-1 check-collecting" { in_block = 0; next }
+    in_block { next }
+    index($0, "scripts/check-collecting.sh") && index($0, "check-collecting.log") { next }
+    { print }
+  ')"
+
+  {
+    printf '%s\n' "$filtered_crontab"
+    printf '\n# BEGIN SSI-1 check-collecting\n'
+    printf '0 9 * * * cd "%s" && /bin/bash scripts/check-collecting.sh >> "%s/logs/check-collecting.log" 2>&1\n' "$LAB_DIR" "$LAB_DIR"
+    printf '# END SSI-1 check-collecting\n'
+  } | as_cron_user crontab -
+  printf 'Installed daily check-collecting cron job for %s at 09:00 server time.\n' "$CRON_USER"
+}
+
+ensure_cron_daemon() {
+  if systemctl is-active --quiet cron || systemctl is-active --quiet crond; then
+    return
+  fi
+
+  if systemctl list-unit-files --type=service --no-legend | awk '$1 == "cron.service" { found = 1 } END { exit !found }'; then
+    sudo systemctl enable --now cron
+    return
+  fi
+  if systemctl list-unit-files --type=service --no-legend | awk '$1 == "crond.service" { found = 1 } END { exit !found }'; then
+    sudo systemctl enable --now crond
+    return
+  fi
+  fail "Cron is not installed. Install the cron package, then run this script again."
+}
+
+for command in docker curl sudo crontab; do
   command -v "$command" >/dev/null 2>&1 || fail "Required command '$command' is missing."
 done
 docker compose version >/dev/null 2>&1 || fail "Docker Compose plugin is required."
@@ -65,6 +111,9 @@ sudo bash "$LAB_DIR/scripts/install-service.sh" \
   --mode byo \
   --target "$target" \
   --interval 1
+
+ensure_cron_daemon
+install_daily_check_cron
 
 printf 'Waiting for probe metrics and a Prometheus scrape...\n'
 metrics_ready=0

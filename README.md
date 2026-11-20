@@ -35,7 +35,9 @@ from this checkout. By default it looks for the lab checkout at
 `~/int531-slo-chaos-lab`; set `INT531_LAB_DIR` if it is elsewhere. It runs the
 lab preflight and sizing scripts, starts the app, then installs the BYO probe
 against the read-only sale-item API through Nginx. The probe interval is one
-second, as in the lab instructions.
+second, as in the lab instructions. It also adds an idempotent 09:00 daily
+Cron check for `check-collecting.sh`, logging to
+`$INT531_LAB_DIR/logs/check-collecting.log`.
 
 ```sh
 INT531_LAB_DIR="$HOME/int531-slo-chaos-lab" bash scripts/setup-int531-byo.sh
