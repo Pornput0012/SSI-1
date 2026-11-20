@@ -4,7 +4,7 @@ WORKDIR /usr/src/myapp
 COPY . .
 RUN mvn clean package -DskipTests
 
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jre-noble
 WORKDIR /usr/src/myapp
 
 COPY --from=builder /usr/src/myapp/target/*.jar app.jar
