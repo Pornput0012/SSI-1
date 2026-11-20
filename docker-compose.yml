@@ -1,35 +1,67 @@
 services:
   db_server:
-    image: mysql:latest
-    container_name: db_server
+    image: mysql:8.4
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-INT221}
-      MYSQL_USER: ${MYSQL_USER:-user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-0000}
+      MYSQL_DATABASE: INT221
+      MYSQL_USER: ${MYSQL_USER:-ssi}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ssi-local-password}
       MYSQL_CHARACTER_SET_SERVER: utf8mb4
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
-      TZ: Asia/Bangkok
+      TZ: ${TZ:-Asia/Bangkok}
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 20s
-      timeout: 30s
-      retries: 3
-      start_period: 10s
-    restart: always
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u\"$$MYSQL_USER\" -p\"$$MYSQL_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
   backend:
     build: ./backend
-    container_name: backend
-    ports:
-      - 8080:8080
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db_server:3306/${MYSQL_DATABASE:-INT221}?serverTimezone=Asia/Bangkok
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
-      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      TZ: Asia/Bangkok
+      SPRING_DATASOURCE_URL: jdbc:mysql://db_server:3306/INT221?serverTimezone=Asia/Bangkok
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-ssi}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-ssi-local-password}
+      FILE_UPLOAD_DIR: /usr/src/myapp/picture
+      APP_HOST_URL: ${APP_HOST_URL:-http://localhost:${FRONTEND_PORT:-5173}}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:${FRONTEND_PORT:-5173},http://127.0.0.1:${FRONTEND_PORT:-5173}}
+      MAIL_HOST: ${MAIL_HOST:-localhost}
+      MAIL_PORT: ${MAIL_PORT:-1025}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-false}
+      MAIL_SMTP_STARTTLS_ENABLE: ${MAIL_SMTP_STARTTLS_ENABLE:-false}
+      MAIL_SMTP_STARTTLS_REQUIRED: ${MAIL_SMTP_STARTTLS_REQUIRED:-false}
+      JWT_ISSUER: ${JWT_ISSUER:-http://localhost:${FRONTEND_PORT:-5173}}
+      JWT_SECRET_VERIFY_EMAIL: ${JWT_SECRET_VERIFY_EMAIL:-dev-only-verify-email-secret-change-me}
+      JWT_SECRET_RESET_PASSWORD: ${JWT_SECRET_RESET_PASSWORD:-dev-only-reset-password-secret-change-me}
+      JWT_SECRET_ACCESS: ${JWT_SECRET_ACCESS:-dev-only-access-token-secret-change-me}
+      JWT_SECRET_REFRESH: ${JWT_SECRET_REFRESH:-dev-only-refresh-token-secret-change-me}
+      TZ: ${TZ:-Asia/Bangkok}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    volumes:
+      - backend_uploads:/usr/src/myapp/picture
     depends_on:
       db_server:
         condition: service_healthy
-    restart: always
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_URL_API: ${VITE_URL_API:-/ssi1}
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  backend_uploads:

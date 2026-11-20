@@ -134,14 +134,13 @@ public class JwtService {
         Date expiryDate = new Date(now.getTime() + ACCESS_TOKEN_EXP);
 
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .issuer("https://int24proj.sit.kmutt.ac.th/ssi1/")
                 .issueTime(now)
                 .expirationTime(expiryDate)
                 .claim("nickname", nickname)
                 .claim("id", userId)
                 .claim("email", email)
                 .claim("role", role)
-                .issuer("https://intproj24.sit.kmutt.ac.th/ssi1/")
+                .issuer(jwtProperties.getIssuer())
                 .build();
 
         SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);
@@ -179,7 +178,7 @@ public class JwtService {
                 .claim("id", userId)
                 .claim("role", role)
                 .claim("nickName", nickName)
-                .issuer("https://intproj24.sit.kmutt.ac.th/ssi1/")
+                .issuer(jwtProperties.getIssuer())
                 .build();
 
         SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claims);

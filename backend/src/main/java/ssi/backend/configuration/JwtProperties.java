@@ -12,4 +12,5 @@ public class JwtProperties {
     private String secretResetPassword;
     private String secretAccess;
     private String secretRefresh;
+    private String issuer;
 }
