@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/itb-mshop/v1/brands")
-@CrossOrigin(origins = "${app.cors.allowedOrigins}")
+@CrossOrigin(originPatterns = "${app.cors.allowedOrigins:*}", allowCredentials = "true")
 public class BrandController {
 
     @Autowired

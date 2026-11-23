@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/itb-mshop")
-@CrossOrigin(origins = "${app.cors.allowedOrigins}",
+@CrossOrigin(originPatterns = "${app.cors.allowedOrigins:*}",
         allowCredentials = "true")
 public class UserController {
     private final JwtService jwtService;

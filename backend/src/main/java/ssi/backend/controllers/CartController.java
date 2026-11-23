@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/itb-mshop/v1/carts")
-@CrossOrigin(origins = "${app.cors.allowedOrigins}")
+@CrossOrigin(originPatterns = "${app.cors.allowedOrigins:*}", allowCredentials = "true")
 public class CartController {
 
     @Autowired

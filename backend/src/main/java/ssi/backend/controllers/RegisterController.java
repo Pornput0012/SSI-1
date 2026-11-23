@@ -20,7 +20,7 @@ import ssi.backend.services.UserService;
 
 @RestController
 @RequestMapping("/itb-mshop/v2/auth")
-@CrossOrigin(origins = "${app.cors.allowedOrigins}")
+@CrossOrigin(originPatterns = "${app.cors.allowedOrigins:*}", allowCredentials = "true")
 public class RegisterController {
 
     @Autowired

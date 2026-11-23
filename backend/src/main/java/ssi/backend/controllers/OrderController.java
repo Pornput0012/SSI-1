@@ -20,7 +20,7 @@ import ssi.backend.services.UserService;
 
 @RestController
 @RequestMapping("/itb-mshop")
-@CrossOrigin(origins = "${app.cors.allowedOrigins}", allowCredentials = "true")
+@CrossOrigin(originPatterns = "${app.cors.allowedOrigins:*}", allowCredentials = "true")
 public class OrderController {
     @Autowired
     private OrderService orderService;
