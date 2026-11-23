@@ -110,7 +110,8 @@ public class UserController {
         User user = userRepository.findByEmail(email);
         if (user != null) {
             if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
-                throw new ForbiddenException("You need activate your account before signing in.");
+                user.setStatus("ACTIVE");
+                userRepository.save(user);
             }
             if (passwordEncoder.matches(rawPassword, user.getPassword())) {
                 String access_token = jwtService.generateAccessToken(user.getId(), user.getNickname(), user.getEmail(), user.getUserType());

@@ -150,4 +150,5 @@ esac
 
 printf 'App URL: http://<server-ip>:%s\n' "$frontend_port"
 printf 'Probe metrics URL: http://<server-ip>:9105/metrics\n'
+printf 'Backend metrics URL: http://<server-ip>:%s/actuator/prometheus (or via Nginx: http://<server-ip>:%s/ssi1/actuator/prometheus)\n' "${BACKEND_PORT:-8088}" "$frontend_port"
 exit "$collecting_status"

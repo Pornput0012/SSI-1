@@ -210,7 +210,7 @@ const productLength = computed(() => {
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">
                 <div class="w-10 rounded-full">
                   <img
-                    src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+                    src="/pictures/default-avatar.webp"
                     alt="User Avatar"
                   />
                 </div>

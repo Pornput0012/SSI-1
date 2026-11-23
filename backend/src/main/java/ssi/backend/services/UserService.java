@@ -126,6 +126,7 @@ public class UserService {
         creatingUser.setId(null);
         creatingUser.setPassword(passwordEncoder.encode(user.getPassword()));
         creatingUser.setUserType(user.getUserType().toUpperCase());
+        creatingUser.setStatus("ACTIVE");
 
         List<String> fileNames = null;
 
@@ -151,30 +152,7 @@ public class UserService {
         User savedUser;
         try {
             savedUser = userRepository.save(creatingUser);
-
-            try {
-                String token = jwtService.generateVerifyEmailToken(
-                        savedUser.getId(),
-                        savedUser.getFullname(),
-                        savedUser.getEmail(),
-                        savedUser.getUserType().toString()
-                );
-                emailService.sendEmail(
-                        savedUser.getEmail(),
-                        "Welcome to ITB-MSHOP!",
-                        "สวัสดีคุณ " + savedUser.getFullname()
-                                + " 🎉\n\nการสมัครสมาชิกของคุณเสร็จสมบูรณ์แล้ว โปรดกดยืนยันอีเมลเพื่อเข้าสู่ระบบที่ลิงก์ด้านล่าง\n\n"
-                                + hostProperties.getUrl()
-                                + "/verify-email?jwtToken=" + token
-                                + "\n\nขอบคุณที่เข้าร่วมกับเรา!"
-                );
-
-            } catch (Exception e) {
-                System.err.println("❌ ส่งอีเมลไปยัง " + savedUser.getUserType() + " ไม่สำเร็จ: " + e.getMessage());
-            }
-
             return savedUser;
-
         } catch (Exception e) {
 
             if (user.getUserType().equalsIgnoreCase("SELLER") && images != null && !images.isEmpty()) {
@@ -194,17 +172,12 @@ public class UserService {
                 throw new BadRequestException("Invalid email or User id");
             }
 
-            if (user.getStatus().equalsIgnoreCase("active")) {
-                throw new ConfilctResourceException("Email already verified");
-            }
-
             user.setStatus("ACTIVE");
             user.setId(emailVerifyClaim.getUserId());
             userRepository.save(user);
 
             UserResponseDTO userResponseDTO = modelMapper.map(user, UserResponseDTO.class);
             userResponseDTO.setUserType(emailVerifyClaim.getRole());
-            //userResponseDTO.setIsActive(true);
 
             return userResponseDTO;
 
@@ -224,8 +197,9 @@ public class UserService {
         if (user == null) {
             throw new BadRequestException("Invalid email or User id");
         }
-        if (user.getStatus().equalsIgnoreCase("inactive")) {
-            throw new ForbiddenException("You need activate your account before signing in.");
+        if ("inactive".equalsIgnoreCase(user.getStatus())) {
+            user.setStatus("ACTIVE");
+            userRepository.save(user);
         }
         return modelMapper.map(user, UserProfileResponseDTO.class);
     }
@@ -242,8 +216,9 @@ public class UserService {
         }
 
         User user = userRepository.findById(id).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        if (user.getStatus().equalsIgnoreCase("inactive")) {
-            throw new ConfilctResourceException("User is not active");
+        if ("inactive".equalsIgnoreCase(user.getStatus())) {
+            user.setStatus("ACTIVE");
+            userRepository.save(user);
         }
 
         return modelMapper.map(user, UserProfileResponseDTO.class);

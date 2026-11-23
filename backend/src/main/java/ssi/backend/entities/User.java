@@ -48,7 +48,7 @@ public class User {
     private String fullname;
 
     @Column(name = "status")
-    private String status = "INACTIVE";
+    private String status = "ACTIVE";
 
     @Size(max = 255)
     @Column(name = "phoneNumber ")

@@ -19,10 +19,10 @@ reachable through Nginx and is not published directly on the host. Set
 server. Set `APP_CORS_ALLOWED_ORIGINS` if browser clients will call the backend
 from other origins.
 
-Email verification and password reset require a reachable SMTP server. Set
-`MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, and the SMTP flags in
-`.env` to enable it. Replace all development database passwords and JWT secrets
-before exposing the deployment to other users.
+Email verification is disabled; newly registered accounts are active immediately
+without requiring email confirmation or an external SMTP server. Password reset links
+are logged directly to the backend service logs. Replace all development database
+passwords and JWT secrets before exposing the deployment to other users.
 
 The schema bootstrap in `db/init.sql` uses the database name `INT221`; keep the
 MySQL database name aligned with it. The bootstrap script runs only when the
