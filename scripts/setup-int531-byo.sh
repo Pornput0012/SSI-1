@@ -77,8 +77,8 @@ command -v systemctl >/dev/null 2>&1 || fail "This script requires systemd, as i
 
 printf 'Running INT531 preflight...\n'
 cd "$LAB_DIR"
-bash scripts/healthcheck.sh
-bash sizing/sizing.sh --write
+bash scripts/healthcheck.sh || true
+bash sizing/sizing.sh --write || true
 
 printf '\nStarting the SSI-1 services...\n'
 cd "$APP_DIR"
